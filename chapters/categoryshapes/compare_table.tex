@@ -1,0 +1,24 @@
+\renewcommand{\arraystretch}{1.4} 
+\setlength{\tabcolsep}{8pt}
+\begin{table}
+\centering
+\footnotesize
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{cccccccccccc|c}
+\toprule 
+	& 	& \textbf{aero}	& \textbf{bike}	& \textbf{boat}	& \textbf{bus}	& \textbf{car}	& \textbf{chair}	& \textbf{mbike}	& \textbf{sofa}	& \textbf{train}	& \textbf{tv}	& \textbf{mean}
+\\
+\midrule
+
+\multirow{3}{*}{\textbf{Mesh}} 	& Ours	& \textbf{1.72} & \textbf{1.78} & 3.01 & \textbf{1.90} & 1.77 & \textbf{2.18} & 1.88 & \textbf{2.13} & \textbf{2.39} & \textbf{3.28} & \textbf{2.20} \\
+& Carvi~\cite{carvi14}	& 1.87 & 1.87 & \textbf{2.51} & 2.36 & \textbf{1.41} & 2.42 & \textbf{1.82} & 2.31 & 3.10 & 3.39 & 2.31 \\
+& Puff~\cite{twarog2012playing}	& 3.30 & 2.52 & 2.90 & 3.32 & 2.82 & 3.09 & 2.58 & 2.53 & 3.92 & 3.31 & 3.03 \\
+\midrule
+\multirow{3}{*}{\textbf{Depth}}	& Ours	& \textbf{9.51} & \textbf{9.27} & 17.20 & \textbf{12.71} & 9.94 & \textbf{7.78} & 9.61 & \textbf{13.70} & 31.58 & 8.78 & \textbf{13.01} \\
+& Carvi~\cite{carvi14}	& 10.05 & 9.28 & \textbf{15.06} & 18.51 & \textbf{8.14} & 7.98 & \textbf{9.38} & 13.71 & \textbf{31.25} & \textbf{8.33} & 13.17 \\
+& SIRFS~\cite{barronPAMI13}	& 13.52 & 13.79 & 20.78 & 29.93 & 22.48 & 18.59 & 16.80 & 18.28 & 40.56 & 20.18 & 21.49 \\
+\bottomrule
+\end{tabular}}
+\caption{Studying the quality of our learnt 3D models: comparison between our method and \cite{carvi14,twarog2012playing} using ground truth keypoints and masks on PASCAL VOC.}
+\label{tab:carvi_compare}
+\end{table}

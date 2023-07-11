@@ -1,0 +1,21 @@
+\bgroup
+\def\arraystretch{1.0}
+\setlength\tabcolsep{2.0pt}
+\begin{table*}[ht]
+\scriptsize
+  \begin{center}
+    \caption{Total number of feasible and infeasible data points available in the dataset out of 452,760,000 data points in the search space. The last column shows the maximum number of data used for training the surrogate model (large dataset).}
+    \label{tab:ds}
+    \begin{tabular}{@{}l|l|l|l@{}}
+    \textbf{Name}&\textbf{\# of Feasible}&\textbf{\# of Infeasible}&\textbf{\# of Feasible in Training (large)}\\
+    \hline
+    MobileNetEdge~\cite{efficientnet:2020}&115,711&384,355&13,482\\
+    MobileNetV2~\cite{mnv2:arxiv:2018}&127,707&372,359&13,083\\
+    MobileNetV3~\cite{mnv3:cvpr:2019}&101,336&398,730&12,018\\
+    \mfour&104,074&395,992&13,564\\
+    \mfive&150,757&349,309&19,468\\
+    \msix&121,832&378,234&12,063
+    \end{tabular}
+  \end{center}
+\end{table*}
+\egroup

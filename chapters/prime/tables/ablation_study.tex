@@ -1,0 +1,26 @@
+
+
+\begin{table}[t]
+\captionsetup{font=small}
+\vspace{5pt}
+\centering
+\caption{\label{table:appx_results_single_task}{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to a given application. Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\methodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\methodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that, in all the applications \methodname\ improves over the best in the dataset, outperforms online optimization methods in 7/9 applications and the complete version of \methodname\ generally performs best. The best accelerator designs are in bold.}}
+\renewcommand{\arraystretch}{1.2}
+\fontsize{7}{7}\selectfont
+\begin{tabular}{l||r|r|r||r||r|r||r}
+\hline
+&\multicolumn{3}{c||}{\textbf{\methodname}}&&\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
+\textbf{Application}&\textbf{All}& \textbf{-Opt}&\textbf{-Infeasible}&\textbf{Standard}&\textbf{Bayes Opt}&\textbf{Evolutionary}&\textbf{$\mathcal{D}$ (Best in Training)}\\\midrule
+MobileNetEdge&\textbf{298.50}&435.40&322.20&411.12&319.00&320.28&354.13\\\hline
+MobileNetV2&\textbf{207.43}&281.01&214.71&374.52&240.56&238.58&410.83\\\hline
+MobileNetV3&\textbf{454.30}&489.45&483.96&575.75&534.15&501.27&938.41\\\hline
+\mfour&\textbf{370.45}&478.32&432.78&1139.76&396.36&383.58&779.98\\\hline
+\mfive&208.21&319.61&246.80&307.57&201.59&\textbf{198.86}&449.38\\\hline
+\msix&131.46&197.70&162.12&180.24&121.83&\textbf{120.49}&369.85\\\hline
+U-Net&\textbf{740.27}&740.27&765.59&763.10&872.23&791.64&1333.18\\\hline
+t-RNN Dec&\textbf{132.88}&172.06&135.47&136.20&771.11&770.93&890.22\\\hline
+t-RNN Enc&\textbf{130.67}&134.84&137.28&150.21&865.07&865.07&584.70\\\bottomrule
+\end{tabular}
+\normalsize
+\vspace{-16pt}
+\end{table}

@@ -1,0 +1,28 @@
+\section{Preliminaries}
+\label{sec:background}
+\vspace{-8pt}
+The goal in reinforcement learning is to learn a policy that maximizes the expected cumulative discounted reward in a Markov decision process (MDP), which is defined by a tuple $(\mathcal{S}, \mathcal{A}, \transitions, r, \gamma)$.
+$\mathcal{S}, \mathcal{A}$ represent state and action spaces, $\transitions(\bs' | \bs, \mathbf{a})$ and $r(\bs,\mathbf{a})$ represent the dynamics and reward function, and $\gamma \in (0,1)$ represents the discount factor. $\behavior(\mathbf{a}|\bs)$ represents the behavior policy, $\mathcal{D} = \{(\bs, \mathbf{a}, r, \bs')\}$ is the dataset of tuples from trajectories collected under a behavior policy $\behavior$, and $d^\behavior(\bs)$ is the discounted marginal state-distribution of $\behavior(\mathbf{a}|\bs)$. The dataset $\mathcal{D}$ is sampled from $d^\behavior(\bs) \behavior(\mathbf{a}|\bs)$. {On all states $\bs \in \mathcal{D}$, let $\hatbehavior(\mathbf{a}|\bs) := \frac{\sum_{\bs,\mathbf{a} \in \mathcal{D}} \mathbf{1} [\bs = \bs , \mathbf{a} = \mathbf{a}]}{\sum_{\bs \in \mathcal{D}} \mathbf{1}[\bs = \bs]}$ denote the empirical behavior policy, at that state.} We assume that the rewards $r$ satisfy: $|r(\bs, \mathbf{a})| \leq R_{\max}$.
+
+% off-policy RL
+Off-policy RL algorithms based on dynamic programming maintain a parametric Q-function $Q_\theta(s, a)$ and, optionally, a parametric policy, $\pi_\phi(a|s)$. 
+Q-learning methods train the Q-function by iteratively applying the Bellman optimality operator $\mathcal{B}^*Q(\bs, \mathbf{a}) = r(\bs, \mathbf{a}) + \gamma \E_{\bs' \sim P(\bs'|\bs, \mathbf{a})}[\max_{\mathbf{a}'} Q(\bs', \mathbf{a}')]$, and use exact or an approximate maximization scheme, such as CEM~\citep{kalashnikov2018qtopt} to recover the greedy policy. In an actor-critic algorithm, a separate policy is trained to maximize the Q-value.
+Actor-critic methods alternate between computing $Q^\policy$ via (partial) policy evaluation,
+by iterating the Bellman operator, $\mathcal{B}^\pi Q= r + \gamma P^\pi Q$, where $P^\pi$ is the transition matrix coupled with the policy: $P^\pi Q(\bs, \mathbf{a}) = \E_{\bs' \sim \transitions(\bs' | \bs, \mathbf{a}), \mathbf{a}' \sim \pi(\mathbf{a}'|\bs')} \left[ Q(\bs', \mathbf{a}') \right],$
+and improving the policy
+$\policy(\mathbf{a}|\bs)$ by updating it towards actions that maximize the expected Q-value. Since $\mathcal{D}$ typically does not contain all possible transitions $(\bs, \mathbf{a}, \bs')$, the policy evaluation step actually uses an empirical Bellman operator that only backs up a single sample. We denote this operator $\hat{\bellman}^\policy$. Given the dataset $\mathcal{D} = \{(\bs, \mathbf{a}, r, \bs')\}$ of tuples from trajectories collected under a behavior policy $\behavior$:
+\begin{small}
+
+\begin{align*}
+    \hat{Q}^{k+1} \leftarrow& \arg\min_{Q} \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[ \left((r(\bs, \mathbf{a}) + \gamma \E_{\mathbf{a}' \sim \hat{\policy}^k(\mathbf{a}'|\bs')}[\hat{Q}^{k}(\bs', \mathbf{a}')]) - Q(\bs, \mathbf{a})\right)^2 \right]~\text{(policy evaluation)}\\ 
+    \hat{\policy}^{k+1} \leftarrow& \arg\max_{\policy} \E_{\bs \sim \mathcal{D}, \mathbf{a} \sim \policy^k(\mathbf{a}|\bs)}\left[\hat{Q}^{k+1}(\bs, \mathbf{a})\right]~~~ \text{(policy improvement)} 
+\end{align*}
+\end{small}
+% \ak{If $\mathcal{D}$ does not cover all possible transitions $(\bs, \ba, \bs')$ in the MDP, then, the policy evaluation step as described above effectively uses an ``empirical'' Bellman operator, denoted by $\hat{\bellman}^\policy$, that uses the reward $r$ and the next state $\bs'$ samples observed.} 
+%%SL.5.30: replace with: 
+%%SL.5.30: However, this is somewhat awkward here -- the equation is not expressed in terms of a Bellman operator, and therefore putting this comment here is quite confusing. Maybe it's better to instead put this right after the sentence in the previous paragraph that introduces the Bellman operator?
+% Offline RL algorithms typically modify the policy improvement step with an additional divergence regularizer. We refer the reader to \citet{levine2020offline} for details.
+%%SL.5.2: I think it would be helpful in the preliminaries section to briefly review why using these methods for offline RL is actually hard (i.e., why we get OOD actions). Thsi will serve to motivate the discussion that comes next.
+% done, next.
+% OOD actions and offline RL preliminaries
+Offline RL algorithms based on this basic recipe suffer from action distribution shift~\citep{kumar2019stabilizing,wu2019behavior,jaques2019way,levine2020offline} during training, because the target values for Bellman backups in policy evaluation use actions sampled from the learned policy, $\policy^k$, but the Q-function is trained only on actions sampled from the behavior policy that produced the dataset $\mathcal{D}$, $\behavior$. Since $\policy$ is trained to maximize Q-values, it may be biased towards out-of-distribution (OOD) actions with erroneously high Q-values. In standard RL, such errors can be corrected by attempting an action in the environment and observing its actual value. However, the inability to interact with the environment makes it challenging to deal with Q-values for OOD actions in offline RL. Typical offline RL methods~\citep{kumar2019stabilizing,jaques2019way,wu2019behavior,siegel2020keep} mitigate this problem by constraining the learned policy~\citep{levine2020offline} away from OOD actions. {Note that Q-function training in offline RL does not suffer from state distribution shift, as the Bellman backup never queries the Q-function on out-of-distribution states. However, the policy may suffer from state distribution shift at test time.}

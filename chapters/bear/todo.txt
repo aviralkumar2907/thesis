@@ -1,0 +1,59 @@
+- pi_\phi vs  Q-learning, step 4 in 'm'
+- confusing ?
+- ensembles -- variance vs not-variance
+
+- know behaviour policy: 2 domains: pi_behaviour
+- MMD vs sampled-MMD
+- DQN-random? 
+- 
+
+- plots comparing MC to Q-values
+TODOs (after the deadline)
+- Bandits setting
+- 
+
+
+
+Writing:
+
+-- Error: Hopper
+-- Define \Pi initially, \Pi: mixture of policies
+-- \Pi = all policies supported on the data support
+-- introduction: 
+    -- what is the problem with current approaches?
+    -- how do we solve them?
+    -- talk about Fujimoto difference (Related work, clearly relevant)
+-- V_0, V_1, V_k,... show the algorithm (AVI)
+-- infinity norm removed -- point wise (4.1)
+-- policies: (multimodal data)
+
+
+-- delta^2
+
+
+
+-- discussion
+-- diagram
+--point about onpolicy
+-- figures
+
+
+Post deadline:
+-- Check KL results once (why it fails)
+-- Check usage of ensembles
+-- Improve some of these plots (Hopper-medium)
+-- Try some other kernels: mixture kernel
+-- Maybe some other methods of doing support matching
+
+Long term -- more application based:
+-- Use a NF policy
+-- try out multiple ants, and multiple point mass
+-- navigation tasks
+
+
+Post arxiv:
+-- Matthew acknowledgement
+-- AVI definition
+-- shortcuts
+-- Add Sergey's and Justin's affiliations
+--

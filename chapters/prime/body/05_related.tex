@@ -1,0 +1,30 @@
+\section{Related Work}
+\label{sec:related}
+%
+Optimizing hardware accelerators has become more important recently. Prior works~\citep{bo:frontiers:2020,flexibo:arxiv:2020,cnn_gen:cyber:2020,prac_dse:mascots:2019,accel_gen:dac:2018,spatial:pldi:2018,automomml:hpc:2016,opentuner:pact:2014,hegdemind,magnet,autodnnchip} mainly rely on expensive-to-query hardware simulators to navigate the search space \review{and/or target single-application accelerators}.
+%
+For example, HyperMapper~\citep{prac_dse:mascots:2019} targets compiler optimization for FPGAs by continuously interacting with the simulator in a design space with relatively few infeasible points.
+%
+Mind Mappings~\citep{hegdemind}, optimizes software mappings to a fixed hardware provided access to millions of feasible points and throws away infeasible points during learning.
+%
+% \citet{kao2020confuciux} utilizes reinforcement learning against a simulator to optimize the parameters of a set of simple accelerators.
+%
+{MAGNet~\citep{magnet} uses a combination of pruning heuristics and online Bayesian optimization to generate accelerators for image classification models in a single-application setting.}
+%
+{AutoDNNChip~\citep{autodnnchip} uses two-level online optimization to generate customized  accelerators for ASIC and FPAG platforms.}
+%
+In contrast, \primemethodname~, does not only learn a surrogate using offline data but can also leverage information from infeasible points and can work with just a few thousand feasible points.
+%
+{In addition, we devise a contextual version of \primemethodname\ that is effective in designing accelerators that are jointly optimized for multiple applications, different from prior work.}
+%
+Finally, to our knowledge, our work, is the first to demonstrate generalization to unseen applications for accelerator design, outperforming state-of-the-art online methods.
+
+A popular approach for solving black-box optimization problems is model-based optimization (MBO)~\citep{snoek15scalable,shahriari2016TakingTH,snoek2012practical}.
+%
+Most of these methods fail to scale to high-dimensions, and have been extended with neural networks~\citep{snoek15scalable,snoek2012practical,kim2018attentive,garnelo18neural,garnelo18conditional,p3bo:arxiv:2020,angermueller2019model,mirhoseini2020chip}. While these methods work well in the active setting, they are susceptible to out-of-distribution inputs~\citep{trabucco2021designbench} in the offline, data-driven setting.
+%
+To prevent this, offline MBO methods that constrain the optimizer to the manifold of valid, in-distribution inputs have been developed~\citep{brookes19a,fannjiang2020autofocused,kumar2019model}.
+%
+However, modeling the manifold of valid inputs can be challenging for accelerators. \primemethodname\ dispenses with the need for generative modeling, while still avoiding out-of-distribution inputs. \primemethodname\  builds on ``conservative'' offline RL and offline MBO methods that train robust surrogates~\citep{kumar2020conservative,trabucco2021conservative}. However, unlike these approaches, \primemethodname\ can handle constraints by learning from infeasible data and utilizes a better optimizer (See Appendix Table~\ref{table:coms_vs_prime} for a comparison).
+%
+In addition, while prior works area mostly restricted to a single application, we show that \primemethodname\ is effective in multi-task optimization and zero-shot generalization.

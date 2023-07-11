@@ -1,0 +1,18 @@
+\vspace{-0.2cm}
+\section{Preliminaries}
+\vspace{-0.2cm}
+\label{sec:background}
+The goal in RL is to maximize the long-term discounted reward in an MDP, defined as $(\states, \actions, R, P, \gamma)$~\citep{puterman1994markov}, with state space $\states$, action space $\actions$, a reward function $R(\bs, \ba)$, dynamics $P(\bs' | \bs, \ba)$ and a discount factor $\gamma \in [0, 1)$. The Q-function $Q^\pi(\bs, \ba)$ for a policy $\pi(\ba|\bs)$ is the expected sum of discounted rewards obtained by executing action $\ba$ at state $\bs$ and following $\pi(\ba|\bs)$ thereafter.
+$Q^\pi(\bs, \ba)$ is the fixed point of $Q(\bs, \ba) := R(\bs, \ba) + \gamma \E_{\bs' \sim P(\cdot|\bs, \ba), \ba' \sim \pi(\cdot|\bs')} \left[ Q(\bs', \ba')\right]$. We study the offline RL setting, where the algorithm must learn a policy only using a given dataset $\mathcal{D} = \{(\bs_i, \ba_i, \bs'_i, r_i)\}$, generated from some behavior policy, $\behavior(\ba|\bs)$, without active data collection. The Q-function is parameterized with a neural net with parameters $\theta$. We will denote the penultimate layer of the deep network (the learned \emph{features}) $\phi_\theta(\bs, \ba)$,
+such that $Q_\theta(\bs, \ba) = \bw^T \phi(\bs, \ba)$, 
+where $\bw \in \mathbb{R}^{d}$. Standard deep RL methods~\citep{Mnih2015,Haarnoja18} convert the Bellman equation into a squared temporal difference~(TD) error objective for $Q_\theta$:
+% \vspace{-0.1in}
+\begin{align}
+\label{eqn:td_error}
+ \small{\mathcal{L}_\mathrm{TD}(\theta) = \sum_{\bs, \ba, \bs' \sim \mathcal{D}} \left(R(\bs, \ba) + \gamma \overline{Q}_\theta(\bs', \ba') - Q_\theta(\bs, \ba) \right)^2},   
+\end{align}
+% \vspace{-0.11in}
+where $\bar{Q}_\theta$ is a delayed copy of same Q-network, referred to as the \emph{target network} and $\ba'$ is computed by maximizing the target Q-function at state $\bs'$ for Q-learning (i.e., when computing $Q^*$) and by sampling $\ba' \sim \pi(\cdot|\bs)$ when computing the Q-value $Q^\pi$ of a policy $\pi$.  
+
+A major problem in offline RL is the issue of distributional shift between the learned policy and the behavior policy~\citep{levine2020offline}. Since our goal is to study the effect of implicit regularization in TD-learning and not distributional shift, we build on top of existing offline RL methods in our experiments: CQL~\citep{kumar2020conservative}, which penalizes erroneous Q-values during training, REM~\citep{agarwal2019optimistic}, which utilizes an ensemble of Q-functions, and BRAC~\citep{wu2019behavior}, which applies a policy constraint. An overview of these methods is provided in Appendix~\ref{app:additional_background}. 
+

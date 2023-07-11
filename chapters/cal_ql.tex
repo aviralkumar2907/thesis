@@ -1,0 +1,48 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\usepackage{wrapfig}
+\usepackage{cite}
+% \usepackage{natbib}
+% \usepackage[round]{natbib}
+
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usetikzlibrary{positioning}
+\usepackage{mathtools}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}{Lemma}[theorem]
+% \newtheorem{corollary}{Corollary}[proposition]
+\newtheorem{definition1}{Definition}[section]
+
+
+
+% \include{chapters/cql/defs}
+
+
+\begin{document}
+
+
+\blfootnote{This chapter is based on \cite{nakamoto2022calql}, published at NeurIPS 2020, which is joint work with Aurick Zhou, George Tucker, and Sergey Levine.}
+
+A compelling use case of offline reinforcement learning (RL) is to obtain a policy initialization from existing datasets followed by fast online fine-tuning with limited interaction. However, existing offline RL methods tend to behave poorly during fine-tuning. In this paper, we study the fine-tuning problem in the context of conservative offline RL methods and we devise an approach for learning an effective initialization from offline data that also enables fast online fine-tuning capabilities. Our approach, calibrated Q-learning (\methodname), accomplishes this by learning a conservative value function initialization that underestimates the value of the learned policy from offline data, while also ensuring that the learned Q-values are at a reasonable scale. We refer to this property as calibration, and define it formally as providing a lower bound on the true value function of the learned policy and an upper bound on the value of some other (suboptimal) reference policy, which may simply be the behavior policy. We show that a conservative offline RL algorithm that also learns a calibrated value function leads to effective online fine-tuning, enabling us to take the benefits of offline initializations in online fine-tuning. In practice, \methodname\ can be implemented on top of the conservative Q learning (CQL)~\cite{kumar2020conservative} for offline RL within a one-line code change. Empirically, \methodname\ outperforms state-of-the-art methods on {\bf 9/11} fine-tuning benchmark tasks that we study in this paper.     
+
+\input{chapters/cal_ql/sections/1-introduction}
+\input{chapters/cal_ql/sections/2-related_work}
+\input{chapters/cal_ql/sections/3-background}
+\input{chapters/cal_ql/sections/4-analysis}
+\input{chapters/cal_ql/sections/5-method}
+\input{chapters/cal_ql/sections/6-theory}
+\input{chapters/cal_ql/sections/7-experiment}
+\input{chapters/cal_ql/sections/8-discussion}
+
+\end{document}

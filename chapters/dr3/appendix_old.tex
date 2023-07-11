@@ -1,0 +1,309 @@
+\part*{Appendices}
+
+
+\section{Proofs from Section~\ref{sec:analysis}}
+\label{app:proofs}
+
+In this section, we shall provide a detailed theoretical derivation of the implicit regularizer, $R_\mathrm{TD}(\theta)$ in Equation~\ref{eqn:regularizer}. We first describe our notation, then prove Theorem~\ref{thm:implicit_noise_reg}. 
+
+\textbf{Notation.} Let $\nabla^2 L$ denote the effective second-order derivative of TD-learning evaluated at zero training error solution $\theta^*$. Let $\nabla^3 L$ denote the third-order derivative of TD evaluated at $\theta^*$. We assume that the learning rate in gradient descent, $\eta$, is small and we will ignore terms that scale as $\mathcal{O}(\eta^{1 + \delta})$, for $\delta > 0$. To simplify our derivation, we make the following assumptions on the effective Hessian, $\nabla^2 L$ and matrix $M  = \sum_i \nabla_\theta Q_\theta (\bx_i) \nabla_\theta Q_\theta (\bx_i)^\top$. 
+
+\begin{assumption}[$\nabla^2 L$ is positive semi-definite.]
+\label{assumption:psd}
+Assume that the matrix $\nabla^2 L$ is positive semi-definite, i.e., there exists a matrix $U \in \mathbb{R}^{d \times d}$ such that $U^H U = I$ and $\nabla^2 L = U \Lambda U^H$ for a diagonal matrix $\Lambda$.  
+\end{assumption}
+Assumption~\ref{assumption:psd} assumes that the matrix $\nabla^2 L$ can be diagonalized over the complex space. This is a technical assumption primarily to simplify algebraic calculations involving powers of $\nabla^2 L$. Further, since we are interested in characterizing the properties of stable solutions $\theta^*$, we note that $\forall i, \mathrm{Re}(\Lambda(i)) \geq 0$. If this condition is not met, then the solution $\theta^*$ will be unstable~\citep{ghosh2020representations}.
+
+\begin{assumption}[$M$ diagonalizes on the same basis as $\nabla^2 L$.]
+\label{assumption:M_diagonal}
+Assume that the matrix $M$ can be expressed as $M = U \Lambda_M U^H$, where $U$ denotes the eigenvectors of $\nabla^2 L$ from above and $\Lambda_M$ is a diagonal matrix. Further, there exist positive constants $c_1$ and $c_2$ such that $\forall i, c_1 \mathrm{Re}(\Lambda(i)) \leq \mathrm{Re}(\Lambda_M(i)) \leq c_2 \mathrm{Re}(\Lambda(i))$.
+\end{assumption}
+Assumption~\ref{assumption:M_diagonal} assumes that the subspace spanned by matrix $M$ is contained within the subspace spanned by $\nabla^2 L$. This is needed to ensure that the noise process is controlled in directions where $\nabla^2 L$ can contract. If this is not assumed, then no optimal solution $\theta^*$ will be stable, and addition of label noise will always lead to divergence of the solution from $\theta^*$. 
+% \gjt{do we need to formalize this}.
+
+\begin{lemma}[Formula for $\nabla^2 L$]
+At the optimal point $\theta^*$, $\nabla^2 L = \sum_i \nabla Q_\theta(\bx_i) \left(Q_\theta(\bx_i) - \gamma Q_\theta(\bx'_i)\right)^\top$, which we write in matrix form as $\nabla^2 L = \nabla Q^\top (\nabla Q - \gamma \nabla Q')$.
+\end{lemma}
+\begin{proof}
+Simply differentiating $\nabla L$ tells us that $\nabla^2 L = \nabla Q^\top (\nabla Q - \nabla Q') + \sum_i \nabla^2 Q_\theta(\bx_i) \cdot ( Q_\theta(\bx_i) - (r_i + \gamma Q_\theta(\bx'_i)))$, where the TD residuals are all pointwise $0$ at $\theta^*$.
+\end{proof}
+
+\begin{lemma}[Covariance of random noise process]
+\label{eqn:covariance_noise}
+Let $\zeta_{k}$ denote the noise process satisfying: $\zeta_{k+1} = (I - \eta \nabla^2 L) \zeta_k + \varepsilon_k$, where $\varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M)$, where $M \succcurlyeq 0$. Then, $\zeta_{k+1} \sim \mathcal{N}(0, \Sigma)$, where $\Sigma$ satisfies: 
+\begin{equation*}
+    \Sigma = (I - \eta \nabla^2 L) \Sigma (I - \eta \nabla^2 L) + \eta^2 \sigma^2 M.
+\end{equation*}
+Under Assumptions~\ref{assumption:M_diagonal} and \ref{assumption:psd}, we obtain that $\Sigma = S (2 - \eta \nabla^2 L)^{-1}$, for a suitable matrix $S$.
+\end{lemma}
+\begin{proof}
+To prove this Lemma, we use the fact that if $z_k \sim \mathcal{N}(0, \Sigma_k)$, then, $M z_k \sim \mathcal{N}(0, M \Sigma_k M^\top)$. Thus, the effective covariance matrix of $M z_k$ is given by $\eta^2 \sigma ^2 M \sigma_k M^\top$. Accordingly, the covariance of $\zeta_{k+1}$ is given by $ \Sigma_{k+1} = (I - \eta \nabla^2 L) \Sigma_k (I - \eta \nabla^2 L) + \eta^2 \sigma^2 M$, and setting $\Sigma_{k+1} = \Sigma_k$ at a fixed point gives us the desired relation. Now we simplify the expression for $\Sigma$:
+\begin{align}
+    \Sigma_{k+1} &= \sum_{j=0}^k (I - \eta \nabla^2 L)^j \eta^2 \sigma^2 M (I - \eta \nabla^2 L)^j\\ 
+    &= \sum_{j=0}^k (UU^H - \eta U \Lambda U^H)^j \eta^2 \sigma^2 U \Lambda_M U^H (UU^H - \eta U \Lambda U^H)^j\\
+    &= U \eta^2 \sigma^2 \left( \sum_{j=0}^k (I - \eta \Lambda)^j \Lambda_M (I - \eta \Lambda)^j \right) U^H\\
+    &= \eta^2 \sigma^2 U \Lambda_M \left(I - (I - \eta \Lambda)^2 \right)^{+} \left[I - (I - \eta \Lambda)^{k+1}\right] U^H\\
+    &= \eta^2 \sigma^2 U \Lambda_M \left(2 \eta \Lambda - \eta^2 \Lambda^2\right)^{+} \left[I - (I - \eta \Lambda)^{k+1}\right] U^H,
+\end{align}
+where $M^{+}$ denotes the pseudoinverse of matrix $M$. Our goal is to now re-write the above expression using the matrix $\nabla^2 L$ to obtain the desired expression. We obtain the following:
+\begin{align}
+\Sigma_{k+1} = \eta \sigma^2 \underbrace{\left( U \Lambda_M \Lambda^{+} U^H \right)}_{(a)} \underbrace{\left( U (2 - \eta \Lambda)^{+} U^H \right)}_{(b)} \underbrace{\left(U \left[ I - (I - \eta \Lambda)^{k+1} \right] U^H \right)}_{(c)}.
+\end{align}
+Term (a) denotes the matrix which we will call $S$, supported on the subspace spanned by $U$, but with the $i$-th eigenvalue equal to the ratio of the complex eigenvalues of $M$ and $\nabla^2 L$, term (b) is equal to $(2 - \eta \nabla^2L)^{-1}$ where the psuedoinverse an be replaced by an inverse for sufficiently small $\eta$, since all entries of the matrix $2 - \eta \Lambda$ will then be non-zero. In the limit of $k \rightarrow \infty$, and using the fact that overall all directions where $\Lambda^+ \neq 0$, the corresponding eigenvalues of $I - \eta \Lambda$, $\lambda_i(I - \eta \Lambda) < 1$ (else no convergence will be observed even in the under-parameterized regime), and hence term (c) limits to $I$ in the limit. As a result $\Sigma = \eta \sigma^2 S (2 - \eta \nabla^2 L)^{-1}.$
+% \begin{equation}
+    
+% \end{equation}
+\end{proof}
+% \begin{theorem}
+% \label{app_thm:final_theorem}
+% Theorem
+% \end{theorem}
+\begin{proof}[Proof of Theorem~\ref{thm:implicit_noise_reg}.]
+% \gjt{Start Blanc}
+% The noisy TD-learned updates for dimension $j$ are
+% \begin{align*}
+%     \theta_j \leftarrow~& \theta_j - \eta Q^j_\theta(x_i)(Q_\theta(x_i) - r - \gamma Q_\theta(x'_i)) + \varepsilon \\
+%     &= \theta_j  - \eta\left(Q_i^j(\nabla Q_i - \gamma \nabla Q_{i'})^\top \theta + Q_i^j\theta^\top(\nabla^2Q_i - \gamma\nabla^2Q_{i'})\theta + \nabla Q_i^j^\top \theta (\nabla Q_i - \gamma \nabla Q_{i'})^\top\theta\right) + \varepsilon + O(\eta\theta^3),
+% \end{align*}
+% expanded to 2nd order and using the fact that $Q_i - r - \gamma Q_{i'} = 0$ for all $i$. We work in the $U$ basis. 
+
+% First, consider the directions where ${\lambda_M}_j > 0$ which is at most $n$ (the number of data points). For these directions, I think it suffices to look at the 1st order expansion as those terms are non-zero and dominate the later terms. Because the diagonalizability assumptions, the components of $\theta$ in these directions are updating independently and is worked out below, basically an Orstein-Uhlenbeck process. So, for these directions, the mean-reversion from the process controls their deviation.
+
+% For direction $j$ with ${\lambda_M}_j = 0$, $Q^j_i = 0$ for all $i$ because ${\lambda_M}_j = \sum_i (Q_i^j)^2 = 0$, so the first order term vanishes and similarly for $Q_i^j\theta^\top(\nabla^2Q_i - \gamma\nabla^2Q_{i'})\theta$. So, the evolution of $\theta_j$ is driven by $\nabla Q_i^j^\top \theta (\nabla Q_i - \gamma \nabla Q_{i'})^\top\theta = \nabla Q_i^j^\top \theta \theta^\top (\nabla Q_i - \gamma \nabla Q_{i'})$. After convergence to the stationary distribution of the Orstein-Uhlenbeck process, $E[\theta\theta^\top] = \Sigma$, a diagonal matrix with $\Sigma_k = 0$ when $\lambda_k = 0$. So, 
+% \[ E[\nabla Q_i^j^\top \theta \theta^\top (\nabla Q_i - \gamma \nabla Q_{i'})] = \frac{1}{n}\sum_i \sum_{k, \lambda_k > 0} Q_i^{j, k}(Q_i^k - \gamma Q_{i'}^k)\Sigma_k. \]
+% Hence, to ensure that $\theta_j$ does not deviate uncontrollably, we must have $\sum_i Q_i^{j, k}(Q_i^k - \gamma Q_{i'}^k) = 0$ for all $k$ with $\lambda_k > 0$. This is equivalent to saying that 
+% \[ \sum_i \frac{1}{2}\nabla Q_\theta(x_i)^\top \nabla Q_\theta(x_i) - \gamma \nabla Q_\theta(x_i)^\top \text{STOP}\left(\nabla Q_\theta(x_i')\right) \] 
+% has no descent directions at $\theta^*$ in the manifold of $0$ training error.
+
+% \gjt{End Blanc}
+The noisy TD-learning updates are given by:
+\begin{align}
+    \theta_{k+1} ~&= \theta_k - \eta \left( \nabla L + \nabla^2 L (\theta_k - \theta^*) + \frac{1}{2} \nabla^3 L (\theta_k - \theta^*, \theta_k - \theta^*) \right) + \varepsilon_k, ~~~~~~\\
+    \label{eqn:label_noise_update}
+    \implies \nu_{k+1} ~&= (I - \eta \nabla^2 L )\nu_k  - \frac{\eta}{2} \nabla^3 L (\nu_k, \nu_k) + \varepsilon_k, ~~~~ \varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M),
+\end{align}
+where $M = \sum_i \nabla_\theta Q_\theta(\bx_i) \nabla_\theta Q_\theta(\bx_i)^\top$ evaluated at $\theta = \theta^*$. The implicit regularizer $R_\mathrm{TD}(\theta)$ in our scenario is the scalar function such that the derivative $\nabla^3 L(\nu_k, \nu_k) = \nabla_\theta R_\mathrm{TD}(\theta)$. Informally, if the optimal solution $\theta^*$ is a stationary point of such an implicit regularizer, then the potential increase in $\nu_{k+1}$ is controlled in the directions missing in $\nabla^2 L$ is controlled. To formalize this insight, we shall pick a reference stochastic process which remains within a neighborhood around $\theta^*$, and show that if the point $\theta^*$ is a stationary point of the implicit regularizer, then $\nu_k$ shall closely follow this reference process over intervals of update horizons $O(\frac{1}{\eta})$. Building on \citet{blanc2020implicit}, our reference process will be an Ornstein-Uhlenbeck (OU) process that we will shortly describe. We shall analyze then analyze the update in Equation~\ref{eqn:label_noise_update} when $\nu_k \approx \zeta_k$, where $\zeta_k$ is distributed according to this OU process:
+\begin{equation}
+    \label{eqn:ou_process}
+    \zeta_{k+1} = (I - \eta \nabla^2 L) \zeta_k + \varepsilon_k.
+\end{equation}
+Accounting for higher-order terms in Equation~\ref{eqn:ou_process} incurs an error $\mathcal{O}(\eta^{1 + \delta})$, where $\delta > 0$, which we assume is small and ignorable similar to prior work~\citep{blanc2020implicit}. Further, using Lemma~\ref{eqn:covariance_noise}, we note that the noise process $\zeta_k$ is distributed according to $\zeta_k \sim \mathcal{N}(0, \Sigma)$, where $\Sigma$ is given by:
+\begin{equation}
+    \Sigma = \eta \sigma^2 S (2 - \eta \nabla^2 L)^{-1}.
+\end{equation}
+All we need to do now to obtain an expression for $R_\mathrm{TD}(\theta)$ is to express $\nabla^3 L(\nu_k, \nu_k) \approx \nabla^3 L (\zeta_k, \zeta_k)$ as the gradient of a scalar, and bound the errors incurred due to $\approx$ via concentration arguments for the noise process. We obtain the following expression:
+\begin{align}
+\label{eqn:approx_grad_sq_L}
+    \nabla^3 L (\zeta_k, \zeta_k) \approx \sum_i \nabla^2 Q \mathbb{E}[\zeta_k \zeta_k^\top] (\nabla Q - \gamma \nabla Q') \rightarrow \sum_i \nabla^2 Q \Sigma (\nabla Q - \gamma \nabla Q'),
+\end{align}
+where $\approx$ indicates that we ignore terms that can be bounded by more than $\mathcal{O}(\sqrt{\eta})$ We now want to compute a scalar quantity with the derivative equal to the expression in Equation~\ref{eqn:approx_grad_sq_L} to obtain the regularizer. While the expression is not clearly integrable, we note -- \textbf{(1)} The matrix $\Sigma$ is only computed at $\theta^*$ and is hence a constant, and \textbf{(2)} the derivative of the Q-function at the next state, $\nabla Q'$ is not integrable. But if we utilize a stop gradient function ($\texttt{Stop}$) on $\nabla Q'$, we can express the integral as a scalar function. Thus, the implicit regularizer is given by:
+\begin{equation}
+    \label{eqn:appendix_regularizer}
+    R_\mathrm{TD}(\theta) = \text{tr}~\left[\Sigma \left(\sum_i \nabla_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx_i) - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \texttt{Stop}(\nabla Q_\theta(\bx'_i)) \right) \right]. 
+\end{equation}
+% Now our goal is to express the integrand fully in terms of the matrix $\nabla^2 L$ and use the fact that $\nabla^3 L$ is the differential of $\nabla^2 L$ to obtain the regularizer. Since the noise process does not modify the basis $U$, we can instead choose to solve the differential above in its eigenvalue space. In the eigenvalue space, the integrand $S (2 - \eta \nabla^2 L)^{-1}$ acts independently on each eigenvalue, and translates to $\lambda_M \lambda^+ (2 - \eta \lambda)^{-1}$. Using binomial theorem for negative exponents, we can simplify:
+% \begin{equation}
+%     \lambda_M \lambda^+ (2 - \eta \lambda)^{-1} = \lambda_M \frac{\lambda^+}{2} \left[ 1 + \frac{\eta \lambda}{2} + \frac{\eta^2 \lambda^2}{4} + \mathcal{O}(\eta^{2 + \delta}) \right] \approx \frac{\lambda_M}{2 \lambda} + \eta \frac{\lambda_M}{2} + \mathcal{O}(\eta^{1 + \delta}). 
+% \end{equation}
+% Integrating the above two terms with respect to $\lambda$, and summing over all eigenvalues independently, we obtain the following implicit regularizer:
+% \begin{equation}
+%     \label{eqn:implicit_reg}
+%     R_\mathrm{TD}(\theta) = \text{tr}(M \log (\nabla^2 L)) + \eta~ \text{tr}(M \nabla^2 L).
+% \end{equation}
+% The regularizer from Section~\ref{sec:analysis} is a special case of this general regularized derived above. 
+Finally, we aim to finish the argument by addressing concentration details for various terms in the analysis so far. We revisit the update for $\nu_k$:
+\begin{align}
+    \nu_{k+1} &= (I - \eta \nabla^2 L) \nu_k - \underbrace{\frac{\eta}{2} \nabla^3 L (\Sigma)}_{\nabla R_\mathrm{TD}(\theta)} + \underbrace{\left( \frac{\eta}{2} \nabla^3 L (\Sigma) - \frac{\eta}{2} \nabla^3 L (\nu_k \nu_k^\top) \right)}_{:= \Delta_k; ~~\text{concentration}} + \varepsilon_k,
+\end{align}
+
+This additional concentration term compounds over $k=1, 2, \cdots$ and the overall cumulative value until time $t$ is given by:
+\begin{align}
+\label{eqn:delta_eqn}
+    \overline{\Delta}_t: = \sum_{k \leq t} (I - \eta \nabla^2 L)^k \left( \frac{\eta}{2} \nabla^3 L (\Sigma) - \frac{\eta}{2} \nabla^3 L (\nu_k \nu_k^\top) \right)
+\end{align}
+To bound this we concentrate the difference $\nu_k \nu_k^\top - \Sigma$ in the space spanned by $\nabla^3 L$. First, we can expand $\nabla^3 L A$, for any matrix $A$ as:
+\begin{equation}
+    \nabla^3 L A = \underbrace{\sum_i \nabla^2 Q_\theta(\bx_i) A (\nabla Q_\theta(\bx_i) - \gamma \nabla Q_\theta(\bx'_i))}_{(1)} + \underbrace{\sum_i \nabla Q_\theta(\bx_i)~ \text{tr}\left[ A (\nabla^2 Q(\bx_i) - \gamma \nabla^2 Q(\bx'_i)) \right]}_{(2)}. 
+\end{equation}
+For term $(2)$, we can choose to utilize Assumption~\ref{assumption:M_diagonal} and the boundedness of the random process $\zeta_k$ to bound the trace above: $\text{tr}(A (\nabla^2 Q(\bx_i) - \gamma \nabla^2 Q(\bx'_i)) \leq ||A||_\infty (1 + \gamma) ||\nabla^2 Q(\bx_i)||_\infty \leq C_1$, where $C_1$ is a chosen constant independent of $\eta$ and $t$. Thus, all we need to do for this term is to bound the remainder of $(2)$:
+\begin{align*}
+    (2) &\leq C_1 \sum_{k \leq t} (I - \eta \nabla^2 L)^k \sum_i \nabla_\theta Q_\theta(\bx_i)\\
+    (2)^2 &\leq C_1^2 \left\vert \left\vert \sum_{k \leq t} \sum_i (I - \eta \nabla^2 L)^k \nabla_i Q(\bx_i) \right\vert \right\vert^2 \leq C_1^2 \sum_{k, i} \left\vert \left\vert (I - \eta \nabla^2 L)^{k} \nabla_i Q(\bx_i) \right\vert\right\vert^2\\
+    &= C_1^2 \sum_{k, i} \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} \left(\nabla_i Q_\theta(\bx_i) \nabla_i Q_\theta(\bx_i)^\top \right)  \right]\\
+    &= C_1^2 \sum_k^t \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} \left(\sum_i \nabla_i Q_\theta(\bx_i) \nabla_i Q_\theta(\bx_i)^\top \right)  \right] = C_1^2 \sum_k^t \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} M \right]\\
+    &= C_1^2 \sum_{j=1}^d \sum_k^t (1 - \eta \lambda(j))^{2k} \lambda_M(j)  = \mathcal{O}\left(\frac{t}{\eta}\right),
+\end{align*}
+where the last step follows from the fact that $\sum_{m} (1 - \eta x)^{2m} \rightarrow (1 - (1 - \eta x)^2)^{-1} = \mathcal{O}(1/\eta)$. And the above bound holds with a high probability $1 - \delta$, $\delta = \exp(-\text{poly}(1/\eta))$. This implies that $(2) = \mathcal{O} (\sqrt{t/\eta})$. Next, to bound term $(1)$, we first note that using Assumption~\ref{assumption:M_diagonal}, we note the following relationship:
+\begin{align}
+    \label{eqn:bounding_1}
+    \nabla^2 L &= U \Lambda U^H = M - \gamma \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top = U \Lambda_M U^H - \gamma \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top\\
+    &  \implies \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top = \frac{1}{\gamma} U (\Lambda_M - \Lambda) U^H\\
+    & \implies \nabla Q^\top \nabla Q' = U \frac{1}{\gamma}\Lambda' U^H, \text{~~where~~} \Lambda' \succcurlyeq 0 ~~ \text{(Using Assumption~\ref{assumption:M_diagonal})}\\
+    & \implies \left( U \Lambda_M^{\frac{1}{2}} \right)^\top \nabla Q' = U \frac{1}{\gamma} \Lambda' U^H \\
+    \label{eqn:difference_in_same_space}
+    & \implies \nabla Q' = \frac{1}{\gamma} \sqrt{\Lambda_M^{+}} \Lambda' U^H ~\implies \nabla Q - \gamma \nabla Q' = \left[ \sqrt{\Lambda_M} - \sqrt{\Lambda_M^{+}} \Lambda'  \right] U^H. 
+\end{align}
+Equation~\ref{eqn:difference_in_same_space} tells us that the term $\nabla Q(\bx_i) - \gamma \nabla Q(\bx'_i)$ appearing in term $(1)$ is equivalent to $\nabla Q(\bx_i)$ upto the diagonal matrix of eigenvalues, i.e., while $\nabla Q = \sqrt{\Lambda_M} U^H$, $\nabla Q - \gamma \nabla Q' = \Lambda'' U^H$, where $\Lambda''$ is given in Equation~\ref{eqn:difference_in_same_space}. This provides us with a way to show concentration in $\mathcal{O}(\sqrt{\eta})$ for term $(1)$ similar to term $(2)$. To finally bound $(1)$, we first compute the matrix $A_k$:
+\begin{align*}
+    A_{k+1} &= \nu_{k+1} \nu_{k+1}^\top - \Sigma \\
+    &= (I - \eta \nabla^2 L) A_{k} (I - \eta \nabla^2 L) - \eta \left[ (I - \eta \nabla^2 L) \zeta_k \epsilon_k^\top + \epsilon_k \zeta_k^\top (I - \eta \nabla^2 L) \right] + \eta^2 (\epsilon_k \epsilon_k^\top - \sigma^2 M), 
+\end{align*}
+where we used the reparameterization trick that sampling $\varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M)$ is equivalent to sampling $\epsilon_k \sim \mathcal{N}(0, \sigma^2 M)$ and scaling it by $\eta$, i.e., $\varepsilon_k = \eta \epsilon_k$. In the above recurrence, note that the second and third terms are multiplied by $\eta$ and $\eta^2$ respectively. This means that their concentration bounds will attain $\mathcal{O}(\eta^{1 + \delta})$, which is small and can be discarded: a formal analysis of these terms can be built using Martingale concentration bounds analogously as \citet{blanc2020implicit} (Lemma 5). For the first term, we can unroll the recurrence to $A_0$, and note that term $(1)$ is equal to:
+\begin{equation}
+\label{eqn:solving_eqn1}
+    \mathcal{O}(\eta^{1 + \delta}) + \sum_{k \leq t} \sum_i (I - \eta \nabla^2 L)^{t -k} \nabla^2 Q(\bx_i) (I - \eta \nabla^2 L)^k A_0 (I - \eta \nabla^2 L)^k \left(\nabla Q(\bx_i) - \gamma \nabla Q(\bx'_i) \right).
+\end{equation}
+The final expression in the above equation can be bounded with high probability $1 - \exp(-\text{poly}(1/\eta))$ by $\mathcal{O}(\sqrt{\eta t} C_2)$, where the constant $C_2$ depends on the Lipschitz constant of the gradient $||\nabla Q(\bx_i)||$ and the norm of matrix $A_0$. To note this, observe that the bound roughly translates to$\sum_{k} (I - \eta \nabla^2 L)^{t+k} v_k$, where $v_k$ is a vector and now, we can bound this expression by using the same technique as term $(2)$ with an additional $(I - \eta \nabla^2 L)^t$, which can be bounded above by 1.
+
+Thus all the error terms, including concentration terms are bounded by $\mathcal{O}(\sqrt{\eta t})$ with high probability $1 - \exp(-\text{poly}(1/\eta))$, while the implicit regularizer contributes $\nabla R_\mathrm{TD}(\theta)$ at each step to the movement of $\nu_k$. That is, to be more formal, the value of $\nu_k$ at time $t$ is given by:
+\begin{equation*}
+    \nu_t = (I - \eta \nabla^2 L)^t \nu_0 - \underbrace{\sum_{j=1}^t (I - \eta \nabla^2 L)^j \frac{\eta}{2} \nabla R_\mathrm{TD}(\theta^*)}_{= \eta t/2 \nabla_\theta R_\mathrm{TD}(\theta) \text{~in directions where~} \lambda(\nabla^2 L) = 0} + \mathcal{O}(\sqrt{\eta t}).
+\end{equation*}
+While the term with the regularizer behaves as $\mathcal{O}(\eta t)$ in directions where the eigenvalues of $\nabla^2 L$ are equal to 0 and hence there is no mean-reversion, the error terms behave as $\mathcal{O}(\sqrt{\eta t})$. Thus after a sufficiently long $t = \eta^{-1 - \delta}$, we will obtain that the regularizer dominates the gradient in directions not spanned by the mean reversion term ($(I - \eta \nabla^2 L)^t \nu_0$) (since a linear function would dominate the $\sqrt{\cdot}$ function). Thus, the dynamics of label-noise gradient descent from the optimizer $\theta^*$ operates according to the implicit regularizer $R_\mathrm{TD}(\theta)$.
+\end{proof}
+
+\textbf{Removing the additional $\Sigma$ from the implicit regularizer $R_\mathrm{TD}(\theta)$.} The implicit regularizer derived in Equation~\ref{eqn:appendix_regularizer} is shown below, and it contains an additional weighting by the covariance matrix, $\Sigma$ of the noise of the OU process. 
+\begin{equation*}
+    R_\mathrm{TD}(\theta) = \text{tr}~\left[\Sigma \left(\sum_i \nabla_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx_i) - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \texttt{Stop}(\nabla Q_\theta(\bx'_i)) \right) \right]. 
+\end{equation*}
+We can slightly modify our derivation to get rid of this weighting term, while still retaining the properties of this derivation. To do so, we match $\nu_{k}$ to the a modified OU process defined by $\zeta_k'$:
+\begin{equation}
+    \label{eqn:ou_process_modified}
+    \zeta'_{k+1} = (I - \eta \nabla^2 L) \zeta'_k + \varepsilon'_k, ~~~ \varepsilon'_k \sim \mathcal{N}(0, \eta^2 \sigma^2 \nabla^2 L).
+\end{equation}
+We will follow the same analysis style: our goal would be to derive a regularizer that makes $\nu_k$ be as close to $\zeta'_k$, and thus we will still analyze the conditions under which the third order term $\frac{\eta}{2} \nabla^3 L (\zeta'_k, \zeta'_k)$ is 0 at the optimum $\theta^*$. By deriving the analogue of Equation~\ref{eqn:approx_grad_sq_L}, in this case, we will obtain that $\zeta'_k \zeta'_k^\top \rightarrow \mathcal{O}(\frac{\eta \sigma^2}{2}) \mathbb{I}$ analogous to the case of \citet{blanc2020implicit} for supervised learning, where $\nabla^2 L = M$, and we will obtain the regularizer as the integrand of:
+\begin{align}
+\label{eqn:approx_grad_sq_L_new}
+    \nabla^3 L (\zeta'_k, \zeta'_k) \approx \sum_i \nabla^2 Q \mathbb{E}[\zeta'_k {\zeta'}^{\top}_k] (\nabla Q - \gamma \nabla Q') \rightarrow \mathcal{O}(\eta \sigma^2) \sum_i \nabla^2 Q (\nabla Q - \gamma \nabla Q'),
+\end{align}
+which is exactly the regularizer shown in Theorem~\ref{thm:implicit_noise_reg}.
+\begin{equation}
+\label{eqn:main_paper_regularizer}
+     R_\mathrm{TD}(\theta) = \text{tr}~\left[ \left(\sum_i \nabla_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx_i) - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \texttt{Stop}(\nabla Q_\theta(\bx'_i)) \right) \right].
+\end{equation}
+However, an additional term equal to the difference in the noise $\varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M)$ and the noise in the reference OU process, $\varepsilon'_k$ is compounded in $\overline{\Delta}_t$ (Equation~\ref{eqn:delta_eqn}). However, note that this noise term behaves similarly as term $(2)$, i.e., it lies in the subspace $U^H$ (since $\nabla^2 L - M$ spans this space from Assumption~\ref{assumption:M_diagonal}) and corresponds to an eigenvalue $\lambda'(i)$ which is bounded by the sum of eigenvalues $\lambda(i)$ and $\lambda_M(i)$ of $\nabla^2 L $ and $M$ respectively. Hence, we can use a similar trick like $(2)$ to bound this error in addition to terms $(1)$ and $(2)$, and the rest of the proof of Theorem~\ref{thm:implicit_noise_reg} follows as is.
+
+\section{Method Details}
+\label{app:method_details}
+
+Fill in hparams, explanation of why we dropped gradient and did dot products
+
+\section{Additional Background}
+\label{app:additional_background}
+
+Fill in details of CQL, REM, BRAC, COG
+
+\section{Extra Results}
+\label{app;extra_results}
+
+\subsection{Atari Results}
+\label{app:atari_results}
+ABCD 
+\begin{table}[t]
+    \caption{Normalized returns for 5\% DQN Replay dataset setting.}
+    \label{tab:dqn_5}
+    \vspace{0.2cm}
+\begin{tabular}{ccccc}
+\toprule
+%%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
+\multirow{2}{*}{Game} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Max Performance across Iterations} \\
+& CQL & CQL + \methodname & CQL & CQL + \methodname \\
+\midrule
+Asterix       &         0.522$\pm$ 0.023 &            1.18$\pm$ 0.07 &             0.673$\pm$ 0.037 &              1.619$\pm$ 0.152 \\
+Breakout      &         0.982$\pm$ 0.072 &          1.849$\pm$ 0.079 &             1.303$\pm$ 0.152 &              2.374$\pm$ 0.277 \\
+Pong          &         1.011$\pm$ 0.038 &          1.067$\pm$ 0.037 &             1.084$\pm$ 0.022 &              1.111$\pm$ 0.024 \\
+Seaquest      &         0.846$\pm$ 0.167 &            2.47$\pm$ 0.71 &              1.41$\pm$ 0.521 &               4.02$\pm$ 1.303 \\
+Qbert         &         1.15$\pm$ 0.107 &          1.276$\pm$ 0.082 &              1.508$\pm$ 0.13 &              1.507$\pm$ 0.138 \\
+SpaceInvaders &          0.366$\pm$ 0.04 &          0.836$\pm$ 0.058 &             0.556$\pm$ 0.101 &              1.252$\pm$ 0.145 \\
+Zaxxon        &         0.754$\pm$ 0.261 &           1.91$\pm$ 0.251 &             1.725$\pm$ 0.663 &              2.673$\pm$ 0.143 \\
+YarsRevenge   &         1.099$\pm$ 0.039 &          0.806$\pm$ 0.079 &              1.34$\pm$ 0.112 &               1.086$\pm$ 0.08 \\
+RoadRunner    &         1.091$\pm$ 0.016 &          1.049$\pm$ 0.027 &             1.238$\pm$ 0.037 &              1.242$\pm$ 0.036 \\
+MsPacman      &         0.898$\pm$ 0.075 &          0.974$\pm$ 0.115 &              1.21$\pm$ 0.224 &                1.31$\pm$ 0.33 \\
+BeamRider     &         0.429$\pm$ 0.061 &          0.096$\pm$ 0.003 &             0.701$\pm$ 0.194 &              0.117$\pm$ 0.009 \\
+Jamesbond     &         0.113$\pm$ 0.012 &           0.152$\pm$ 0.04 &             0.571$\pm$ 0.432 &              0.528$\pm$ 0.344 \\
+Enduro        &         1.182$\pm$ 0.033 &          1.347$\pm$ 0.044 &             1.508$\pm$ 0.134 &               1.572$\pm$ 0.16 \\
+WizardOfWor   &         0.695$\pm$ 0.765 &          0.582$\pm$ 0.461 &             2.612$\pm$ 1.827 &              2.471$\pm$ 2.048 \\
+IceHockey     &        -4.781$\pm$ 0.338 &         -1.271$\pm$ 0.202 &             4.513$\pm$ 1.647 &              6.026$\pm$ 0.737 \\
+DoubleDunk    &         0.109$\pm$ 0.143 &          0.392$\pm$ 0.205 &             0.488$\pm$ 0.476 &              0.752$\pm$ 0.434 \\
+DemonAttack   &         0.887$\pm$ 0.104 &          1.886$\pm$ 0.173 &             1.278$\pm$ 0.116 &              2.548$\pm$ 0.555 \\
+\midrule
+Median Normalized Performance & 0.846 & \textbf{1.049} & 1.278 & \textbf{1.507} \\
+Mean Normalized Performance & 0.433 & \textbf{0.977} &  1.395 & \textbf{1.895}  \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+TODO
+
+\begin{table}[ht]
+    \centering
+    \caption{Normalized returns for 1\% DQN Replay dataset setting.}
+    \label{tab:dqn_1}
+    \vspace{0.2cm}
+    \begin{tabular}{ccccc}
+    \toprule
+    \multirow{2}{*}{Game} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Max Performance across Iterations} \\
+    & CQL & CQL + \methodname & CQL & CQL + \methodname \\
+    \midrule
+    Asterix       &         0.123 $\pm$ 0.021 &         0.185 $\pm$ 0.011 &             0.162 $\pm$ 0.058 &             0.227 $\pm$ 0.021 \\
+    Breakout      &         0.214 $\pm$ 0.008 &         0.307 $\pm$ 0.015 &             0.276 $\pm$ 0.037 &             0.367 $\pm$ 0.069 \\
+    Pong          &          1.029 $\pm$ 0.05 &         1.005 $\pm$ 0.066 &              1.081 $\pm$ 0.04 &             1.079 $\pm$ 0.025 \\
+    Seaquest      &         0.253 $\pm$ 0.025 &         0.199 $\pm$ 0.005 &             0.301 $\pm$ 0.057 &             0.235 $\pm$ 0.042 \\
+    Qbert         &         0.937 $\pm$ 0.054 &           1.13 $\pm$ 0.03 &             1.197 $\pm$ 0.053 &             1.315 $\pm$ 0.119 \\
+    SpaceInvaders &         0.176 $\pm$ 0.024 &         0.218 $\pm$ 0.024 &             0.267 $\pm$ 0.042 &             0.287 $\pm$ 0.045 \\
+    Zaxxon        &         0.474 $\pm$ 0.279 &         0.823 $\pm$ 0.395 &             1.019 $\pm$ 0.586 &             1.091 $\pm$ 0.643 \\
+    YarsRevenge   &         0.661 $\pm$ 0.042 &          0.791 $\pm$ 0.02 &               0.928 $\pm$ 0.2 &             0.963 $\pm$ 0.134 \\
+    RoadRunner    &         0.924 $\pm$ 0.017 &         0.807 $\pm$ 0.017 &             1.005 $\pm$ 0.035 &              0.99 $\pm$ 0.049 \\
+    MsPacman      &         0.605 $\pm$ 0.021 &          0.71 $\pm$ 0.025 &             0.732 $\pm$ 0.121 &             0.845 $\pm$ 0.131 \\
+    BeamRider     &         0.098 $\pm$ 0.008 &         0.057 $\pm$ 0.001 &             0.123 $\pm$ 0.009 &             0.072 $\pm$ 0.016 \\
+    Jamesbond     &         0.922 $\pm$ 0.218 &         0.834 $\pm$ 0.189 &             1.076 $\pm$ 0.246 &               1.1 $\pm$ 0.227 \\
+    Enduro        &         0.395 $\pm$ 0.019 &         0.382 $\pm$ 0.016 &               0.5 $\pm$ 0.057 &             0.508 $\pm$ 0.102 \\
+    WizardOfWor   &          0.36 $\pm$ 0.366 &         0.895 $\pm$ 0.542 &             1.296 $\pm$ 1.171 &             1.948 $\pm$ 0.727 \\
+    IceHockey     &         0.744 $\pm$ 0.624 &         1.401 $\pm$ 0.573 &             1.527 $\pm$ 1.962 &             2.037 $\pm$ 0.716 \\
+    DoubleDunk    &         0.433 $\pm$ 0.129 &         0.556 $\pm$ 0.093 &             0.671 $\pm$ 0.129 &             1.138 $\pm$ 0.465 \\
+    DemonAttack   &         0.278 $\pm$ 0.074 &         0.054 $\pm$ 0.012 &             0.493 $\pm$ 0.251 &             0.172 $\pm$ 0.075 \\
+    \midrule
+    Median Normalized Performance & 0.433 & \textbf{0.710} & 0.732 & \textbf{0.963} \\
+    Mean Normalized Performance & 0.507 & \textbf{0.609} &  0.744 & \textbf{0.846}  \\
+    \bottomrule
+    \end{tabular}
+
+\end{table}
+
+\subsection{BRAC Results}
+
+\begin{table}[t]
+    \caption{Normalized returns for BRAC.}
+    \label{tab:brac}
+    \vspace{0.2cm}
+\begin{tabular}{ccccc}
+\toprule
+\multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Max Performance across Iterations} \\
+& BRAC & BRAC + \methodname & BRAC & BRAC + \methodname \\
+\midrule
+%('True', '0.1', '2')
+halfcheetah-expert-v0 & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
+halfcheetah-medium-v0 & 43.5 $\pm$ 0.2 & 43.2 $\pm$ 0.2  & 45.1 $\pm$ 0.8 & 44.9 $\pm$ 0.6 \\
+halfcheetah-medium-expert-v0 & 17.0 $\pm$ 5.4 & 6.0 $\pm$ 5.5  & 24.8 $\pm$ 9.3 & 6.7 $\pm$ 7.3 \\
+halfcheetah-random-v0 & 24.4 $\pm$ 0.4 & 18.4 $\pm$ 0.3  & 24.9 $\pm$ 0.8 & 18.2 $\pm$ 1.0 \\
+halfcheetah-medium-replay-v0 & 44.9 $\pm$ 0.3 & 44.1 $\pm$ 0.4  & 45.0 $\pm$ 1.4 & 44.9 $\pm$ 0.5 \\
+hopper-expert-v0 & 15.7 $\pm$ 1.5 & 21.8 $\pm$ 3.2  & 16.6 $\pm$ 6.0 & 20.8 $\pm$ 5.3 \\
+hopper-medium-v0 & 32.8 $\pm$ 1.4 & 46.3 $\pm$ 7.1  & 36.2 $\pm$ 1.7 & 58.3 $\pm$ 13.7 \\
+hopper-medium-expert-v0 & 40.2 $\pm$ 5.7 & 37.0 $\pm$ 2.9  & 31.7 $\pm$ 11.8 & 21.8 $\pm$ 4.9 \\
+hopper-random-v0 & 11.7 $\pm$ 0.0 & 11.2 $\pm$ 0.0  & 12.2 $\pm$ 0.0 & 11.1 $\pm$ 0.0 \\
+hopper-medium-replay-v0 & 31.6 $\pm$ 0.3 & 30.3 $\pm$ 0.8  & 31.3 $\pm$ 1.2 & 36.1 $\pm$ 5.7 \\
+walker2d-expert-v0 & 25.5 $\pm$ 14.4 & 33.6 $\pm$ 11.8  & 54.0 $\pm$ 31.0 & 60.6 $\pm$ 20.2 \\
+walker2d-medium-v0 & 81.3 $\pm$ 0.3 & 80.8 $\pm$ 0.2  & 83.8 $\pm$ 0.2 & 83.4 $\pm$ 0.3 \\
+walker2d-medium-expert-v0 & 5.8 $\pm$ 5.2 & 6.4 $\pm$ 3.4  & 22.4 $\pm$ 22.0 & 39.5 $\pm$ 23.3 \\
+walker2d-random-v0 & 1.4 $\pm$ 0.8 & 1.7 $\pm$ 0.9  & 0.0 $\pm$ 0.1 & 2.9 $\pm$ 2.1 \\
+walker2d-medium-replay-v0 & 26.1 $\pm$ 6.4 & 47.4 $\pm$ 4.1  & 11.7 $\pm$ 7.0 & 38.7 $\pm$ 9.6 \\
+\midrule
+Median Normalized Performance & 25.5 & \textbf{33.6} & 24.9 & \textbf{38.7} \\
+Mean Normalized Performance & 26.9 & \textbf{31.9} & 29.5 & \textbf{37.3} \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\subsection{CQL Results}

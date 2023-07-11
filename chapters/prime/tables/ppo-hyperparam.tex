@@ -1,0 +1,60 @@
+% \begin{table}
+% \caption{\small{\bench{TPO}/\bench{PPO} hyperparameters used to evaluate \muj-simulated environments on a \benchl{2$\times$2-TPU~v2}. We adjust the hyperparameters to replicate the reported \bench{PPO} results with our infrastructure setup.}}
+% \vspace{2pt}
+% \small
+% \begin{center}
+% \begin{tabular}{ l|c }\hline
+%  Hyperparameters & Value  \\ 
+%  \hline\hline 
+%  \bench{Policy network architecture} & \bench{FC:64 -- FC:64}\\
+%  \bench{Value network architecture} & \bench{FC:64 -- FC:64}\\
+%  \bench{Adam stepsize ($\eta$)} & \xxs{3}\xxs{$\times\textrm{10}^{\textrm{-4}}$} and  \xxs{9}\xxs{$\times\textrm{10}^{\textrm{-4}}$}\\
+%  \bench{Horizon (T)} & \xxs{2048}\\
+%  \bench{Switching ratio ($\rho$)} & \xxs{0.5}\\
+%  \bench{Clipping coefficient ($\epsilon$)} & \xxs{0.2}\\
+%  \bench{Number of epochs} & \xxs{10}\\
+%  \bench{Minibatch size (M)} & \xxs{128}\\
+%  \bench{Gradient norm clipping coefficient} & \xxs{0.5}\\
+%  \bench{Discount ($\gamma$)} & \xxs{0.99}\\
+%  \bench{GAE parameter ($\lambda$)} & \xxs{0.95}\\
+% \hline
+% \end{tabular}
+% \end{center}
+% \label{table:ppo_hparams}
+% \vspace{-0.5cm}
+% \end{table}
+\setlength\intextsep{1pt}
+\setlength{\columnsep}{4pt}%
+\begin{wraptable}[22]{r}{0.53\textwidth}
+  \begin{center}
+\caption{\tpo hyperparameters.}
+\vspace{-0.2cm}
+%\quad
+\begin{tabular}{ |l|c| }\hline
+\footnotesize{MCTS Hyperparameters} & \footnotesize{Value}  \\ 
+ \hline\hline 
+ \bench{Number of MCTS simulations} & \bench{32}\\
+ \bench{Maximum number of actions per node} & \bench{32}\\
+ \bench{c$_{\textrm{puct}}$} & \bench{3}\\
+ \bench{Temperature ($\tau$)} & \bench{5}\\
+ \bench{Dirichlet noise scaling parameter ($\alpha$)} & \bench{1.75}\\
+  \bench{Dirichlet noise weight ($\omega$)} & \bench{0.5}\\
+  \hline\hline
+  \footnotesize{Training Hyperparameters} & \footnotesize{Value}\\ 
+  \hline\hline
+  \bench{Policy network architecture} & \bench{FC:64 -- FC:64}\\
+ \bench{Value network architecture} & \bench{FC:64 -- FC:64}\\
+ \bench{Adam learning rate ($\eta$)} & \xxs{3}\xxs{$\times\textrm{10}^{\textrm{-4}}$} and  \xxs{9}\xxs{$\times\textrm{10}^{\textrm{-4}}$}\\
+ \bench{Horizon (T)} & \xxs{2048}\\
+ \bench{Switching ratio ($\rho$)} & \xxs{0.5}\\
+ \bench{Clipping coefficient ($\epsilon$)} & \xxs{0.2}\\
+ \bench{Number of epochs} & \xxs{10}\\
+ \bench{Minibatch size (M)} & \xxs{128}\\
+ \bench{Gradient norm clipping coefficient} & \xxs{0.5}\\
+ \bench{Discount ($\gamma$)} & \xxs{0.99}\\
+ \bench{GAE parameter ($\lambda$)} & \xxs{0.95}\\
+\hline
+\end{tabular}
+\label{table:hparams}
+\end{center}
+\end{wraptable}

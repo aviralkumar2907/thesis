@@ -1,0 +1,17 @@
+\vspace{-0.2cm}
+\section{Preliminaries and Background}
+\vspace{-0.15cm}
+The goal in RL is to learn the optimal policy for an MDP $\mathcal{M} = (\mathcal{S}, \mathcal{A}, P, r, \rho, \gamma)$. $\mathcal{S}, \mathcal{A}$ denote the state and action spaces.  $P(s' | s, a)$ and $r(s,a)$
+are the dynamics and reward functions. $\rho(s)$ denotes the initial state distribution.  $\gamma \in (0,1)$ denotes the discount factor. Formally, the goal is to learn a policy $\pi:\mc S\mapsto \mc A$ that maximizes cumulative discounted value function, denoted by $V^\pi(s) = {\frac{1}{1-\gamma}\sum_{t} \bb E_{a_t \sim \pi(s_t)}\brac{\gamma^t r(s_t, a_t)|s_0=s}}$. The Q-function of a given policy $\pi$ is defined as ${Q^\pi(s,a) = {\frac{1}{1-\gamma}\sum_{t} \bb E_{a_t \sim \pi(s_t)}\brac{\gamma^t r(s_t, a_t)|s_0=s,a_0=a}}}$, and we use $Q_\theta^\pi$ to denote the estimate of the Q-function of a policy $\pi$ as obtained via a neural network with parameters $\theta$.
+
+Given access to an offline dataset $\mathcal{D} = \{(s, a, r, s^\prime)\}$ collected using a behavior policy $\behavior$, we aim to first train a good policy and value function using the offline dataset $\mathcal{D}$ alone, followed by an online phase that utilizes online interaction in $\mathcal{M}$. Our goal during fine-tuning is to obtain the optimal policy with the smallest number of online samples. This can be expressed as minimizing the \textbf{cumulative regret} over rounds of online interaction: $\regret(K) := \bb E_{s\sim \rho}\sum_{k=1}^K\brac{V^{\star}(s) - V^{\pi^k}(s)}$. As we demonstrate in Section~\ref{sec:experiments}, existing methods face challenges in this setting.
+
+Our approach will build on the conservative Q-learning (CQL)~\cite{kumar2020conservative} algorithm.
+CQL imposes an additional regularizer that penalizes the learned Q-function on out-of-distribution (OOD) actions while compensating for this pessimism on actions seen within the training dataset. Assuming that the value function is represented by a function, $Q_\theta$, the training objective of CQL is given by
+\begin{align}
+    \label{eqn:cql_training}
+    \!\!\!\!\!\min_\theta {\color[HTML]{6C8EBF} {\alpha \underbrace{\left(\mathbb{E}_{s \sim \mathcal{D}, a \sim \pi} \left[Q_\theta(s,a)\right] - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Conservative regularizer }\mathcal{R}(\theta)}}} + \frac{1}{2} {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\bar{Q}(s, a)\right)^2 \right]},
+\end{align}
+where $\bellman^\pi \bar{Q} (s, a)$ is the backup operator applied to a delayed target Q-network, $\bar{Q}$: $\bellman^\policy \bar{Q}(s, a) := r(s, a) + \gamma \E_{a^\prime \sim \pi(a^\prime|s^\prime)}[\bar{Q}(s^\prime, a^\prime)]$. The second term is the standard TD error~\cite{lillicrap2015continuous,fujimoto2018addressing,haarnoja2018sacapps}. The first term  $\mathcal{R}(\theta)$ (in {\color[HTML]{6C8EBF} blue}) is a conservative regularizer that aims to prevent overestimation in the Q-values for OOD actions by minimizing the Q-values under the policy $\pi(\ba|\bs)$, and counterbalances by maximizing the Q-values of the actions in the dataset following the behavior policy $\pi_\beta$.
+
+\vspace{-0.2cm}

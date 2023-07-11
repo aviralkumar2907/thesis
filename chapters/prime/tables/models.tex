@@ -1,0 +1,25 @@
+\begin{table*}[t!]
+\vspace{0.05cm}
+\small{
+\centering
+% \vspace*{0.1cm}
+\caption{\footnotesize The description of the applications, their domains, number of (convolutions, depth-wise convolutions, feed-forward) XLA ops, model parameter size, instruction sizes in bytes, number of compute operations.}
+\label{tab:models}
+\vspace{-0.1in}
+\resizebox{\textwidth}{!}{\begin{tabular}{l|l|c|r|r|r}
+\toprule
+\textbf{Name}&\textbf{Domain}&\textbf{\# of XLA Ops (Conv, D/W, FF)}&\textbf{Model Param}&\textbf{Instr. Size}&\textbf{\# of Compute Ops.}\\\midrule
+{\textbf{MobileNetEdgeTPU}} &Image Class.&(45, 13, 1)&3.87~MB&476,736&1,989,811,168\\\hline
+{\textbf{MobileNetV2}}&Image Class.&(35, 17, 1)&3.31~MB&416,032&609,353,376\\\hline
+{\textbf{MobileNetV3}}&Image Class.&(32, 15, 17)&5.20~MB&1,331,360&449,219,600\\\hline
+\textbf{\mfour}&Object Det.&(32, 13, 2)&6.23~MB&317,600&3,471,920,128\\\hline
+\textbf{\mfive}&Object Det.&(47, 27, 0)&2.16~MB&328,672&939,752,960\\\hline
+\textbf{\msix}&Object Det.&(53, 33, 2)&0.41~MB&369,952&228,146,848\\\hline
+\textbf{U-Net}&Image Seg.&(35, 0, 0)&3.69~MB&224,992&13,707,214,848\\\hline
+\textbf{t-RNN Dec}&Speech Rec.&(0, 0, 19)&19~MB&915,008&40,116,224\\\hline
+\textbf{t-RNN Enc}&Speech Rec.&(0, 0, 18)&21.62~MB&909,696&45,621,248\\
+\bottomrule
+\end{tabular}}
+}
+\vspace{-0.25cm}
+\end{table*}

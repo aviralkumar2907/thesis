@@ -1,0 +1,191 @@
+%%%%%%%% ICML 2021 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+% \usepackage{xspace}
+\usepackage{enumitem}
+\usepackage{stackengine}
+% \usepackage[1-11]{pagesel}
+
+
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+\usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Use the following line for the initial blind version submitted for review:
+\usepackage[accepted]{icml2021}
+
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{icml2021}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{COMBO: Conservative Offline Model-Based Policy Optimization}
+
+
+% ==================
+% MATH
+% ==================
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+\newcommand{\aravind}[1] {{\color{magenta} AR: {#1}}}
+% ==================
+% ==================
+
+\include{defs}
+\include{math_commands}
+
+% \usepackage{titlesec}
+% \titlespacing\section{0pt}{0pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+% \titlespacing\subsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+% \titlespacing\subsubsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{COMBO: Conservative Offline Model-Based Policy Optimization}
+% KY: think of better titles. One idea: Conservative Offline Model-based Policy Optimization (COMPO) or Conservative Offline Model-Based policy Optimization (COMBO)
+%%SL.1.2: I like these ideas! Both COMBO and COMPO sound good!
+%%CF.1.3: COMBO is cute in the sense that the algorithm is also a combination of two algorithms in some sense. You could also have a paper title of something like "COMBO: Conservative Offline Model-Based Policy Optimization"
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2021
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Tianhe Yu}{equal,to}
+\icmlauthor{Aviral Kumar}{equal,goo}
+\icmlauthor{Rafael Rafailov}{to}
+\icmlauthor{Aravind Rajeswaran}{ed}
+\icmlauthor{Sergey Levine}{goo}
+\icmlauthor{Chelsea Finn}{to}
+\end{icmlauthorlist}
+
+\icmlaffiliation{to}{Stanford University}
+\icmlaffiliation{goo}{UC Berkeley}
+\icmlaffiliation{ed}{University of Washington}
+
+\icmlcorrespondingauthor{Tianhe Yu}{tianheyu@cs.stanford.edu}
+\icmlcorrespondingauthor{Aviral Kumar}{aviralk@berkeley.edu}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Machine Learning, ICML}
+
+\vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column
+% listing the affiliations and the copyright notice.
+% The command takes one argument, which is text to display at the start of the footnote.
+% The \icmlEqualContribution command is standard text for equal contribution.
+% Remove it (just {}) if you do not need this facility.
+
+%\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+
+
+\begin{abstract}
+    Model-based algorithms, which learn a dynamics model from logged experience and perform some sort of pessimistic planning under the learned model, have emerged as a promising paradigm for offline reinforcement learning (offline RL). However, practical variants of such model-based algorithms rely on explicit uncertainty quantification for incorporating pessimism. Uncertainty estimation with complex models, such as deep neural networks, can be difficult and unreliable. We overcome this limitation by developing a new model-based offline RL algorithm, COMBO, that regularizes the value function on out-of-support state-action tuples generated via rollouts under the learned model. This results in a conservative estimate of the value function for out-of-support state-action tuples, without requiring explicit uncertainty estimation.
+    We theoretically show that our method optimizes a lower bound on the true policy value, that this bound is tighter than that of prior methods, and our approach satisfies a policy improvement guarantee in the offline setting.
+    %%AR.1.28: We should triple check about the theoretical claim of stronger bounds. If an RL theory reviewer gets it instead of a deep RL reviewer, they are definitely going to pay close attention to this claim. If our results are not watertight, it will give them an easy argument for rejection.
+    %%SL.1.23: maybe revise this part, instead of saying "gains over priro methods" perhaps we can more precisely state the conclusion of the theoretical analysis
+    %%TY.1.27: I made the theoretical contribution more precise.
+    % ?by reducing the impact of both distributional shift and sampling error. 
+    Through experiments, we find that COMBO consistently performs as well or better as compared to prior offline model-free and model-based methods on widely studied offline RL benchmarks, including image-based tasks.
+    %%AK: maybe add images, once we have them
+\end{abstract}
+
+
+
+%% Feedback:
+% - We need a teaser figure in page 1/2
+% - We need pics of the environments
+
+
+\input{intro}
+
+\input{prelim}
+
+\input{method}
+
+\input{experiments}
+
+\input{related_work}
+
+\section{Conclusion}
+In the paper, we present conservative offline model-based policy optimization (COMBO), a model-based offline RL algorithm that penalizes the Q-values evaluated on out-of-support state-action pairs. In particular, COMBO removes the need of uncertainty quantification as widely used in previous model-based offline RL works~\citep{kidambi2020morel,yu2020mopo}, which can be challenging and unreliable with deep neural networks~\citep{ovadia2019can}. Theoretically, we show that COMBO achieves a tighter lower-bound on the true policy value compared to prior model-free offline RL methods~\citep{kumar2020conservative} and guarantees a safe policy improvement. In our empirical study, COMBO outperforms prior model-based and model-free offline RL methods in 9 out of 12 datasets in the standard D4RL benchmark and attains comparable performance in rest of 3 datasets. COMBO also achieves the best generalization performances in 3 tasks that require adaptation to unseen behaviors. Finally, COMBO is able scale to vision-based tasks and outperforms or obtain comparable results in vision-based locomotion and robotic manipulation tasks. Despite the advantages of COMBO, there are few challenges left such as the lack of a fully offline hyperparameter tuning mechanism and an automatically tuned $f$ that takes the model error into account. We leave them for future work.
+
+% While COMBO enjoys its robustness to dataset types and generalization abilities, there are a few challenges and future directions remaining. First, COMBO requires a small amount of on-policy data in order to evaluate the performance and tune the hyperparameters especially in the image-based tasks. It would be important for future work to design a fully offline cross-validation and hyperparameter tuning scheme to minimize the risk of online interaction. Moreover, the conservatism of COMBO is controlled the fraction of real data $f$, which is fixed in this paper. An automatically tuning mechanism for $f$ that potentially takes the model error into account is left for future work.
+% Acknowledgements should only appear in the accepted version.
+\section*{Acknowledgements}
+We thank members of RAIL and IRIS for their support and feedback. This work was supported in part by ONR grant N00014-20-1-2675 and Intel Corporation. AK and SL are supported by the DARPA Assured Autonomy program. AR was supported by the J.P.~Morgan PhD Fellowship in AI.
+
+\bibliography{reference}
+\bibliographystyle{icml2021}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DELETE THIS PART. DO NOT PLACE CONTENT AFTER THE REFERENCES!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\newpage
+\onecolumn
+\input{appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021. Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

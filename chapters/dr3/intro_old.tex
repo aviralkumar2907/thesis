@@ -1,0 +1,194 @@
+
+\section{Introduction}
+
+\iffalse
+Combining reinforcement learning (RL) with highly expressive deep neural network function approximators bears with it the promise of acquiring 
+complex behaviors that solve tasks in open-world domains. While deep RL has shown  impressive results on some problems in robotics~\citep{kalashnikov2018qtopt}, recommender systems~\citep{shani2005recommender} and game-playing~\citep{alphastar}, current deep RL methods are still difficult to use: they often exhibit unstable learning behavior, degradation in performance with more training,
+%%SL.5.17: some of these issues (like degrading performance with more training) are rather specific to offline RL, and some readers will find it very surprise to hear it without more context -- I wonder if we can somehow rearrange this paragraph to remove this problem (else they might not believe us, conclude we don't know what we're talking about, etc.)
+and a lack of a systematic schemes for hyperparameter tuning~\citep{fu2021benchmarks}. This can make it challenging to apply them to new problem scenarios. While a number of prior works have identified various issues with such methods, and a number of proposed fixes have improved various aspects of RL algorithms with function approximation -- including targeted exploration schemes~\citep{du2019distributioncheck} and algorithms that can learn from experience in a data-efficient manner~\citep{haarnoja2018sacapps,kumar2020discor,fujimoto2018off,kumar2019stabilizing,kumar2020conservative,fu2019diagnosing,fedus2020revisiting}, a complete fix has remained far-fetched.  
+\fi
+%%SL.5.17: This last bit is setting the wrong expectations -- we arguably don't propose a complete fix. I wonder though if maybe we can have a more focused intro that avoids these issues. Instead of talking about stability and tuning more generally, what if we have a first paragraph that is more like the abstract, and just directly jumps to the main point? Something like: A number of works have studied the question of how deep models, despite the overparameterization that in principle should leave them vulnerable to massive overfitting~\citep{}, nonetheless manage to successfully learn highly generalizable representations in supervised learning settings~\citep{}. A widely held consensus is that such methods are \emph{implicitly} regularized to find generalizable solutions, either through the structure of the stochastic gradient descent learning algorithm~\citep{}, the nature of deep networks~\citep{}, or both~\citep{}. It is then reasonable to suppose that deep RL will work well for the same reason: implicit regularization, whether from SGD or the structure of deep networks, will produce generalizable solutions. But is this actually the case?
+%%AK: This para reads awesome! Thanks, Sergey!
+%
+% In this paper, we will argue that the very same implicit regularization that makes supervised deep learning converge to generalizable solutions actually produces poor representations when training deep neural network value functions with temporal difference learning. We focus our investigation on the offline RL setting, where value functions are learned from previously collected data, and the confounding effects of exploration and active data collection are removed from the equation. In these settings, we find that training value functions with actor-critic and Q-learning style offline RL algorithms actually results in degraded performance after a certain number of gradient steps. This issue does not correspond to overfitting, and even networks initialized close to the optimum degrade in performance with more training. We show that, under reasonable theoretical models of deep learning based on prior work~\citep{}, widely studied implicit regularization effects in deep learning actually read to poor representations when training with commonly used Bellman error minimization methods, thus illustrating the issue both in practice and in theory.
+
+
+% A number of prior works have studied the question of how 
+Deep neural network models, despite overparameterization that, in principle, should leave them vulnerable to massive overfitting~\citep{arora2018optimization,arora2019implicit},
+%%AK: I am sure these are not all the citations, TODO: add more
+nevertheless manage to successfully learn highly generalizable representations in supervised learning~\citep{arora2018optimization,gunasekar2018implicit,arora2019implicit}.
+%%AK: update these citations with a bunch of more recent work: implicit gradient regularization, flat minima, OU process, etc
+A widely held consensus is that deep methods find generalizable solutions due to \emph{implicit} regularization, which may arise from the structure of the optimizer (e.g., gradient descent)~\citep{blanc2020implicit}, network initialization~\citep{woodworth2020kernel}, and network parameterization~\citep{arora2018optimization,gunasekar2017implicit,wei2019regularization}. It is then reasonable to expect that deep RL will work well for the same reason, acquiring effective representations due to the implicit regularization enjoyed by deep networks trained with SGD. But is this actually the case? 
+
+In this paper, we will argue that while implicit regularization makes supervised deep learning methods learn effective representations, it actually leads to poor representations when training deep network value functions with RL (i.e., TD-learning). We focus our investigation on the offline RL setting, where value functions are learned from previously collected data, and the confounding effects of exploration and active data collection are removed from the equation. As also noted in prior work~\citep{kumar2021implicit}, training value functions with bootstrapping in the offline RL setting results in degradation in evaluation performance after a certain number of gradient steps. % Agreed more context is needed here to talk about this and it's better talked later
+% This issue does not correspond to overfitting \gjt{explain why not}, and even networks initialized close to an optimum degrade with more training. 
+% \gjt{I think at some point we have to mention that we are only able to measure TD error, but not returns. What is the relation w/ train TD error, test TD error, and evaluation returns? This is not something that happens in SL.} 
+In this paper, we aim to understand the cause of this phenomenon and develop a potential solution. We show that under the theoretical model of implicit regularization in deep learning studied by \citet{blanc2020implicit},
+% theoretical models of deep learning that study implicit ~\citep{blanc2020implicit,savarese2019infinite},
+%%SL.5.26: theoretical models of deep learning proposed in prior work to study implicit regularization
+such regularization in deep RL results in ``co-adapted'' features, i.e. extremely similar feature representations for state-action tuples appearing together in a Bellman backup, which in turn lead to poor solutions.
+%%SL.5.26: this Bellman update business is too much detail this early in the paper, keep it simple
+%with a peculiar form of aliasing of state-action tuples appearing together in a Bellman update. 
+%%SL.5.22: Maybe add something like: In this paper, we aim to understand the cause of this phenomenon, and develop a potential solution. [that said, I think we need to very clearly and explicit state, perhaps in the related work section, what precisely we do that the IUP paper does not do]
+% We show that, under reasonable theoretical models of deep learning based on prior work~\citep{wei2019regularization,savarese2019infinite}, the implicit regularization effects in deep learning actually lead to poor
+%%SL.5.22: Same comment as in the abstract, it would be really nice if we can say something more specific than just "poor"
+% features when training with TD-learning, thus illustrating the issue both in practice and in theory.
+
+When learning value functions, regression targets in a given iteration are generated by querying a previous snapshot of the value function on specific state-action tuples. The action in these tuples  are often generated from the policy
+%%SL.5.26: just the actions are generated from the policy (but this distinction is quite important, let's not gloss it over)
+and are typically not observed in the dataset. While these tuples may still be within the distribution of the training set, as in the case of current offline RL methods that explicitly avoid out-of-distribution actions,
+%%SL.5.26: more to the point: as in the case of current offline RL methods that explicitly avoid out-of-distribution actions
+any new state-action tuple sampled from the policy will always be out-of-sample from the dataset.   
+%%SL.5.22: say why
+%%SL.5.22: Rephrase like this: Most prior works that aim to address this issue are concerned with combatting \emph{overestimation}~\citep{fujimoto2018off,kumar2019stabilizing,wu2019behavior,jaques2019way,kumar2020conservative,levine2020offline}, where the predicted Q-values for out-of-distribution actions are excessively large. However, we show that, even if OOD overestimation is addressed with one of these methods, OOD actions can still result in the implicit regularization effect of gradient descent leading to degenerate representations.
+%%AK: removed this bit
+Utilizing these out-of-sample state-action tuples for the bootstrapping updates leads to ``co-adaptation'': out-of-sample  state-action tuples are assigned similar representations to state-action tuples in the dataset, which prevents the Q-network from using its full representational capacity, and can prevent convergence to good solutions even when initialized close to them. We find that even when the Q-values are not overestimated and the data coverage is high, this co-adaption phenomenon affects the performance of the algorithm, causing it to destabilize with more training. 
+%%AK: I know I used strong words, like "causing". Maybe we can evaluate if we have enough evidence for this or not 
+% Even when initialized near a favorable solution, this co-adaption can cause convergence to a poor, but heavily regularized solution. 
+To mitigate this issue, we propose a \emph{explicit regularizer} that we call \methodname, which can be combined with any offline RL method.
+The key idea behind \methodname\ is simple: it regularizes the learned features on the state-action tuples appearing together in a bootstrapping update to be dissimilar, thereby preventing the co-adaption phenomenon. \methodname\ allows neural net Q-functions to use their full representational capacity, giving rise to offline RL methods that train for longer, reach a better solution, and remain stable at this solution without subsequent degradation.
+
+Our paper makes two main contributions. First, we identify that implicit regularization in deep learning leads to what we call a \emph{feature co-adaptation} phenomenon
+in deep value-based RL methods, which results in features that fail to adequately distinguish between the representations of distinct state-action tuples that appear together in a TD update (typically the features of a state-action in the dataset vs. a state-action from the current policy).
+%%SL.5.22: which results in degenerate features that fail to adequately distinguish between the representations of distinct state-action tuples that appear together in a TD update (typically the features of a state-action in the dataset vs. a state-action from the current policy).
+We demonstrate this issue empirically and theoretically, extending the observations in prior work~\citep{kumar2021implicit}, which only noted that the rank of the intermediate feature representations of a deep Q-network decreases with more iterations of TD learning and did not attribute it to out-of-sample actions or feature co-adaptation.
+%%SL.5.26: probably need to better than that, no one will understand the above sentence
+Second, we propose a simple and effective \emph{explicit} regularizer for offline value-based RL, \methodname\ that minimizes the feature similarity between state-action pairs appearing in a bootstrapping update. \methodname\ alleviates co-adaptation and can be easily combined with modern offline RL methods, such as REM~\citep{agarwal2019optimistic}, CQL~\citep{kumar2020conservative}, BRAC~\citep{brac} and a nai\"ve DQN~\citep{mnih2013playing}, leading to improved stability and performance. Empirically, we find that using \methodname\ in conjunction with existing offline RL algorithms provides about 60\% gains in stability on the harder D4RL~\citep{fu2020d4rl} tasks and about 150\% and 25\% gains in stability for REM and CQL on offline RL tasks in 17 Atari games~\citep{agarwal2019optimistic}. Additionally, we observe large improvements on various image-based robotic manipulation tasks~\citep{singh2020cog}.
+%%AK: TODO: make this para a little bit more crisp, this seems like a bit underselling right now.
+
+
+\iffalse
+While combining reinforcement learning (RL) with highly expressive deep neural networks bears with it the promise of solving complex real-world problems, current deep RL methods are 
+unstable and difficult to use.
+% What makes deep RL methods unstable and difficult to tune? 
+While it may appear that the primary challenge in RL is that of exploration, recent work has shown that even learning from static, logged experience, a.k.a. offline RL~\citep{lange2012batch,levine2020offline}, is challenging. This is not an exploration issue and even methods devised specifically for handling typical ``distributional shift'' challenges in offline RL~\citep{fujimoto2018addressing,kumar2019stabilizing,kumar2020conservative,wu2019behavior, agarwal2019optimistic} also suffer from unstable optimization behavior. Unlike supervised learning where gradient descent favorably regularizes deep network representations, allowing us to train high-capacity models to high accuracy without overfitting, on the contrary, in this paper, we note that when performing multiple learning iterations to acquire a value function on a (relatively) static dataset of experience with temporal-difference learning, the full representational power of deep networks is difficult to bring to bear. This is because the beneficial representation regularization effects observed in supervised deep learning (e.g., the effects of SGD and deep nets) actually translate into \emph{excessive} regularization in deep RL when value functions are trained with TD learning. This makes it hard to attain a good Q-function by training on a finite dataset, thereby also affecting policy performance.
+
+Offline reinforcement learning~\citep{lange2012batch,levine2020offline} addresses the problem of learning the best possible policy from previously collected data, without any active online interaction, making it the only viable learning paradigm in a number of real-world settings where online data collection is expensive or dangerous.
+%%SL.5.13: We should think carefully about how to position the paper relative to offline vs online RL. A problem I have here is that it's not clear why this should be an offline-only problem, and if it's not an offline-only problem, it's odd to *start* the introduction with offline RL.
+%%AK: It seems like the method doesnt quite work with online RL setting (for the same reason as 1 gradient steps has no issues, and method + more gradient steps are worse than 1, so it is less clear if we gain anything by being more general. The problem at the end is related to lack of data and data reuse, so I have tried to bring that in quickly below.
+While a number of prior works have pointed out challenges in offline RL pertaining to \emph{distributional shift}~\citep{fujimoto2018off,kumar2019stabilizing,levine2020offline}, and a number of methods have been proposed to tackle this issue (see \citep{levine2020offline} for a review) leading to improved performance, modern offline RL methods are still challenging to use because of optimization instabilities and extreme sensitivity to seemingly unimportant hyperparameters. For example, a number of modern offline RL methods suffer from a drop in policy performance with more training~\citep{kumar2021implicit} making it hard to deploy them in practice without a proper cross-validation mechaism, which has remained elusive so far~\citep{fu2021benchmarks}.
+
+%% problem
+What makes offline RL unstable and difficult to tune? Despite theoretical works~\citep{jin2020pessimism} showing that existing offline RL methods are already minimax optimal
+%%AK: Have there been other forms of optimality shown here?
+in tabular and linear RL settings, algorithms based on such ideas~\citep{agarwal2019optimistic,brac,kumar2020conservative}, optimization and sensitivity challenges exist in offline deep RL. This indicates that an important piece in the puzzle of offline deep RL is the interplay between feature representation learning in deep neural networks and optimization of temporal-difference error, which is still not well understood.
+%%SL.5.13: I think this is true in value-based RL more broadly, and perhaps a better motivation is to appeal to hyperparameter sensitivity and difficulty of tuning these methods (again, more like the motivation in the abstract)
+%%AK: I added it above -- the starting question of the para says this
+While gradient descent favorably regularizes deep network representations, allowing us to train high-capacity models to high accuracy without overfitting, on the contrary, in this paper, we note that when performing multiple learning iterations on a static dataset of experience with temporal-difference learning, the full representational power of deep networks is difficult to bring to bear, because the beneficial representation regularization effects of neural networks and optimization procedures such as gradient descent -- e.g., in supervised learning translate to excessive regularization in deep RL. This makes it hard to attain a good Q-function by training on a finite dataset -- unless active data collection is performed at the right frequency (which is not allowed in offline RL settings), learned deep Q-functions suffer from the aforementioned pathological issues which also affect downstream policy performance. 
+\fi
+% 
+% While gradient descent on overparameterized neural networks provides a favorable inductive bias in supervised learning,
+%%SL.5.13: Maybe instead of putting this *after* the statement, we can put it before -- say something about how deep nets are great because of their high capacity, and because stochastic gradient descent is effective in training such models to high accuracy seemingly without overfitting, perhaps due to an implicit regularization effect, as suggested in several recent works~\citep{} (if we put this *before* we talk about the problem, it will have a dramatic effect: deep RL is good b/c of deep nets, deep nets are good because of capacity + SGD, but oh no! in deep RL it is no longer good, SGD causes problems, and deep nets no longer have high capacity)
+%%AK: enjoys inductive bias? attains inductive bias? provides inductive bias?
+% implicitly regularizing representations to encourage generalization, perhaps surprisingly, training Q-functions via bootstrapping induces implicit regularization effects~\citep{kumar2021implicit}
+%%AK: TODO (AK): make this line less generic so that IUP doesn't satisfy this line
+% that drive the network towards aliasing representations at state-action tuples in the data and unseen state-action tuples used in the bootstrapping update. While such representations are sufficient for minimizing the temporal difference (TD) error during training and can accurately predict the reward function,
+%%SL.5.13: I'm confused -- who cares if features can predict reward functions?
+% they are not sufficient for attaining a good Q-function. Subsequent
+% %%SL.5.13: subsequent to what?
+% policy optimization methods often give rise to either that are overly conservative (\ie mimic the behavior policy) or take out-of-distribution actions.
+%%SL.5.13: I think for now, it's enough to keep it simple and just say that it causes the policy to collapse or something (avoid over-complicating things too early).
+%%SL.5.13: In general, the current motivation sounds exactly like IUP. Maybe this is inevitable, but something to be aware of.
+%%AK: Yes. This is something I am not sure how to avoid
+
+\iffalse
+While prior work~\citep{kumar2021implicit} identified some pathological symptoms of representation
+%%AK: is there any other work besides IUP to note this?
+regularization with TD-learning methods, such as collapse in the rank of internal representations of the value function, a full understanding of the mechanisms inducing such regularization as well as methods to mitigate them are not well understood.
+We empirically and theoretically study this phenomenon,
+%AK: we need to say one more thing in the middle potentially making it clear how it arises?
+and show that it not only affects the peak performance of the algorithm, but also doesn't allow the learning procedure to stabilize at good solutions found during a training run, thus explaining poor convergence behavior.
+%%SL.5.17: this last bit (stabilize at good solutions) is a bit opaque, can you state it more directly (even initializing a deep neural net value function at the optimal solution will result in otherwise effective offline deep RL methods actually moving it away from this optimum and toward worse solutions)
+To mitigate this pathological aliasing phenomenon, 
+we propose a simple \emph{explicit regularizer} that we call \methodname, which can be combined with any existing value-based deep RL method.
+%%SL.5.13: which can be combined with any existing offline RL method?
+The key idea behind \methodname\ is simple: it regularizes the learned features on the state-action tuples that appear on two sides of the bootstrapping update to be as dissimilar as possible and is not only effective in preventing excessive regularization, allowing neural net Q-functions to use their full representational capacity, give rise to offline RL methods that train for longer, reach a better solution, and remain stable at this solution without subsequent degradation. 
+\fi 
+
+% Theoretical analysis of \methodname confirms these benefits. 
+% We show that \methodname\ prevents the Q-learning procedure from converging to aliased solutions and instead drives the network to a good, high-performing solution, and finally induces stability at this final solution.
+%%SL.5.13: I think many readers will not quite appreciate what the previous paragraph is saying, because many of these are jargon words. Maybe rephrase as:
+% We show that \methodname\ is not only effective in preventing excessive aliasing, but that it also allow offline RL methods to train for longer, reach a better solution, and remain stable at this solution without subsequent degradation. [and it would be ideal if prior to this sentence, each of these issues is mentioned as a weakness i.e. ...causes excessive aliasing, and not only affects the peak performance of the algorithm, but also leads to performance deterioration with more training. In fact, even when initialized at a good solution, this excessive aliasing effect can actually cause prior algorithms to move away toward a worse value function.]
+% Empirically, \methodname\ leads to substantially more stable and reliable learning from offline data, often leading to better peak performance (Figure ??), as well more stable learning curves (Figure ??).
+%%SL.5.13: This seems repetitive with the previous sentence
+
+%%SL.5.13: One phrasing that might be powerful and good to include somewhere could look like this:
+% While in the supervised setting, SGD with deep neural networks provides a highly beneficial \emph{implicit} regularizing effect that leads to good solutions, in the case of value-based TD training, this regularizing effect is actually highly detrimental, and we instead require an \emph{explicit} regularizer to make up for its ill effects and recover the full representational power of deep networks.
+
+
+%%SL.5.13: Yeah, we can say something like this: Our paper makes two main contributions. First, we identify and study the [problem name] both empirically and theoretically, showing that [problem name] is a direct consequence of applying SGD training to value-based deep RL methods with bootstrapping. We show that this issue accounts for many of the instability and hyperparameter sensitivity issues observed in offline value-based RL [do we?]. Second, we propose a simple and effective explicit regularizer...
+% %%AK: added
+% Our paper makes two main contributions. First, we study the over-regularization problem
+% %%SL.5.17: Maybe we shouldn't call it over-regularization. It's not so much over-regularization as wrong regularization... can we come up with some better name?
+% in deep value-based RL methods empirically and theoretically, providing an analysis of the mechanism and extent of this phenomenon, extending the observations in prior work~\citep{kumar2021implicit} which only identifies the existence of an aliasing issue. 
+% Second, we propose a simple and effective \emph{explicit} regularizer for offline value-based RL, \methodname, that minimizes the feature similarity between state-action pairs from the offline dataset and those used for bootstrapping. \methodname\ alleviates the aliasing issue and can be easily combined with modern offline RL methods, such as REM~\citep{agarwal2019optimistic}, CQL~\citep{kumar2020conservative}, BRAC~\citep{brac} and a na\"ve DQN~\citep{mnih2013playing} giving rise to improved stability as well as better performance. Empirically, we find that utilizing \methodname\ in conjunction with existing offline RL algorithms leads to about XX\% gains in stability on the harder D4RL~\citep{fu2020d4rl} tasks and about YY\% gains in \emph{both} performance and stability on various offline RL tasks in 17 Atari games~\citep{agarwal2019optimistic} and image-based robotic manipulation tasks~\citep{singh2020cog}.
+% %%AK: TODO: make this para a little bit more crisp, this seems like a bit underselling right now.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%                    OLD STUFF
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%---------------------------
+% In offline RL, when such tuples are aliased, the value function is forced to either assign them low values, leading to excessively conservative policies, or high values, leading to out-of-distribution actions, excessive distributional shift, and ultimately non-convergence~(Section~\ref{sec:consequences_of_feature_sim}). 
+% Theoretically, we show this issue happens as a result of gradient descent being used to train a deep neural net Q-function with bootstrapping updates on a fixed dataset.
+%%SL.2.1: This is a little confusing -- you said before it was due to bootstrapping, now you are saying it's due to gradient descent. I'm guessing you mean it's due to both, and these are not actually contradictory, but they somehow sound contradictory as written
+%%RA.2.2: Fixed.
+
+% Our main contribution is an empirical and theoretical analysis of feature aliasing in offline RL algorithms based on value function learning via bootstrapping, which leads to the development of a simple regularization
+% %%SL.1.26: same comment, excessive use of "regularization"
+% scheme, \methodname, that prevents aliasing by enforcing orthogonality in the learned representations on seen and unseen state-action tuples. We theoretically show the effectiveness
+% %%AK.1.24: effectiveness is super vague
+% of our method. Empirically, we find that applying \methodname\ in combination with state-of-the-art conservative offline RL algorithms (CQL~\citep{kumar2020conservative}) leads to substantially more stable and reliable learning from offline data, and attains state-of-the-art results across a suite of harder D4RL benchmark~\citep{fu2020d4rl} tasks as well as on image-based Atari domains using the DQN Replay dataset~\citep{agarwal2019optimistic, gulcehre2020rl}. 
+% %%AK.1.24: TODO: say something more quantitative once we finalize numbers
+% Finally, we also show how \methodname\ when applied on top of fitted Q-evaluation (FQE) can improve the accuracy
+% %%SL.1.26: somehow "improve the accuracy" comes across as a much weaker statement than the claims in the preceding sentences about the results
+% and stability of off-policy evaluation, particularly for policies with limited overlap with the data.
+
+% representation learning in value-based offline deep RL methods and identify an \emph{feature aliasing}~(Figure~\ref{}) issue stemming from this interaction.
+% Perhaps surprisingly, we show that the feature representations learned with offline deep RL algorithms have a tendency to alias state-action tuples used in the bootstrapping updates, with actions in the dataset and next state' actions selected by the learned policy, crippling the value function's ability to distinguish between data distribution and out-of-distribution actions. In offline RL, when such actions are aliased, and therefore rendered nearly indistinguishable, the value function is forced to either assign them low values, leading to excessively conservative policies, or high values, leading to out-of-distribution actions, excessive distributional shift, and ultimately non-convergence.
+%%SL.1.26: "those not in the dataset" comes across as a little cryptic -- maybe just say "and those selected by the learned policy"?
+%% RA.1.27: The tuples are the ones used in the backups, fixed now,
+% Theoretically, we show this issue happens as a result of gradient descent being used to train a deep neural net Q-function by repeatedly minimizing TD error on a fixed dataset.
+%%SL.1.26: it's not clear what this has to do with offline rl -- maybe add a short note indicating this (eg when the same data is reused repeatedly? or something else?)
+%%RA.1.28: Moving this to related work
+% Note that prior analyses of RL in tabular or linear function approximation settings~\citep[\eg][]{chen2019information,duan2020minimax,xie2020q, wang2021what} do not require learning representations, and overlook the feature alignment issue
+% In practice, we observe that this issue often corresponds to poor and unstable performance, even with recent algorithms that mitigate distributional shift~(\eg  CQL~\citep{kumar2020conservative}).
+%%SL.1.26: I doubt the significance of this statement will be appreciated by any of your readers at this point.
+%%RA.1.28: I was unsure which statement was being referred to but does it still seem hard to appreciate? 
+%%SL.1.26: See my comment in the abstract. Perhaps we'll have better luck if this paragraph emphasizes the benefits of the solution, rather than the badness of the problem. Otherwise the paper risks coming across as a "we've found yet another problem" kind of paper.
+
+% To mitigate \emph{feature aliasing}, we propose a Feature Orthogonality regularizer for offline Q-Learning~(\methodname) which achieves state-of-the-art results across a wide range of offline RL benchmark tasks.  \methodname\ simply regularizes the features of state-action tuples that occur in the bootstrapping updates to be orthogonal. 
+%%SL.1.26: I don't think "enforces orthogonality" is really accurate -- they won't be orthogonal, just have a lower dot product.
+% of features corresponding to seen and unseen state-action action tuples.
+%%SL.1.26: Our proposed method uses a simple feature alignment loss to mitigate this issue, leading to substantially more stable and effective offline learning.
+% \methodname\ prevents the onset of the feature alignment phenomenon and, in practice, it leads to significantly more stable and effective offline RL on harder D4RL tasks and Atari 2600 games. 
+% This aliasing hinders the ability to learn a value function that satisfies Bellman constraints 
+%%AK:1.24: "Bellman constraints" introduced without prior definition, not sure if it is the optimal thing to do though...
+%%SL.1.16: I think the above sentence is too imprecise and too heavy on jargon. Can we be more precise and formal about what the issues are? (see my comment on "instability" in the abstact as well)
+%%AK.1.24: removed the word instability: does it seem to be more precise now? I don't know how formal this is and how much we can say, but we can forward refer the section where we talk about this formally...
+% while also being conservative,
+%%SL.1.26: readers won't know what being conservative means here, or why it's important
+% leading to poor policy performance and either excessive conservatism or positive divergence.
+%%SL.1.26: It might come across as counterintuitive to some readers that "difficult to be conservative" leads to "excessive conservatism," but there is actually some fairly simple intuition here: It is particularly critical in the offline RL setting to be able to distinguish between the actions in the data distribution and out-of-distribution actions that might be taken by the policy. When such actions are aliased, and therefore rendered indistinguishable, the value function is forced to either assign them low values, leading to excessively conservative policies, or high values, leading to out-of-distribution actions, excessive distributional shift, and ultimately non-convergence.
+% To prevent these instability problems, we impose a regularizer,
+%%SL.1.26: kind of uninspiring I think to call everything a regularizer
+% which we call \methodname, which enforces orthogonality
+%%SL.1.26: I don't think "enforces orthogonality" is really accurate -- they won't be orthogonal, just have a lower dot product.
+% of features corresponding to seen and unseen state-action action tuples.
+%%SL.1.26: Our proposed method uses a simple feature alignment loss to mitigate this issue, leading to substantially more stable and effective offline learning.
+% Theoretically, \methodname\ ensures lower error accumulation~\citep{munos2005error} and leads to more effective offline RL.     
+%%SL.1.26: Does it lead to more effective offline RL theoretically, or practically? if the latter, change the last part to "and, in practice, it leads to significantly more stable and effective offline learning"
+%%AK.1.26: bit about error propagation is something we need to prove still
+
+%%SL.1.16: I feel like we should feature the discussion of new methods more prominently. Note my suggested phrasing in the abstract -- we could mention that we use this insight to develop new algorithms as early as the second paragraph. The reason this is important is because otherwise, the reader doesn't even know what exactly we are going to offer them in the paper until the end of the intro -- i.e., is it a paper about diagnosing a problem, reporting a new algorithm, etc. I would suggest emphasizing the new algorithm much more and more much earlier. One way to emphasize the algorithm is to give it a name, and put that name in the title (could have a name that somehow references CQL too...)
+%%AK: I am a bit unsure with the current setup that we should introduce this regularizer in para 2: it seems like it is a bit unclear how and why we came up with that since we havent introduced what is a feature and what it means to be aligned (i.e. directionally aligned or not orthogonal)
+
+%%SL.1.16: I think it would also be a good idea to illustrate the alignment issue more prominently with a figure on page 1 -- coming up with a great way to visually illustrate it would help.
+%%AK: TODO
+
+% Our main contribution is an empirical and theoretical analysis of feature aliasing in offline RL algorithms based on value function learning via bootstrapping, which leads to the development of a simple regularization% %  scheme, \methodname, that prevents aliasing by enforcing orthogonality in the learned representations on seen and unseen state-action tuples. We theoretically show the effectiveness
+% %%AK.1.24: effectiveness is super vague
+% of our method. Empirically, we find that applying \methodname\ in combination with state-of-the-art conservative offline RL algorithms (CQL~\citep{kumar2020conservative}) leads to substantially more stable and reliable learning from offline data, and attains state-of-the-art results across a suite of harder D4RL benchmark~\citep{fu2020d4rl} tasks as well as on image-based Atari domains using the DQN Replay dataset~\citep{agarwal2019optimistic, gulcehre2020rl}. 
+% %%AK.1.24: TODO: say something more quantitative once we finalize numbers
+% Finally, we also show how \methodname\ when applied on top of fitted Q-evaluation (FQE) can improve the accuracy% %  and stability of off-policy evaluation, particularly for policies with limited overlap with the data.

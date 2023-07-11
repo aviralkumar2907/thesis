@@ -1,0 +1,103 @@
+\documentclass[../thesis.tex]{subfiles}
+
+% \usepackage{booktabs}
+% \usepackage{subcaption}
+% \usepackage{graphicx}
+% \usepackage{multirow}
+% \usepackage{caption}
+% %\usepackage{minipage}
+% \usepackage{amsmath,amssymb}
+% \usepackage{lib}
+% \usepackage{multicol}
+% \usepackage{epstopdf}
+% \usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+% \usepackage{balance}
+
+% \let\svthefootnote\thefootnote
+% \newcommand\blfootnote[1]{%
+% \begingroup
+% \let\thefootnote\relax\footnote{#1}
+% \addtocounter{footnote}{-1}\let\thefootnote\svthefootnote
+% \endgroup
+% }
+
+
+
+
+% cite.sty was written by Donald Arseneau
+% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
+% \cite{} output to follow that of the IEEE. Loading the cite package will
+% result in citation numbers being automatically sorted and properly
+% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
+% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
+% \cite will automatically add leading space, if needed. Use cite.sty's
+% noadjust option (cite.sty V3.8 and later) if you want to turn this off
+% such as if a citation ever needs to be enclosed in parenthesis.
+% cite.sty is already installed on most LaTeX systems. Be sure and use
+% version 5.0 (2009-03-20) and later if using hyperref.sty.
+% The latest version can be obtained at:
+% http://www.ctan.org/pkg/cite
+% The documentation is contained in the cite.sty file itself.
+%
+% Note that some packages require special options to format as the Computer
+% Society requires. In particular, Computer Society  papers do not use
+% compressed citation ranges as is done in typical IEEE papers
+% (e.g., [1]-[4]). Instead, they list every citation separately in order
+% (e.g., [1], [2], [3], [4]). To get the latter we need to load the cite
+% package with the nocompress option which is supported by cite.sty v4.0
+% and later. Note also the use of a CLASSOPTION conditional provided by
+% IEEEtran.cls V1.7 and later.
+
+% \hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+\blfootnote{This chapter is based on joint work with Shubham Tulsiani, Jo{\~{a}}o Carreira and Jitendra Malik \cite{pamishapeTulsianiKCM15}, presented primarily as it appears in the TPAMI 2017 proceedings. Statements throughout the chapter (such as references to ``prior work'') should be read with this context in mind.}
+
+\input{chapters/categoryshapes/intro}
+
+\input{chapters/categoryshapes/learningModels}
+
+% \input{chapters/categoryshapes/vpPred}
+
+\input{chapters/categoryshapes/fittingShapes}
+
+\input{chapters/categoryshapes/experiments}
+
+\input{chapters/categoryshapes/conclusion}
+% \input{chapters/categoryshapes/acknowledgements}
+
+% \bibliography{references_new}
+\end{document}
+
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/categoryshapes/shubham.pdf}}]{Shubham Tulsiani}
+% received the B.Tech degree in Computer Science and Engineering from Indian Institute of Technology, Kanpur in 2013. He is currently a graduate student with the EECS Department, University of California, Berkeley. His research interests lie at the intersection of recognition, pose estimation and reconstruction from a single image. He is a recipient of the Berkeley Graduate Fellowship, CVPR Best Student Paper Award and International Physics Olympiad Gold medal.
+% \end{IEEEbiography}
+
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/categoryshapes/akar.pdf}}]{Abhishek Kar}
+% is a fourth year PhD student at UC Berkeley advised by Prof. Jitendra Malik. He obtained his B.Tech degree in Computer Science and Engineering from Indian Institute of Technology, Kanpur in 2012 where he worked on problems in human computer interaction and intelligent tutoring systems and received the Honda Young Engineer and Scientist (YES) Award. His primary research interest lies in 3D reconstruction of objects and scenes in the wild by leveraging advances in object/scene recognition. He is a recipient of the CVPR Best Student Paper Award and the Outstanding GSI Award at UC Berkeley.
+% \end{IEEEbiography}
+
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/categoryshapes/joao.eps}}]{Jo\~{a}o Carreira}
+% received his doctorate from the
+% University of Bonn, Germany. His thesis focused
+% on sampling class-independent object segmentation
+% proposals using the CPMC algorithm, and
+% on applying them in object recognition and localization.
+% Systems authored by him and colleagues
+% were winners of all four PASCAL VOC
+% Segmentation challenges, 2009-2012. He did
+% post-doctoral work at the Institute of Systems
+% and Robotics in Coimbra, Portugal and is currently
+% with the EECS department, at the University
+% of California in Berkeley, USA. His research interests lie at the
+% intersection of recognition, segmentation, pose estimation and shape
+% reconstruction of objects from a single image.
+% \end{IEEEbiography}
+
+% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{figures/categoryshapes/jmalik.pdf}}]{Jitendra Malik}
+%  is Arthur J. Chick Professor in the Department of Electrical Engineering and Computer Science at the University of California at Berkeley, where he also holds appointments in vision science, cognitive science and Bioengineering. He received the PhD degree in Computer Science from Stanford University in 1985 following which he joined UC Berkeley as a faculty member. He served as Chair of the Computer Science Division during 2002-2006, and of the Department of EECS during 2004-2006. Jitendra's group has worked on computer vision, computational modeling of biological vision, computer graphics and machine learning. Several well-known concepts and algorithms arose in this work, such as anisotropic diffusion, normalized cuts, high dynamic range imaging and shape contexts.  He was awarded the Longuet-Higgins Award for “A Contribution that has Stood the Test of Time” twice, in 2007 and 2008, received the PAMI Distinguished Researcher Award in computer vision in 2013 and the K.S. Fu prize in 2014. Jitendra Malik is a Fellow of the IEEE, ACM, and the American Academy of  Arts and Sciences,  and  a member of the National Academy of Sciences and the National Academy of Engineering.
+% \end{IEEEbiography}
+% \vfill
+

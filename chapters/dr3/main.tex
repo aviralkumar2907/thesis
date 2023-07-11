@@ -1,0 +1,215 @@
+%%%%%%%% ICML 2021 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{xcolor}         % colors
+% \usepackage{fleqn, tabularx}
+\usepackage{multirow}
+% \usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amsthm}
+% \newtheorem{proposition}{Proposition}[section]
+% \newtheorem{lemma}{Lemma}[section]
+% \usepackage{amsfonts} 
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+
+\include{math_commands}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+\include{defs}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+% \usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\usepackage[numbers]{natbib}
+% Use the following line for the initial blind version submitted for review:
+\usepackage{icml}
+
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{icml2021}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{Value-Based Deep RL Requires Explicit Regularization}
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{Value-Based Deep Reinforcement Learning Requires Explicit Regularization}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2021
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Aeiau Zzzz}{equal,to}
+\icmlauthor{Bauiu C.~Yyyy}{equal,to,goo}
+\icmlauthor{Cieua Vvvvv}{goo}
+\icmlauthor{Iaesut Saoeu}{ed}
+\icmlauthor{Fiuea Rrrr}{to}
+\icmlauthor{Tateu H.~Yasehe}{ed,to,goo}
+\icmlauthor{Aaoeu Iasoh}{goo}
+\icmlauthor{Buiui Eueu}{ed}
+\icmlauthor{Aeuia Zzzz}{ed}
+\icmlauthor{Bieea C.~Yyyy}{to,goo}
+\icmlauthor{Teoau Xxxx}{ed}
+\icmlauthor{Eee Pppp}{ed}
+\end{icmlauthorlist}
+
+\icmlaffiliation{to}{Department of Computation, University of Torontoland, Torontoland, Canada}
+\icmlaffiliation{goo}{Googol ShallowMind, New London, Michigan, USA}
+\icmlaffiliation{ed}{School of Computation, University of Edenborrow, Edenborrow, United Kingdom}
+
+\icmlcorrespondingauthor{Cieua Vvvvv}{c.vvvvv@googol.com}
+\icmlcorrespondingauthor{Eee Pppp}{ep@eden.co.uk}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Offline RL, regularization}
+
+\vskip 0.3in
+]
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column
+% listing the affiliations and the copyright notice.
+% The command takes one argument, which is text to display at the start of the footnote.
+% The \icmlEqualContribution command is standard text for equal contribution.
+% Remove it (just {}) if you do not need this facility.
+
+%\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+
+
+\begin{abstract}
+% While deep reinforcement learning (RL) methods present an appealing approach to sequential decision making, such methods are often difficult to use in practice due to their instability. What accounts for this instability? In this paper, we focus on the specific case of offline deep RL, and show that value-based offline deep RL methods can learn degenerate features. In supervised learning, deep networks enjoy the benefits of implicit regularization, which leads to effective generalization despite overparameterization. We show that, in the case of deep RL, implicit regularization in offline RL can instead lead to degenerate features.
+% Specifically, features learned by the Q-network at state-action tuples appearing on both sides of the Bellman update ``co-adapt'' to each other, giving rise to poor
+% solutions. We show that this holds both in theory and practice. In fact, even when initializing a network close to an optimal solution, feature co-adaptation
+% can lead the model away from this optimum. To address the adverse impacts of the co-adaptation induced by the implicit regularization, we propose a simple and effective explicit regularizer, \methodname, that  minimizes similarity of learned features of the Q-network at state-tuples appearing on both sides of the Bellman update. Empirically when combined with several existing offline RL methods, \methodname\ improves both performance and stability on Atari 2600 games, D4RL domains, and robotic manipulation from images.
+While deep reinforcement learning (RL) methods present an appealing approach to sequential decision making, such methods are often unstable in practice. What accounts for this instability? Recent theoretical analysis of overparameterized supervised learning with stochastic gradient descent shows that learning is driven by an \emph{implicit regularizer}, which results in simpler functions that generalize despite overparameterization.  However, in this paper we show that in the case of deep RL, this very same implicit regularization can instead lead to degenerate features. Specifically, features learned by the value function at state-action tuples appearing on both sides of the Bellman update ``co-adapt'' to each other, giving rise to poor
+solutions.
+We characterize the nature of this implicit regularizer in temporal difference learning algorithms and show that this regularizer recapitulates recent empirical findings regarding the rank collapse of learned features and provides an understanding for its cause. To address the adverse impacts of this implicit regularization, we propose a simple and effective \emph{explicit} regularizer, \methodname. \methodname\ minimizes the similarity of learned features of the Q-network at consecutive state-action tuples in the TD update. Empirically, when combined with existing offline RL methods, \methodname\ substantially improves both performance and stability on Atari 2600 games, D4RL domains, and robotic manipulation from images.
+\end{abstract}
+
+\input{intro}
+
+\input{prelim}
+
+
+\input{problem_final2}
+
+
+
+\input{method}
+
+% \begin{figure}[t]
+%     \centering
+%     \vspace{-5pt}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Median_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_rem_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_rem_penalty.pdf}
+%     \vspace{-0.75cm}
+%     % \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ } over the course of training with different dataset types from \citep{agarwal2019optimistic}. Note the increased stability and performance when \methodname\ is used.}}
+%     \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different dataset types from prior work~\citep{agarwal2019optimistic}. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance.}} %Performance is reported using interquartile mean~(IQM), normalization was performed with respect to the behavior policy that collected the entire DQN replay dataset and shaded regions show 95\% percentile confidence intervals~(CIs.)}}
+%     \label{fig:atari_rem_main}
+%     \vspace{-0.7cm}
+% \end{figure}
+
+\input{experiments}
+
+
+\input{analysis}
+
+\input{related_work}
+
+% \input{experiments}
+
+
+\vspace{-6pt}
+\section{Discussion}
+\label{sec:discussion}
+% \vspace{-3pt}
+% Summary
+We characterized the implicit preference of TD-learning towards solutions that maximally co-adapt gradients (or features) at consecutive state-action tuples that appear in Bellman backup. This regularization effect is exacerbated when out-of-sample
+state-action samples are used for the Bellman backup and it can lead to poor policy performance. Our explicit regularizer, \methodname\ that directly counteracts this implicit regularizer yields substantial improvements on stability and performance on a wide range of offline RL problems. We believe that understanding the learning dynamics of deep Q-learning and the induced implicit regularization will lead to the development of more robust and stable deep RL algorithms. Furthermore, this understanding can help us to predict the instability issues in value-based RL methods in advance, which can inspire cross-validation and model selection strategies, an important, open challenge in offline RL, for which existing off-policy evaluation techniques are not practically sufficient~\citep{fu2021benchmarks}. 
+% \textbf{Limitations:} 
+% While DR3 improves performance on a number of tasks, it is not clear if it is the best possible approach to mitigate the issues we observe. Answering this question requires a deep understanding of the learning dynamics of Q-learning. 
+% \textbf{Societal Impacts:} 
+% Learning-based machine learning systems can have both positive (e.g., positive economic impact) and negative societal impacts  (e.g., loss of jobs in some areas). These implications also broadly apply to our work as any other work in reinforcement learning, and are largely not unique to this work.     
+
+% Acknowledgements should only appear in the accepted version.
+% \section*{Acknowledgements}
+
+
+\bibliography{reference}
+\bibliographystyle{plainnat}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DELETE THIS PART. DO NOT PLACE CONTENT AFTER THE REFERENCES!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\onecolumn
+\appendix
+\newpage
+\input{appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021. Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

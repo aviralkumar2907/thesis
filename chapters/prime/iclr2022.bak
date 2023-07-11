@@ -1,0 +1,129 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2022_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{fleqn, tabularx}
+\usepackage{multirow}
+\usepackage{mathtools}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+% \usepackage{algorithm}
+% \usepackage[noend]{algorithmic}
+\usepackage{xcolor}
+\usepackage{mathrsfs}
+
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\usepackage[skins,theorems]{tcolorbox}
+
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+% \newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+% \usepackage{algorithm}%
+% http://ctan.org/pkg/algorithms
+% \usepackage[noend]{algpseudocode}
+\usepackage[algcompatible]{algpseudocode}
+% \usepackage[ruled,lined]{algorithm2e}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+% \usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+% \newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+
+\usepackage{graphicx}
+% \usepackage{style/icml_2021}
+\usepackage{formatting/packages}
+
+\usepackage{formatting/names}
+\usepackage{formatting/macros}
+\usepackage{formatting/results}
+
+\usepackage{amsthm, amsmath}
+% \usepackage{formatting/math_commands}
+\include{style/math_commands}
+\usepackage{float}
+
+\newcommand{\ks}[1]{\textcolor{red}{[ks: #1]}}
+\newcommand{\arxiv}[1]{\textcolor{blue}{#1}}
+
+\title{Data-Driven Offline Optimization for\\ Architecting Hardware Accelerators}
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\input{body/00_abstract}
+\input{body/01_intro}
+\input{body/02_background}
+\input{body/03_problem}
+\input{body/04_method}
+\input{body/05_related}
+\input{body/06_ablation}
+\input{body/07_discussion}
+
+\bibliography{references/paper}
+\bibliographystyle{iclr2022_conference}
+
+\appendix
+\newpage
+\input{body/08_appendix}
+
+\end{document}

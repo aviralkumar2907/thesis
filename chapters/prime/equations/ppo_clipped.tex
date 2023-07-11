@@ -1,0 +1,7 @@
+\begin{equation}
+\scalebox{0.9}
+
+     L^{\textrm{CLIP}}(\theta) = \EX_{t}{[\textrm{max}(-\mathfrak{r}_{t}(\theta)\cdot\hat{A}_{t},\; -\textrm{clip}(\mathfrak{r}_{t}(\theta),\;1\;-\;\epsilon,\;1 + \epsilon)\cdot\hat{A}_{t})]};\quad \textrm{where}\quad
+     \mathfrak{r}_{t}(\theta) = \frac{\pi_{\theta}(\textbf{a}_t|\textbf{s}_t)}{\pi_{\theta_{old}}(\textbf{a}_t|\textbf{s}_t)}
+\label{eq:l_clip}
+\end{equation}

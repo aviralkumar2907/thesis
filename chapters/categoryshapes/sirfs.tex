@@ -1,0 +1,18 @@
+The above optimization results in a top-down 3D reconstruction based on the category-level models, inferred object silhouette, viewpoint and our shape priors. We propose an additional processing step to recover high frequency shape information by adapting the intrinsic images algorithm of Barron and Malik \cite{barronPAMI13,Barron2012B}, SIRFS, which exploits statistical regularities between shapes, reflectance and illumination 
+%For example, shapes are usually piecewise smooth and certain colors are more frequent than others. Bottom-up reconstruction approaches such as SIRFS are fundamentally more competent at estimating high frequency shape (e.g. door handles and lights in cars), which vary considerably between different object instances, but have trouble capturing rough global shape, which is more stable across a class and is characterized by long-range dependencies.
+Formally, SIRFS is formulated as the following optimization problem:
+\begin{equation}
+\begin{aligned}
+& \underset{Z,L}{\text{minimize}}
+& & g(I-S(Z,L))+f(Z)+h(L)
+\end{aligned}
+\end{equation}
+where $R=I-S(Z,L)$ is a log-reflectance image, $Z$ is a depth map and $L$ is a spherical-harmonic model of illumination. $S(Z,L)$ is a rendering engine which produces a log shading image with the illumination $L$. $g$, $f$ and $h$ are the loss functions corresponding to reflectance, shape and illumination respectively.
+
+%A recent paper \cite{Karsch2013} showed that even human-provided annotation of the curvature at internal object contours is insufficient for reliable global shape estimation. Here we instead opt to compute coarse shape top-down and incorporate it into the optimization using an extended version of SIRFS. The loss term we use to this effect is as follows:
+We incorporate our current coarse estimate of shape into SIRFS through an additional loss term:
+
+\begin{equation}
+f_o(Z,Z') = \underset{i}{\sum}((Z_i-Z_i')^2+\epsilon^2)^{\gamma_o}
+\end{equation}
+where $Z'$ is the initial coarse shape and $\epsilon$ a parameter added to make the loss differentiable everywhere. We obtain $Z'$ for an object by rendering a depth map of our fitted 3D shape model which guides the optimization of this highly non-convex cost function. The outputs from this bottom-up refinement are reflectance, shape and illumination maps of which we retain the shape.

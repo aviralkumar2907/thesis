@@ -1,0 +1,199 @@
+%% AK: TODOs:
+% - TD experiment with exact behavior policy
+% - Bellman backup with target network
+% - Run weighting + stop gradient
+% - Why is this regularization bad?
+% - Formulate why the regularizer is bad? Maybe because the dot product is too high? separate out in-distribution error and OOD error
+% - Some cross-validation
+
+%%%%%%%% ICML 2021 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{xcolor}         % colors
+% \usepackage{fleqn, tabularx}
+\usepackage{multirow}
+% \usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amsthm}
+% \newtheorem{proposition}{Proposition}[section]
+% \newtheorem{lemma}{Lemma}[section]
+% \usepackage{amsfonts} 
+
+\include{math_commands}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\usepackage[skins,theorems]{tcolorbox}
+
+\include{defs}
+
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+% \usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\usepackage[nonatbib]{neurips_2021}
+\usepackage[numbers]{natbib}
+% Use the following line for the initial blind version submitted for review:
+% \usepackage{jmlr2e}
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+% \usepackage{mathptmx}
+
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{icml2021}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+% \icmltitlerunning{Value-Based Deep RL Requires Explicit Regularization}
+
+
+% \jmlrheading{1}{2000}{1-48}{4/00}{10/00}{meila00a}{Marina Meil\u{a} and Michael I. Jordan}
+
+% Short headings should be running head and authors last names
+
+% \firstpageno{1}
+
+\title{Deep Reinforcement Learning Requires\\ Explicit Regularization}
+
+\author{%
+  Aviral Kumar\thanks{Equal Contribution}$^{\ \ 1,2}$~~~~ Rishabh Agarwal$^{*\, 2,3}$~~~~ Aaron Courville$^{3}$~~~~ Tengyu Ma$^{4}$\\ \textbf{George Tucker$^{2}$~~~~~~~~ Sergey Levine$^{1,2}$} \vspace{0.05in} \\ $^1$UC Berkeley~~~ $^2$Google Research~~~ $^3$MILA, University of Montreal~~~ $^4$Stanford University \\
+  \texttt{aviralk@berkeley.edu, rishabhagarwal@google.com,}\\ \texttt{gjt@google.com, svlevine@eecs.berkeley.edu}
+}
+
+\begin{document}
+% \setmainfont{Times New Roman}
+
+\maketitle
+
+
+\begin{abstract}
+% While deep reinforcement learning (RL) methods present an appealing approach to sequential decision making, such methods are often difficult to use in practice due to their instability. What accounts for this instability? In this paper, we focus on the specific case of offline deep RL, and show that value-based offline deep RL methods can learn degenerate features. In supervised learning, deep networks enjoy the benefits of implicit regularization, which leads to effective generalization despite overparameterization. We show that, in the case of deep RL, implicit regularization in offline RL can instead lead to degenerate features.
+% Specifically, features learned by the Q-network at state-action tuples appearing on both sides of the Bellman update ``co-adapt'' to each other, giving rise to poor
+% solutions. We show that this holds both in theory and practice. In fact, even when initializing a network close to an optimal solution, feature co-adaptation
+% can lead the model away from this optimum. To address the adverse impacts of the co-adaptation induced by the implicit regularization, we propose a simple and effective explicit regularizer, \methodname, that  minimizes similarity of learned features of the Q-network at state-tuples appearing on both sides of the Bellman update. Empirically when combined with several existing offline RL methods, \methodname\ improves both performance and stability on Atari 2600 games, D4RL domains, and robotic manipulation from images.
+While deep reinforcement learning (RL) methods present an appealing approach to sequential decision making, they often perform inconsistently in practice, requiring extensive hyperparameter tuning. Why are deep RL methods so much harder to use than supervised deep learning?
+%%SL.7.7: This is too terse and hard to understand (instability is a pretty vague and loaded term, and its use here is probably not in accordance with its formal definition)
+With the goal of providing part of the answer to this question, in this paper, we study how deep RL methods that train value functions via bootstrapping often learn degenerate feature representations, even with overparameterized neural networks.
+%%SL.7.13: My sense is that we are motivating things backwards. Right now, the beginning of the abstract reads like it's somewhat generic -- "yet another paper that deals with instability in RL." What if we have a much more focused opening that emphasizes the new stuff, something like this: Despite overparameterization and nonconvexity, deep neural networks are surprisingly easy to optimize and exhibit excellent generalization. One hypothesis that has been put forward to explain this is that overparameterized deep networks trained with stochastic gradient descent enjoy the benefits of implicit regularization, which favors solutions that generalize well on test inputs. It is reasonable to surmise that deep reinforcement learning (RL) methods would also benefit from this effect. In this paper, we show that in fact the implicit regularization effect seen in deep supervised learning can be harmful in the deep RL setting, leading to poor generalization and degerate feature representations, in stark contrast to the superivsed learning setting.
+On the contrary, it has been observed that overparameterized networks trained with stochastic gradient descent in supervised learning enjoy the benefits of {implicit regularization},
+and thus generalize well despite overparameterization. We show that this very implicit regularization effect actually harms representation learning in deep RL, in stark contrast to the supervised learning setting. Specifically, features learned by the value function at state-action tuples appearing on the two sides of the Bellman update ``co-adapt'' to each other due to a preference to minimize an induced implicit regularizer, giving rise to poorly generalizing solutions.
+%%SL.7.7: while this "co-adapt" notion is quite intuitive, it sounds like it has nothing to do with implicit regularization, which makes this sentence not connect well with the preceding one
+%%AK: made the connection clearer
+%%SL.7.13: Consider just cutting the co-adapt stuff from the abstract -- high chance no one will understand it
+We characterize the nature of this implicit regularizer and
+%%SL.7.7: The above sentence is impossible to understand, maybe just delete it? Or rewrite it like this: We derive the form of this implicit regularizer for temporal difference learning methods, illustrate its impact on learned features both in theory and empirically, and relate our findings to recent results in the literature on rank collapse in TD learning. [though this last part about recent literature can just be cut -- no one will understand it anyway]
+informed by this analysis, we propose a simple and effective explicit regularizer, which we call \methodname,  that counteracts the effect of implicit regularization. When combined with existing offline RL methods, \methodname\ substantially improves both performance and stability, alleviateing unlearning on Atari 2600 games, D4RL domains, and robotic manipulation from images.
+\end{abstract}
+
+\input{intro}
+
+\input{prelim}
+
+
+\input{problem_final2}
+
+
+
+\input{method}
+
+\input{related_work}
+
+% \begin{figure}[t]
+%     \centering
+%     \vspace{-5pt}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Median_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_rem_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_rem_penalty.pdf}
+%     \vspace{-0.75cm}
+%     % \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ } over the course of training with different dataset types from \citep{agarwal2019optimistic}. Note the increased stability and performance when \methodname\ is used.}}
+%     \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different dataset types from prior work~\citep{agarwal2019optimistic}. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance.}} %Performance is reported using interquartile mean~(IQM), normalization was performed with respect to the behavior policy that collected the entire DQN replay dataset and shaded regions show 95\% percentile confidence intervals~(CIs.)}}
+%     \label{fig:atari_rem_main}
+%     \vspace{-0.7cm}
+% \end{figure}
+
+\input{experiments}
+
+
+\input{analysis}
+
+
+% \input{experiments}
+
+
+\vspace{-6pt}
+\section{Discussion}
+\label{sec:discussion}
+% \vspace{-3pt}
+% Summary
+We characterized the implicit preference of TD-learning towards solutions that maximally co-adapt gradients (or features) at consecutive state-action tuples that appear in Bellman backup. This regularization effect is exacerbated when out-of-sample
+state-action samples are used for the Bellman backup and it can lead to poor policy performance. Our explicit regularizer, \methodname\ that directly counteracts this implicit regularizer yields substantial improvements on stability and performance on a wide range of offline RL problems. We believe that understanding the learning dynamics of deep Q-learning and the induced implicit regularization will lead to the development of more robust and stable deep RL algorithms. Furthermore, this understanding can help us to predict the instability issues in value-based RL methods in advance, which can inspire cross-validation and model selection strategies, an important, open challenge in offline RL, for which existing off-policy evaluation techniques are not practically sufficient~\citep{fu2021benchmarks}. 
+% \textbf{Limitations:} 
+% While DR3 improves performance on a number of tasks, it is not clear if it is the best possible approach to mitigate the issues we observe. Answering this question requires a deep understanding of the learning dynamics of Q-learning. 
+% \textbf{Societal Impacts:} 
+% Learning-based machine learning systems can have both positive (e.g., positive economic impact) and negative societal impacts  (e.g., loss of jobs in some areas). These implications also broadly apply to our work as any other work in reinforcement learning, and are largely not unique to this work.     
+
+\section*{Author Contributions}
+\textbf{AK} conceived the project with \textbf{RA}, analyzed DR3 empirically and theoretically, ran experiments on D4RL and COG tasks, and wrote most of the paper. \textbf{RA} discussed ideas with AK, came up with the DR3 regularizer, performed Atari experiments, and edited the paper. \textbf{AC} advised and provided feedback while \textbf{TM} advised on theory. \textbf{GT} helped AK in proving theory results, ran BRAC experiments, and contributed to writing. \textbf{SL} advised on framing the ideas, provided feedback on writing and edited the paper.
+
+% Acknowledgements should only appear in the accepted version.
+\section*{Acknowledgements}
+We thank Dibya Ghosh, Dale Schuurmans, Xinyang Geng, Abhishek Gupta and all members of RAIL at UC Berkeley for valuable discussions and feedback on an earlier version of this work. This work was in part supported by the DARPA Assured Autonomy program and compute donations from Google and Microsoft. 
+
+\bibliography{reference}
+\bibliographystyle{plainnat}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DELETE THIS PART. DO NOT PLACE CONTENT AFTER THE REFERENCES!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\onecolumn
+\appendix
+\newpage
+\input{appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021. Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

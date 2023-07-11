@@ -1,0 +1,80 @@
+\section{Preliminaries}
+\label{sec:prelim}
+
+\subsection{Markov Decision Processes and Offline RL} 
+
+We study RL in the framework of Markov decision processes (MDPs) specified by the tuple $\mathcal{M} = (\mathcal{S}, \mathcal{A}, \transitions, r, \mu_0, \gamma)$.
+$\mathcal{S}, \mathcal{A}$ denote the state and action spaces. 
+$\transitions(\bs' | \bs, \ba)$ and $r(\bs,\ba) \in [-R_{\max}, R_{\max}]$ represent the dynamics and reward function respectively. 
+$\mu_0(s)$ denotes the initial state distribution, and $\gamma \in (0,1)$ denotes the discount factor. 
+We denote the discounted state visitation distribution of a policy $\pi$ using \hbox{$d_\mathcal{M}^\pi(\bs) := (1 - \gamma)\sum_{t=0}^\infty\gamma^t\mathcal{P}(s_t = \bs | \pi)$}, where $\mathcal{P}(s_t = \bs | \pi)$ is the probability of reaching state $\bs$ at time $t$ by rolling out $\pi$ in $\mathcal{M}$. Similarly, we denote the state-action visitation distribution with $d_\mathcal{M}^\pi(\bs, \ba) \coloneqq d_\mathcal{M}^\pi(\bs)\pi(\ba|\bs)$. The goal of RL is to learn a policy that maximizes the return, or long term cumulative rewards:
+\begin{equation}
+    \max_\policy J(\mathcal{M}, \policy) := \frac{1}{1-\gamma}\E_{(\bs, \ba) \sim d_\mathcal{M}^\pi(\bs, \ba)}[r(\bs, \ba)].
+\end{equation}
+
+
+Offline RL is the setting where we have access only to a fixed dataset $\mathcal{D} = \{(\bs, \ba, r, \bs')\}$, which consists of transition tuples from trajectories collected using a behavior policy $\behavior$. In other words, the dataset $\mathcal{D}$ is sampled from $d^\behavior(\bs, \ba) \coloneqq d^\behavior(\bs) \behavior(\ba|\bs)$. We define $\mdpbar$ as the empirical MDP induced by the dataset $\mathcal{D}$ and $d(\bs,\ba)$ as sampled-based version of $d^\behavior(\bs, \ba)$. In the offline setting, even in the limit of an infinite size dataset, it may not be possible to find the optimal policy for the underlying MDP~\cite{Chen2019InformationTheoreticCI, kidambi2020morel}.
+Thus, we typically forgo the goal of finding the optimal policy, and instead aim to find the best possible policy using the fixed offline dataset.
+
+\subsection{Model-Free Offline RL Algorithms}
+\label{sec:conservative_model_free}
+One class of approaches for solving MDPs involves the use of dynamic programming and actor-critic schemes~\cite{SuttonBook, BertsekasBook}, which do not explicitly require the learning of a dynamics model. To capture the long term behavior of a policy without a model, we define the action value function as
+\begin{align}
+    Q^\pi(\bs, \ba) & := \mathbb{E} \left[ \sum_{t=0}^\infty \gamma^t \ r(\bs_t, \ba_t) \mid \bs_0 = \bs, \ba_0 = \ba \right], % \\
+    % V^\pi(\bs) & := \mathbb{E} \left[ \sum_{t=0}^\infty \gamma^t \ r(\bs_t, \ba_t) \mid \bs_0 = \bs \right]
+\end{align}
+where future actions are sampled from $\policy(\cdot|\bs)$ and state transitions happen according to the MDP dynamics. Consider the following Bellman operator:
+\[
+\mathcal{B}^\policy Q (\bs, \ba) := r(\bs, \ba) + \gamma \mathbb{E}_{\ \bs' \sim \transitions(\cdot | \bs, \ba), \ba' \sim \policy(\cdot | \bs')} \left[ Q(\bs', \ba') \right],
+\]
+and its sample based counterpart:
+\[
+\widehat{\mathcal{B}}^\policy Q (\bs, \ba) := r(\bs, \ba) + \gamma Q(\bs', \ba'),
+\]
+associated with a single transition $(\bs, \ba, \bs')$ and $\ba' \sim \policy (\cdot | \bs')$. The action-value function satisfies the Bellman consistency criterion given by $\mathcal{B}^\policy Q^\policy(\bs, \ba) = Q^\policy (\bs, \ba) \ \forall (\bs, \ba)$. When given an offline dataset $\mathcal{D}$, standard approximate dynamic programming~(ADP) and actor-critic methods use this criterion to alternate between policy evaluation~\cite{Munos2008FiniteTimeBF} and policy improvement. A number of prior works have observed that such a direct extension of ADP and actor-critic schemes to offline RL leads to poor results due to distribution shift over the course of learning and over-estimation bias in the $Q$ function~\cite{fujimoto2018off, kumar2019stabilizing, wu2019behavior}. To address these drawbacks, prior works have proposed a number of modifications aimed towards regularizing the policy or value function (see Section~\ref{sec:related}). In this work, we primarily focus on CQL~\cite{kumar2020conservative}, which alternates between the two following steps.
+
+{\bf Policy Evaluation:} The $Q$ function associated with the current policy $\policy$ is approximated conservatively by repeating the following optimization:
+
+\vspace*{-15pt}
+\begin{small}
+\begin{align}
+    {Q}^{k+1} \leftarrow& \arg\min_{Q} \beta\left(\E_{\bs \sim \mathcal{D}, \ba \sim \mu(\cdot|\bs)}\left[Q(\bs,\ba)\right]- \E_{\bs, \ba \sim \mathcal{D}}\left[Q(\bs,\ba)\right]\right)\nonumber\\
+    +& \frac{1}{2}\E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[ \left(Q(\bs, \ba) - \widehat{\bellman}^\policy {Q}^k(\bs, \ba))\right)^2 \right],
+    \label{eq:cql_loss}
+\end{align}
+\end{small}
+\vspace*{-15pt}
+
+where $\mu(\cdot|s)$ is a wide sampling distribution such as the uniform distribution over action bounds. CQL effectively penalizes the $Q$ function at states in the dataset for actions not observed in the dataset. This enables a conservative estimation of the value function for any policy~\cite{kumar2020conservative}, mitigating the challenges of over-estimation bias and distribution shift.
+
+{\bf Policy Improvement:} After approximating the Q function as $\hat{Q}^\policy$, the policy is improved as
+\[
+\policy \leftarrow \arg \max_{\policy'} \ \mathbb{E}_{\bs \sim \mathcal{D}, \ba \sim \policy'(\cdot | \bs)} \left[ \hat{Q}^\policy (\bs, \ba) \right].
+\]
+Actor-critic schemes with parameterized policies and $Q$ functions approximate the $\arg \max$ and $\arg \min$ in above equations with a few steps of gradient descent.
+
+%%AK.3.2: define the empirical MDP here...
+
+\subsection{Model-Based Offline RL Algorithms}
+\label{sec:prelim_offline_mbrl}
+A second class of algorithms for solving MDPs involve the learning of the dynamics function, and using the learned model to aid policy search. Using the given dataset $\mathcal{D}$, a dynamics model $\widehat{T}$ is typically trained using maximum likelihood estimation as:
+$\min_{\widehat{T}} \ \mathbb{E}_{(\bs, \ba, \bs') \sim \mathcal{D}} \left[ \log \widehat{T}(\bs' | \bs, \ba) \right]$.
+A reward model $\hat{r}(\bs, \ba)$ can also be learned similarly if it is unknown. Once a model has been learned, we can construct the learned MDP $\widehat{\mathcal{M}} = (\mathcal{S}, \mathcal{A}, \widehat{T}, \hat{r}, \mu_0, \gamma)$, which has the same state and action spaces, but uses the learned dynamics and reward function. 
+%Subsequently, any policy learning~\cite{schulman2017proximal, haarnoja2018soft, Abdolmaleki2018MaximumAP, Rajeswaran-Game-MBRL} or planning algorithm~\cite{Todorov2005, WilliamsMPPI, POLO, Nagabandi2019DeepDM} can be used to recover the optimal policy in the model as $\hat{\policy} = \arg \max_{\policy} J(\widehat{\mathcal{M}}, \policy).$
+Subsequently, any policy learning or planning algorithm can be used to recover the optimal policy in the model as $\hat{\policy} = \arg \max_{\policy} J(\widehat{\mathcal{M}}, \policy).$
+%%AR: Removing citations here to save space. Cover them in related works!
+
+This straightforward approach is known to fail in the offline RL setting, both in theory and practice, due to distribution shift and model-bias~\cite{RossB12, kidambi2020morel}. In order to overcome these challenges, offline model-based algorithms like MOReL~\cite{kidambi2020morel} and MOPO~\cite{yu2020mopo} use uncertainty quantification to construct a lower bound for policy performance and optimize this lower bound. By using an uncertainty estimation algorithm like bootstrap ensembles~\cite{OsbandAC18, Azizzadenesheli18, POLO}, we can obtain $u(\bs, \ba)$, an estimate of uncertainty in dynamics model prediction. In the case of MOPO, an uncertainty penalized MDP is constructed where the reward is given by
+$\widetilde{r} (\bs, \ba) = \hat{r}(\bs, \ba) - \lambda u(\bs, \ba)$,
+and the learned dynamics model is used without modification. MOPO learns a policy in this ``uncertainty-penalized'' MDP $\widetilde{\mathcal{M}} = (\mathcal{S}, \mathcal{A}, \widehat{T}, \widetilde{r}, \mu_0, \gamma)$ which has the property that $J(\widetilde{\mathcal{M}}, \policy) \leq J(\mathcal{M}, \policy) \ \forall \policy$. 
+%%TY.2.1: We should probably make the notations on different MDPs consistent. In the theory section, we use \widetilde{\mathcal{M}} for the learned MDP and \widehat{M} for the empirical MDP.
+By constructing and optimizing such a lower bound, offline model-based RL algorithms avoid the aforementioned pitfalls like model-bias and distribution shift.
+While any RL or planning algorithm can be used to learn the optimal policy for $\widetilde{\mathcal{M}}$, we focus specifically on MBPO~\cite{janner2019trust, sutton1991dyna} which was used in MOPO. MBPO follows the standard structure of actor-critic algorithms, but in each iteration uses an augmented dataset $\data \cup \data_{\text{model}}$ for policy evaluation. Here, $\data$ is the offline dataset and $\data_{\text{model}}$ is a dataset obtained by simulating the current policy using the learned dynamics model. 
+Specifically, at each iteration, MBPO performs $k$-step rollouts using $\widehat{T}$ starting from state $\bs \in \mathcal{D}$ with a particular rollout policy $\mu(\ba|\bs)$, adds the model-generated data to $\data_{\text{model}}$, and optimizes the policy with a batch of data sampled from $\mathcal{D} \cup \data_{\text{model}}$ where each datapoint in the batch is drawn from $\mathcal{D}$ with probability $f \in [0, 1]$ and $\data_{\text{model}}$ with probability $1 - f$.
+%%AR: The above goes into too many details. Shortening it a bit to highlight the important points.
+
+
+% Using this, in the case of MOReL~\cite{kidambi2020morel} a pessimistic MDP is formed using the dynamics $\widetilde{T}(\cdot|\bs, \ba) = \delta(HALT)$ if $u(\bs, \ba) \geq \alpha$ and $\widetilde{T}(\cdot|\bs, \ba) = \widehat{T}(\cdot | \bs, \ba)$ otherwise; $\widetilde{r}(\bs, \ba) = -R_\max$ if $u(\bs, \ba) \geq \alpha$ and $\widetilde{r}(\bs, \ba) = \hat{r}(\bs, \ba)$ otherwise. In the case of MOPO, 
+
+%%SL.1.31: Assuming this is a stub that will be filled in later?
+%%AR: Yes, was going to write it now.

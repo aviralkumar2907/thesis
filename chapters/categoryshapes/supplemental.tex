@@ -1,0 +1,73 @@
+% last updated in April 2002 by Antje Endemann
+% Based on CVPR 07 and LNCS, with modifications by DAF, AZ and elle, 2008 and AA, 2010, and CC, 2011; TT, 2014
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\newcommand\blfootnote[1]{%
+\begingroup
+\renewcommand\thefootnote{}\footnote{#1}%
+\addtocounter{footnote}{-1}%
+\endgroup
+}
+
+\usepackage{cvpr}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb} % define this before the line numbering.
+%\usepackage{ruler}
+\usepackage{color}
+\usepackage{caption}
+%\usepackage[caption=false]{subfig}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref} 
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{723} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{1}
+
+% Helper commands
+\newcommand{\BLUE}[1]{{\textcolor{blue}{#1}}}
+\newcommand{\RED}[1]{{\textcolor{red}{#1}}}
+\newcommand{\rgbd}[0]{RGB-D }
+\newcommand{\nrsfm}[0]{NRSfM }
+
+\begin{document}
+\title{Category-Specific Object Reconstruction from a Single Image}
+\author{Abhishek Kar$^*$, Shubham Tulsiani$^*$, Jo\~{a}o Carreira and Jitendra Malik\\
+University of California, Berkeley - Berkeley, CA 94720\\
+{\tt\small \{akar,shubhtuls,carreira,malik\}@eecs.berkeley.edu}}
+
+\maketitle
+\blfootnote{* Authors contributed equally}
+
+\section{Additional Results}
+We present additional reconstruction results on PASCAL VOC using both the fully automatic and fully annotated settings. As described in the main manuscript, the fully automatic setting involves reconstructing from automatically detected and segmented instances given the full image (using the technique of \cite{BharathECCV2014} in our case). In the fully annotated setting, we present results for the methodology described in section 4.1 where we inspect the expressiveness of our models by reconstructing the whole annotated dataset. 
+
+Figure \ref{fig:supp1} shows results using the fully annotated setting. Note that the reconstructions qualitatively look better owing to poses obtained from ground truth keypoints and clean segmentations. The reconstructed models also tend to fit the silhouettes better. This setting is directly comparable to the class-based reconstruction algorithm presented in \cite{carvi14}. The category ``boat'' is almost always bad because the large intraclass variation results in very noisy estimated cameras in the first place that leads to bad basis shape models being learnt. In some cases like ``trains'', the visual hull initialization of our basis shape models (section 2.2) results in an open front as a result of the isosurface extraction failing. Given this bad initial topology, our algorithm does the best it can to explain the silhouettes in the dataset. Figure \ref{fig:supp2} presents more example reconstructions in the fully automatic setting.
+
+Videos showing more of our results can be found at \url{http://goo.gl/lmALxQ}. The videos show full 3D reconstructions on PASCAL VOC using both settings above and also texture-mapped depth maps with upto 30$^{\circ}$ out of plane rotations.
+
+\newpage
+
+\begin{figure*}[htbp!]
+\includegraphics[width = \textwidth]{figures/suppfig1.png}
+\caption{Reconstructions obtained using our algorithm on PASCAL VOC using the fully annotated setting (please see text for details). We show the clean segmentation input, the inferred shape overlaid on the image, a 2.5D depth map (after the bottom-up refinement stage), the mesh in the image viewpoint and two other views. Note that here we use ground truth masks and obtain pose using the ground truth keypoints. Color encodes depth in the image co-ordinate frame (blue is closer). More results can be found at \url{http://goo.gl/lmALxQ}}
+\label{fig:supp1}
+\end{figure*}
+
+\begin{figure*}[htbp!]
+\includegraphics[width = \textwidth]{figures/suppfig2.png}
+\caption{Fully automatic reconstructions on detected instances (0.5 IoU with ground truth) using our models on rigid categories in PASCAL VOC. We show our instance segmentation input, the inferred shape overlaid on the image, a 2.5D depth map (after the bottom-up refinement stage), the mesh in the image viewpoint and two other views. It can be seen that our method produces plausible reconstructions which is a remarkable achievement given just a single image and noisy instance segmentations. Color encodes depth in the image co-ordinate frame (blue is closer). More results can be found at \url{http://goo.gl/lmALxQ}}
+\label{fig:supp2}
+\end{figure*}
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{references}
+}
+\end{document}

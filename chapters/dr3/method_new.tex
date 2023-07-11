@@ -1,0 +1,98 @@
+\vspace{-7pt}
+\section{\methodname: Explicitly Regularizing Representations in Deep Q-Learning}
+\label{sec:method}
+\vspace{-7pt}
+In Section~\ref{sec:problem}, we observed that implicit regularization of gradient descent and neural networks can induce co-adaption of features at state-action tuples appearing on the two sides of a Bellman backup. If the implicit regularizer that arises from GD does not lead to effective learning in the TD setting, as it does in the supervised setting, can we instead introduce \emph{explicit} regularization to alleviate this issue? In this section, we derive an explicit regularizer  directly from Theorem~\ref{thm:implicit_noise_reg}, that alleviates these issues and can be utilized in conjunction with any offline RL method.
+
+\begin{remark}
+Let $R_{\mathrm{SL}}(\theta): = \sum_i ||\nabla_\theta Q_\theta(\bx_i)||_2^2$ denote the implicit regularizer for supervised learning. Then, $\Delta(\theta) := R_\mathrm{TD}(\theta) - R_\mathrm{SL}(\theta) = - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx'_i)$ is the offset between implicit regularizers induced by noisy updates in supervised and TD learning. 
+\label{remark:remark_diff}
+\end{remark}
+Since our goal is to devise an explicit regularizer that mitigates issues with implicit regularization in TD-learning, we choose to add an \emph{explicit} regularizer equal to $\Delta(\theta)$ from Remark~\ref{remark:remark_diff}. This explicit regularizer minimizes $\Delta(\theta) = \sum_i \nabla_\theta Q_\theta(\bs_i, \ba_i)^\top \nabla_\theta Q_\theta(\bs'_i, \ba'_i) $, and thus the total of implicit and explicit regularization closely mimics the one in supervised learning ($R_\mathrm{SL}(\theta)$) which is known to be beneficial. We can combine $\Delta(\theta)$ with various RL algorithms. Since this regularizer by itself does not capture overestimation due to distributional shift, but only prevents feature co-adaptation, to obtain an effective offline RL method we must combine $\Delta(\theta)$ with another method that mitigates the effects of out-of-distribution action selection.  
+For a generic offline RL algorithm, \textsc{Alg}, with objective $\mathcal{L}_{\textsc{Alg}}(\theta)$, the training objective with \methodname\ is given by: $\mathcal{L}(\theta) := \mathcal{L}_{\textsc{Alg}}(\theta) + \alpha \Delta(\theta)$.
+
+\textbf{Practical implementation details.} Because per-example gradient dot products are costly to compute, we find that it suffices to approximate  $\mathcal{R}_\mathrm{exp}(\theta)$ with the contribution from the last layer parameters (\ie $\sum_i \nabla_\bw Q_\theta(\bs_i, \ba_i)^\top \nabla_\bw Q_\theta(\bs'_i, \ba'_i)$), thus, the practical version of our explicit regularizer is: $\bar{\mathcal{R}}_\mathrm{exp}(\theta) = \sum_{i \in \mathcal{D}} \phi(\bs_i, \ba_i)^\top \phi(\bs'_i, \ba'_i)$. In discrete action environments, where Q-learning algorithms utilize multi-head networks to parameterize Q-functions (one head per action), we apply \methodname\ on the state features $\phi(\bs)$. On continuous action domains, we apply \methodname\ to state-action features. The weighting factor, $\alpha$, is a constant across different tasks and depends on the base offline RL method. More details can be found in Appendix~\ref{app:method_details}.  
+
+%%AK: thinking of removing the stuff below -- the consequences of why the penalty works is pretty clear given the section 3 analysis and while I can show other properties like adaptive discounts, noise compounding prevention, etc, I dont think this is worth the space.
+\iffalse
+\textbf{Theoretical analysis of \methodname.} Now we shall theoretically analyze \methodname\ with the goal of answering the following questions: \textbf{(1)} How does \methodname\ regularize the learning dynamics of deep Q-learning thereby preventing aliasing?, \textbf{(2)} Does \methodname\ prevent the Q-function from diverging away from a good solution with more training, thereby inducing stability? and \textbf{((3)} Does \methodname\ robustify the learning dynamics against noise arising from the limited size of data in sampled settings, thereby leading to better solutions? 
+%%AK: the notion of stability is a bit overloaded, so we need to make sure when we are talking about which stability
+We provide theoretical results answering these questions next.
+
+To answer \textbf{(1)}, we utilize the abstract model from Section~\ref{sec:theory_evidence} and show in Theorem~\ref{thm:penalty_removes_aliasing} that utilizing \methodname\ with the ``optimal'' weight $\alpha_{\text{opt}}$ learns features $\Phi$ such that the optimal features are close to a projection of the optimal Q-function $\bQ^*$ on the function class $\Phi$.
+
+\textcolor{red}{Add theorem here: maybe closeness to $Q^*$ is not the best approach, but more about something else?}
+
+In our next result, we answer \textbf{(2)} by showing that, whenever Bellman backups are performed with features $\Phi$ for which the value of the \methodname\ regularizer,
+%%SL.5.13: really complex clause, reorder this sentence to split it into shorter simpler clauses
+$\mathcal{R}(\phi) = \E_{\bs, \ba, \bs' \sim \data, \ba' \sim \pi}[\phi(\bs, \ba)^\top \phi(\bs', \ba')]$, is bounded above by a certain constant $C^*$, then  Bellman backups originating in the vicinity of a good Q-function that does not alias states will converge to this fixed point. Note the direct contrast against Theorem ?? from Section~\ref{sec:bootstrapping_evidence},
+%%AK: this theorem shows that Q-learning is unstable near optima because it can minimize the implicit regularizer more than the TD error.
+which shows that naive TD learning will still pursue aliased solutions in the abstract model and will not converge to a good solution even starting close to it.
+
+\textcolor{red}{Add theorem showing stable convergence to a good fixed point close to it. The previous theorem shows that regularization finds the right fixed point, and the second one shows that it converges to it.}
+
+While the analysis so far has primarily focused on the benefits of \methodname\ in curbing the excessive implicit regularization effects that arise when optimizing deep networks with Bellman backups, our next result shows that in addition, \methodname\ reduces the degree to which error due to sampling and distributional shift compound over time as more backups are performed. By making distributional assumptions on the sampling error, we show that in certain cases, utilizing \methodname\ is absolutely essential to learn a meaningful policy that is better than random behavior.
+
+\textcolor{red}{This theorem is similar to the stuff below, we will just assume that $\hat{P}^\pi- P^\pi$ is distributed according to a (truncated) normal distribution and show that the \methodname\ regularizer directly controls the amount of noise in the Q-function.}
+
+\subsection{Effect of regularizer}
+With the regularizer, our TD loss is
+\[ \frac{1}{2}\left(\phi_\theta(s, a)w - r(s, a) - \gamma\phi_{\bar{\theta}}(s', a')\right)^2 + \alpha \phi_\theta(s, a)^\top \phi_{\bar{\theta}}(s', a'),\]
+so the gradient wrt to $\theta$ is
+\begin{align*}
+  &\left(\phi_\theta(s, a)^\top w - r(s, a) - \gamma\phi_{\bar{\theta}}(s', a')^\top \bar{w} \right)w^\top\frac{\partial \phi_\theta(s, a)}{\partial \theta} + \alpha \phi_{\bar{\theta}}(s', a')^\top\frac{\partial \phi_\theta(s, a)}{\partial \theta}\\
+  &=\left(\phi_\theta(s, a)^\top ww^\top - r(s, a)w^\top - \gamma\phi_{\bar{\theta}}(s', a')^\top \bar{w}w^\top + \alpha\phi_{\bar{\theta}}(s', a')^\top \right)\frac{\partial \phi_\theta(s, a)}{\partial \theta} \\ 
+  &=\left(\phi_\theta(s, a)^\top ww^\top - r(s, a)w^\top - \phi_{\bar{\theta}}(s', a')^\top \left(\gamma\bar{w}w^\top - \alpha I \right)\right)\frac{\partial \phi_\theta(s, a)}{\partial \theta} \\ 
+\end{align*}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%             OLD STUFF
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iffalse
+\section{\methodname: Mitigating \AliasingProblemName\ via Orthogonality Regularization}
+\label{sec:method}
+
+%%AK.1.31: I don't really like the title of this section, and no we are also committed to an acronym that "orthogonality regularization" in it because of the abstract...
+
+If bootstrapping induces features that alias state-action tuples drawn from the offline dataset and the learned policy, which can have pathological consequences (Section~\ref{sec:consequences_of_feature_sim}), can we develop a better offline RL method by explicitly reducing this aliasing? While encouraging aliasing on two vectors is relatively straightforward, here we are interested in the inverse problem of reducing aliasing, which can be tackled in potentially many ways, not all of which are ideal for offline Q-learning. This makes it less straightforward to address this problem.
+%%AK.1.31: just stressing why removing aliasing is hard, while introducing aliasing is easy... else it might appear as if our fix is straightforward -- we took a diagnostic metric and penalized that, which will seem like a hack.
+
+%%AK.1.31: I am not a fan of the word "fortunately" here, but I couldn't find a better word to kickstart this para..
+Fortunately, as we will also theoretically show in Section~\ref{sec:analysis},
+%%SL.2.1: Maybe we're getting ahead of ourselves -- how about we state the point here first, some intuition, and only then say: In Section ??, we will make this intuition more precise with a theoretical proof that [something].
+it turns out that simply adding a regularizer that encourages the Q-function features to have a small unnormalized similarity
+%%SL.2.1: the presence of s' here is I think a little confusing...
+is theoretically sufficient to address this issue. This means that features on actions drawn from the learned policy, $\ba'$, are forced to be dissimilar to $\ba$, on directional similarity, provided the norm of the feature vectors is large enough.
+%%SL.2.1: not sure if "on a combination of direction and norm" entirely makes sense -- at first I thought you meant "on both the direction and norm," but that's actually not right...
+%%AK.2.3: removed that phrase and expanded it. is it better now?
+Based on this observation, our method, \methodname\,
+penalizes the expected value of $\simunnorm(\bs, \ba, \bs') = |\phi(\bs, \ba)^T \E_{\pi}[\phi(\bs', \cdot)]|$ in a training batch, in addition to TD-error. 
+\methodname\ can be easily combined with existing offline RL methods, such as CQL~\citep{kumar2020conservative}, and REM~\citep{agarwal2019optimistic}, and offline policy evaluation algorithms such as FQE~\citep{le2019batch}.
+%%AK.1.31: I have cited BRAC at a bunch of places, perhaps we can do some experiments with it, or we can just remove this...
+
+While \methodname\ does not by itself curb overestimation in Q-values due to distributional shift, it instead aims to prevent feature aliasing with an additional loss that penalizes the absolute value of dot-products of features $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$. Thus, for an effective offline method, we combine \methodname\ with existing methods for mitigating distributional shift. %We will discuss how this can be theoretically derived in Section~\ref{sec:analysis}.
+When combined with an offline RL algorithm, \textsc{Alg}, with objective $\mathcal{L}_{\textsc{Alg}}(\theta)$, the training objective for the Q-function, with the \methodname\ penalty marked in red, is: 
+\begin{align}
+    \min_\theta~ \mathcal{L}(\theta) := &\  \mathcal{L}_{\textsc{Alg}}(\theta) + \textcolor{red}{\alpha \E_{\bs, \ba, \bs' \sim \data}[\simunnorm(\bs, \ba, \bs')]}.
+    %\big|\phi_\theta(\bs, \ba)^T \E_{\pi}[\phi_\theta(\bs', \cdot)]\big|.}
+\label{eqn:our_method}
+\end{align}
+We next discuss some practical implementation details. After this, we will theoretically show in Section~\ref{sec:analysis} that optimizing the policy $\pi$ against the Q-function obtained via Equation~\ref{eqn:our_method} amounts to maximizing a lower-bound on the policy return, and the lower-bound is tighter if the value of the \methodname\ regularizer is small.
+
+%%SL.2.3: I do think that it would help to include the full equation for the CQL version of FOQL in the implementation paragraph, just to make it really clear how it works (if we have space of course)
+\textbf{Practical Implementation of \methodname.} We discuss two variants of our method: a Q-learning variant that only parameterizes the Q-function for discrete-action tasks, and an actor-critic variant that trains a separately parameterized policy for continuous action tasks. The actor-critic variant of \methodname\ trains the Q-function using Equation~\ref{eqn:our_method} and optimizes the policy against it.
+The Q-learning variant of \methodname, which we use in discrete action spaces, parameterizes a multi-head Q-network~(one head per action) that learns features $\phi(\bs)$ dependent only on the state $\bs$ and not the action $\ba$. In this case, \methodname\ is applied on the features $\phi(\bs)$ and $\phi(\bs')$ directly.
+%%AK.1.26: do we need to have an algorithm box?
+%%SL.1.26: Yes, I think an algorithm box would help. I think there was also a little bit of slaight of hand -- we were talking about how our method can be combined with any RL method, but now it looks like it's specific to CQL?
+%%AK.1.31: TODO
+
+%Implementation details
+For our experiments, we build on top of prior offline RL methods: CQL~\citep{kumar2020conservative} and REM~\citep{agarwal2019optimistic}. On all the tasks, we use a default set of hyperparameters for the base method, and additionally set $\alpha_{\mathrm{\methodname}}$ to a constant that is kept identical across different task groups. The values of $\alpha_{\mathrm{\methodname}}$ can be found in Appendix ??.
+%%AK.1.31: Clarify the bit about hparams since they are not all the same for the base method
+
+%%SL.2.1: Generally, I think this section reads well. The second paragraph in the section (Fortunately...) is a little bit rough. Content-wise it's fine, but maybe go over it a couple more times to smooth out the sentence structure. The main clarity thing that I recommend addressing in this section is to clarify the point about s/a/s'/a' -- right now, the regularizer is written as a function of s/a/s', but you motivated this loss by talking about similarity between policy and data actions -- maybe it would be good to explain this leap. For example, you could define similarity in terms of pi(a|s) vs (s,a)\in D, but then explain how in practice, we already sample from pi from the target value, so it makes sense to contrast those (or explain some other reason why this is a good idea). Otherwise it comes across as a little arbitrary that the similarity of actions from data and pi is a function of s/a/s'
+%%AK.2.3: this is TODO
+
+\fi

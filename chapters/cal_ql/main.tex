@@ -1,0 +1,145 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2023
+
+
+% ready for submission
+
+% from: https://twitter.com/zicokolter/status/1397569757990301702
+\usepackage[nonatbib]{neurips_2023}
+\usepackage[numbers]{natbib}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2023}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2023}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2023}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\definecolor{citecolor}{HTML}{0071bc}
+\hypersetup{
+    colorlinks,
+    linkcolor={citecolor},
+    citecolor={citecolor},
+    urlcolor={citecolor}
+}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amsmath}       % blackboard math
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+% New Packages
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage{listings}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{bbm}
+\usepackage{algorithm}
+
+
+\usepackage{algpseudocode}
+\usepackage{setspace}
+
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+basicstyle=\ttfamily\scriptsize,
+language=Python,
+morekeywords={self, clip, exp, mse_loss, uniform_sample, concatenate, logsumexp},              % Add keywords here
+keywordstyle=\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=single,                         % Any extra options here
+showstringspaces=false
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+
+\makeatletter
+\def\mathcolor#1#{\@mathcolor{#1}}
+\def\@mathcolor#1#2#3{%
+  \protect\leavevmode
+  \begingroup
+    \color#1{#2}#3%
+  \endgroup
+}
+\makeatother
+
+\usepackage[textsize=tiny]{todonotes}
+\usepackage{setspace}
+
+\input{macro.tex}
+
+
+\setlength{\parskip}{3pt}
+
+
+\title{\methodname: Calibrated Offline RL Pre-Training for Efficient Online Fine-Tuning}
+
+\begin{document}
+
+\maketitle
+
+
+\begin{abstract}
+A compelling use case of offline reinforcement learning (RL) is to obtain a policy initialization from existing datasets followed by fast online fine-tuning with limited interaction. However, existing offline RL methods tend to behave poorly during fine-tuning. In this paper, we study the fine-tuning problem in the context of conservative offline RL methods and we devise an approach for learning an effective initialization from offline data that also enables fast online fine-tuning capabilities. Our approach, calibrated Q-learning (\methodname), accomplishes this by learning a conservative value function initialization that underestimates the value of the learned policy from offline data, while also ensuring that the learned Q-values are at a reasonable scale. We refer to this property as calibration, and define it formally as providing a lower bound on the true value function of the learned policy and an upper bound on the value of some other (suboptimal) reference policy, which may simply be the behavior policy. We show that a conservative offline RL algorithm that also learns a calibrated value function leads to effective online fine-tuning, enabling us to take the benefits of offline initializations in online fine-tuning. In practice, \methodname\ can be implemented on top of the conservative Q learning (CQL)~\cite{kumar2020conservative} for offline RL within a one-line code change. Empirically, \methodname\ outperforms state-of-the-art methods on {\bf 9/11} fine-tuning benchmark tasks that we study in this paper.     
+
+\end{abstract}
+\input{sections/1-introduction}
+\input{sections/2-related_work}
+\input{sections/3-background}
+\input{sections/4-analysis}
+\input{sections/5-method}
+\input{sections/6-theory}
+\input{sections/7-experiment}
+\input{sections/8-discussion}
+
+\bibliographystyle{abbrvnat}
+\bibliography{reference.bib}
+
+\appendix
+\input{sections/9-appendix}
+
+\end{document}

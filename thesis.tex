@@ -1,0 +1,249 @@
+\documentclass[letterpaper,12pt, oneside]{lib/ucthesis}
+\def\ssp{\def\baselinestretch{1.0}\large\normalsize}
+\ssp
+\usepackage{subfiles}
+\usepackage[linedheaders,parts,pdfspacing]{classicthesis}
+\usepackage[left=1in,right=1in,bottom=1.2in]{geometry}
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,bookmarks=false]{hyperref}
+\usepackage[square,numbers]{natbib}   
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{lib/libtex}
+\usepackage{textcomp}
+\usepackage[labelfont=bf,font=footnotesize]{caption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% \usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{epstopdf}
+\usepackage{balance}
+\usepackage{epigraph}
+\usepackage[skins,theorems]{tcolorbox}
+% \usepackage[parfill]{parskip}
+\renewcommand{\epigraphsize}{\small}
+
+
+\let\svthefootnote\thefootnote
+\newcommand\blfootnote[1]{%
+\begingroup
+\let\thefootnote\relax\footnote{#1}
+\addtocounter{footnote}{-1}\let\thefootnote\svthefootnote
+\endgroup
+}
+
+\algnewcommand{\Initialize}[1]{%
+  \State \textbf{Initialize:}
+  \Statex \parbox[t]{\linewidth}{\raggedright #1}
+}
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+
+\pdfinfo{
+       /Title      (U. C. Berkeley Dissertation)
+       /Author     (Aviral Kumar)
+       /Keywords   ()
+    }
+% This gives you control over how far down in the hierarchy the
+% table of contents will print. I use 2.
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+% \setlength{\parindent}{5ex}
+
+% \include{chapters/preamble}
+
+% \graphicspath{{resources/}}
+\newcommand{\nrsfm}[0]{NRSfM}
+\newcommand\degrees{\ensuremath{^\circ}}
+\newcommand{\tab}{\hspace{5mm}}
+\newcommand{\blankpage}{\clearpage ~ \newpage}
+
+\include{defs}
+\include{chapters/uds/math_commands}
+
+
+% \usepackage{fancyhdr}
+\pagestyle{headings}
+% \lhead{}
+% \chead{}
+% % \rhead{}
+% \lfoot{}
+% \cfoot{}
+% \rfoot{\thepage}
+
+
+% \usepackage{fancyhdr}
+% \fancyhf{}
+% \fancyfoot[C]{\thepage}
+% \renewcommand{\headrulewidth}{0pt}  
+
+% ========================================= DOCUMENT
+\begin{document}
+
+
+
+
+% Declarations for Front Matter
+
+% TITLE
+\title{\large{Reinforcement Learning from Static Datasets: Algorithms, Analysis, and Applications}}
+% Note that this must be exactly as it appears in University records.
+\author{Aviral Kumar}
+
+% PREVIOUS DEGREES
+% Put each previous degree on its own line in the following format:
+\prevdegrees{} % Optional 
+
+% DATE OF GRADUATION
+% This text will appear on the title page
+% Note that degrees are only granted in Fall and Spring at Berkeley.
+% This text will appear on the abstract page.
+% For Berkeley, it should be identical to the graduation month.
+\degreeyear{2023}
+\degreemonth{Summer}
+\defensemonth{Summer}
+\defenseyear{2023}
+
+\degree{Doctor of Philosophy}
+% COMMITTEE MEMBERS
+% You can have up to 5 members listed separately. 
+%After that, you throw them all into the "other members" category.
+\numberofmembers{4} 
+	\chair{Associate Professor Sergey Levine} 
+	\othermemberA{Assistant Professor Jiantao Jiao}
+	\othermemberB{Professor Emma Brunskill} 
+	\othermemberC{Professor Jennifer Listgarten} 
+	
+% DEPARTMENT/DEGREE PROGRAM
+%Your Department. Make sure this is the department and/or program
+% name that you are enrolled in...
+\field{Computer Science}
+
+% CAMPUS NAME
+% Your UC Campus, e.g., "Berkeley"
+% Note that if you are not at Berkeley, you may have to modify the\vspace{12pt}
+% ucthesis.cls to change the wording on the Title page.
+\campus{Berkeley}
+
+\begin{frontmatter} 
+\maketitle
+\approvalpage
+\copyrightpage
+\abstract
+	\input{chapters/abstract}
+	\abstractsignature
+\endabstract
+
+\end{frontmatter}
+\begin{optionalFrontMatter}
+% ===============================================
+% OPTIONAL MATERIAL
+% Everything after this is optional and can appear in any order
+% you desire.
+% \begin{dedication}
+% % Prints the text of the file dedication.tex centered vertically on the page.
+% 	\vspace*{\fill} 
+% 	To my grandparents.
+% 	\vspace*{\fill} 
+% \end{dedication}
+\end{optionalFrontMatter}
+\addcontentsline{toc}{chapter}{Contents}
+
+\tableofcontents
+% \listoffigures 
+% \listoftables
+
+\begin{acknowledgements}
+\thispagestyle{plain}
+	\subfile{chapters/acknowledgements} 
+\end{acknowledgements}
+
+%%%% END FRONT MATTER...
+
+
+% ============================= DISSERTATION TEXT
+% Begins regular arabic numeral page numbers...
+% CHAPTERS
+
+\begin{dissertationText}
+
+\chapter{Introduction}
+	\subfile{chapters/introduction}
+
+\part{Problem Statement and Challenges}
+% \newpage
+% \vspace*{\fill}
+% \Large{Part I: Problem Statement}
+% \vspace*{\fill}
+% \newpage
+
+\chapter{Challenges in RL From Static Data}~\label{chapter:diagnosing}
+	\subfile{chapters/diagnosing}
+
+\part{Algorithmic Approaches to Offline RL}
+
+\chapter{Policy Constraints to Tackle Distributional Shift}~\label{chapter:bear}
+	\subfile{chapters/bear}
+
+\chapter{Conservative Q-Learning}~\label{chapter:cql}
+	\subfile{chapters/cql}
+
+\chapter{Offline Reinforcement Learning via Supervised Learning}~\label{chapter:rcp}
+	\subfile{chapters/rcp}
+
+\chapter{Analysis: Why Offline Reinforcement Learning over Supervised Learning?}~\label{chapter:rl_vs_bc}
+	\subfile{chapters/rl_vs_bc}
+
+\part{Extensions of Offline RL}
+
+\chapter{Offline RL With Large Models}
+	\subfile{chapters/scaling}
+
+\chapter{Online RL Fine-Tuning of Offline RL}
+	\subfile{chapters/cal_ql}
+
+\chapter{Offline RL with Multi-Task and Unlabeled Data}
+	\subfile{chapters/cds_uds}
+
+\part{Applications of Offline RL}
+
+\chapter{Real-Robot Pre-Training}
+	\subfile{chapters/ptr}
+
+\chapter{Hardware Accelerator Design}
+	\subfile{chapters/prime}
+
+% \chapter{Category-Specific Deformable 3D Models}~\label{chapter:CategoryShapes}
+% 	\subfile{chapters/categoryshapes}
+
+% \chapter{Amodal Completion and Size Constancy}~\label{chapter:Amodal}
+% 	\subfile{chapters/amodal}
+
+% \chapter[Learnt Stereo Machines]{Towards Unification: Learnt Stereo Machines}~\label{chapter:LSM}
+% 	\subfile{chapters/lsm}
+	
+\chapter{Conclusion}
+	\subfile{chapters/conclusion}
+
+\ssp
+\bibliographystyle{plainnat}
+% \bibliographystyle{unsrt}
+\bibliography{references}
+
+% % ------------------- OPTIONAL APPENDICES
+% \appendix
+% \chapter{Appendix Chapter}~\label{sec:appendix-pf}
+% 	\subfile{chapters/chapter1}
+
+\end{dissertationText}
+\end{document}
+
+% Congratulations, Doc!

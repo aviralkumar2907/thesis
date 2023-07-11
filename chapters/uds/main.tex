@@ -1,0 +1,174 @@
+
+\documentclass[nohyperref]{article}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} %
+
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+
+\usepackage[accepted]{icml2022}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{enumitem}
+
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\usepackage[textsize=tiny]{todonotes}
+
+\usepackage{amsthm}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{xcolor}
+\usepackage{dsfont}
+\usepackage{cancel}
+
+
+\include{defs}
+\input{math_commands.tex}
+
+\definecolor{Gray}{gray}{0.9}
+\newcommand{\rebuttal}[1] {{\color{black} #1}}
+\newcommand{\final}[1] {{\color{black} #1}}
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{0pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+
+\makeatletter
+\newcommand{\mybox}{%
+    \collectbox{%
+        \setlength{\fboxsep}{1pt}%
+        \fbox{\BOXCONTENT}%
+    }%
+}
+\makeatother
+\makeatletter
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+\newcommand{\CC}{\cellcolor{Gray}}
+
+
+\icmltitlerunning{How to Leverage Unlabeled Data in Offline Reinforcement Learning}
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{How to Leverage Unlabeled Data in Offline Reinforcement Learning}
+
+
+
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Tianhe Yu}{equal,yyy,comp}
+\icmlauthor{Aviral Kumar}{equal,sch,comp}
+\icmlauthor{Yevgen Chebotar}{comp}
+\icmlauthor{Karol Hausman}{comp}
+\icmlauthor{Chelsea Finn}{yyy,comp}
+\icmlauthor{Sergey Levine}{sch,comp}
+\end{icmlauthorlist}
+
+\icmlaffiliation{yyy}{Stanford University}
+\icmlaffiliation{sch}{UC Berkeley}
+\icmlaffiliation{comp}{Google Research}
+
+\icmlcorrespondingauthor{Tianhe Yu}{tianheyu@cs.stanford.edu}
+\icmlcorrespondingauthor{Aviral Kumar}{aviralk@berkeley.edu}
+
+\icmlkeywords{Machine Learning, ICML}
+
+\vskip 0.3in
+]
+
+
+
+\printAffiliationsAndNotice{\icmlEqualContribution} %
+
+\begin{abstract}
+Offline reinforcement learning (RL) can learn control policies from static datasets but, like standard RL methods, it requires reward annotations for every transition. In many cases, labeling large datasets with rewards may be costly, especially if those rewards must be provided by human labelers, while collecting diverse unlabeled data might be comparatively inexpensive. How can we best leverage such unlabeled data in offline RL? One natural solution is to learn a reward function from the labeled data and use it to label the unlabeled data. In this paper, we find that, perhaps surprisingly, a much simpler method that simply applies zero rewards to unlabeled data leads to effective data sharing both in theory and in practice, without learning any reward model at all. While this approach might seem strange (and incorrect) at first, we provide extensive theoretical and empirical analysis that illustrates how it trades off reward bias, sample complexity and distributional shift, often leading to good results. We characterize conditions under which this simple strategy is effective, and further show that extending it with a simple reweighting approach can further alleviate the bias introduced by using incorrect reward labels. Our empirical evaluation confirms these findings in simulated robotic locomotion, navigation, and manipulation settings.
+
+
+
+\end{abstract}
+
+
+
+\vspace{-0.15cm}
+\section{Introduction}
+\vspace{-0.1cm}
+Offline reinforcement learning (RL) provides the promise of a fully data-driven framework for learning performant policies. To avoid costly active data collection and exploration, offline RL methods utilize a previously collected dataset to extract the best possible behavior, making it feasible to use RL to solve real-world problems where active exploration is expensive, dangerous, or otherwise infeasible~\citep{zhan2021deepthermal, de2021discovering, Wang2018SupervisedRL, kalashnikov2018scalable}. 
+However, this concept is only viable when a significant amount of data for the target task is available in advance. A more realistic scenario might allow for a much smaller amount of task-specific data, combined with a large amount of task-agnostic data, that is not labeled with task rewards and some of which may not be relevant. For example, if our goal is to train a robot to perform a new manipulation task (e.g., cutting an onion), we might have some data of the robot (suboptimally) attempting that task, perhaps collected under human teleoperation and manually labeled with rewards, combined with background data, some of which might be structurally related (e.g., picking up an onion, or cutting a carrot). {This scenario presents several questions: How do we decide which prior data should be included when learning the new task? And how do we determine reward labels to use for this prior data?}
+
+Prior methods have attempted to answer these two questions, typically in isolation. For the first question, it has been noted that a na\"{i}ve strategy of sharing all of the prior data can be highly suboptimal~\citep{kalashnikov2021mt}, even when it is annotated with reward labels, and some works have proposed both manual~\citep{kalashnikov2021mt} and automated~\citep{yu2021conservative,eysenbach2020rewriting} data sharing strategies that prioritize the most structurally similar prior data. 
+However, these methods assume that shared data can automatically be relabeled with the reward function for the task,
+but the assumption that we have access to the functional form of this reward is a strong one: for example, in many real-world settings, computing the reward might require human labeling~\citep{cabi2019scaling,finn2016deep}. 
+Prior works use learned classifiers for reward labeling~\citep{VICEFu2018,xie2018few,singh2019end}, or other automated mechanisms~\citep{konyushkova2020semi}. But these mechanisms themselves add complexity and potential brittleness to the pipeline. Thus, we aim to study the possibility of tackling this problem with a simple method that determines which rewards to use for shared data, with minimal supervision and no additional modeling and learning.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.48\textwidth]{teaser_new.png}
+    \vspace{-0.6cm}
+    \caption{\footnotesize  Overview of various methods dealing with unlabeled offline data. UDS is a simple method compared to the complex reward learning approaches yet achieves effective results.}
+    \vspace{-0.55cm}
+    \label{fig:teaser}
+\end{figure}
+
+In this paper, we make the potentially surprising observation that prior data such as data from other tasks can be utilized with na\"{i}ve constant reward labels in offline RL, which corresponds to zero reward or whatever is the minimum reward for the task (which we can set to zero via rescaling, without loss of generality). It may at first seem that such an approach would lead to incorrect solutions due to using the wrong reward values. However, we show that this simple reward relabeling strategy, which we refer to as unlabeled data sharing (UDS), can outperform more sophisticated methods that separately learn a reward model and lead to good results in a range of settings. We visualize UDS along with more complex methods in Figure~\ref{fig:teaser}. Na\"{i}ve UDS does not work in all cases, but we further show that carefully reweighting the unlabeled transitions (to modify their distribution) can significantly increase the applicability of this approach and reduce the effects of reward bias, while still preserving many of the benefits. {We analyze this theoretically and show that, in practice, a method based on conservative data sharing~\citep{yu2021conservative}, which reweights unlabeled data to minimize distributional shift (originally designed for use with ground truth reward labels) can be particularly effective in this role.}
+
+Our main contribution is the finding that simply labeling unlabeled data with a reward of zero for use in offline RL is surprisingly effective in many cases. We perform extensive theoretical and empirical analysis to study conditions under which this simple approach, UDS, would either excel or fail, and we analyze how reweighting the relabeled data (while still using zero reward as the label) can increase the range of settings when UDS is successful. Our empirical evaluation, conducted over various single-task and multi-task offline RL scenarios such as locomotion, robotic manipulation from visual inputs, and ant-maze navigation shows that this simple zero reward strategy leads to improved performance, even compared to methods that use more sophisticated learning and label propagation strategies to infer rewards. This further supports our hypothesis that relabeling unlabeled data with zero reward is an effective approach for utilizing unlabeled prior data in offline RL.
+
+
+\input{related_work}
+
+\input{prelim}
+
+\input{method}
+
+\input{experiments}
+
+\section{Discussion}
+
+In this paper, we study the problem of leveraging unlabeled data in offline RL where we find that a simple method UDS that relabels unlabeled data with zero rewards is surprisingly effective in various single-task and multi-task offline RL domains. We provide both theoretical and empirical analysis of UDS to study conditions where it works and does not work. Furthermore, we show that by utilizing the optimized reweighting strategy, reward bias introduced in UDS can be reduced and the policy performance bound is improved in our theoretical analysis, which is also verified empirically. We believe that our analysis justifies the effectiveness of such simple methods for using unlabeled data in offline RL and shed light on directions for future work that can better control the reward bias and enjoy better policy performance.
+
+
+\section*{Acknowledgements}
+We thank Kanishka Rao, Julian Ibarz, other members of IRIS at Stanford, RAIL at UC Berkeley and Robotics at Google and Google Research and anonymous reviewers for valuable and constructive feedback on an early version of this manuscript. This research was funded in part by Google, ONR grants N00014-21-1-2685 and N00014-21-1-2838, Intel Corporation and the DARPA Assured Autonomy Program. CF is a CIFAR Fellow in the Learning in Machines and Brains program. 
+
+\bibliography{references}
+\bibliographystyle{icml2022}
+
+\newpage
+\appendix
+\onecolumn
+\input{appendix}
+
+
+\end{document}
+
+

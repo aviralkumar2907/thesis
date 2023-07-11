@@ -1,0 +1,572 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{times}
+
+% numbers option provides compact numerical references in the text. 
+\usepackage[numbers]{natbib}
+\usepackage{multicol}
+
+\usepackage{xspace}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,bookmarks=true]{hyperref}
+
+\usepackage{wrapfig}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+
+\usepackage[skins,theorems]{tcolorbox}
+
+\newcommand{\rebuttal}[1]{\textcolor{red}{#1}}
+
+
+\pdfinfo{
+   /Author (Homer Simpson)
+   /Title  (Robots: Our new overlords)
+   /CreationDate (D:20101201120000)
+   /Subject (Robots)
+   /Keywords (Robots;Overlords)
+}
+
+\include{defs}
+\include{math_commands}
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{0pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+
+\begin{document}
+
+% paper title
+\title{Pre-Training for Robots: Offline RL Enables Learning New Tasks in a Handful of Trials}
+
+% You will get a Paper-ID when submitting a pdf file to the conference system
+\author{Aviral Kumar$^{*, 1}$, Anikait Singh$^{*, 1}$, Frederik Ebert$^{*, 1}$, Mitsuhiko Nakamoto$^1$, Yanlai Yang$^3$, \\ Chelsea Finn$^2$, Sergey Levine$^1$ \vspace{2pt}\\
+\small{$^1$UC Berkeley, $^2$Stanford University, $^3$New York University}~~~~~ ($^*$Equal contribution)
+}
+
+
+
+
+\makeatletter
+\let\@oldmaketitle\@maketitle%
+\renewcommand{\@maketitle}{\@oldmaketitle%
+    \centering
+  \includegraphics[width=0.9\linewidth]{system_overview.pdf}
+  \vspace{-0.2cm}
+  \captionof{figure}{ \label{fig:system_overview} \footnotesize \textbf{Overview of \methodname:} We first perform general offline pre-training on diverse multi-task robot data and subsequently fine-tune on one or several target tasks while mixing batches between the prior data and the target dataset using a batch mixing ratio of $\tau$. Additionally, a separate online fine-tuning phase can be done, where offline pre-training is done on a static dataset and an online replay buffer is collected using rollouts in the environment. The offline and online buffers are mixed per batch with a ratio of $\beta$.}
+  \vspace{-0.35cm}
+ }
+\makeatother
+
+
+\maketitle
+\pagestyle{empty}
+
+\begin{abstract}
+Progress in deep learning highlights the tremendous potential of utilizing diverse robotic datasets for attaining effective generalization and makes it enticing to consider leveraging broad datasets for attaining robust generalization in robotic learning as well. However, in practice, we often want to learn a new skill in a new environment that is unlikely to be contained in the prior data. Therefore we ask: how can we leverage existing diverse offline datasets in combination with small amounts of task-specific data to solve new tasks, while still enjoying the generalization benefits of training on large amounts of data? In this paper, we demonstrate that end-to-end offline RL can be an effective approach for doing this, without the need for any representation learning or vision-based pre-training. We present pre-training for robots (PTR), a framework based on offline RL that attempts to effectively learn new tasks by combining pre-training on existing robotic datasets with rapid fine-tuning on a new task, with as few as 10 demonstrations. PTR utilizes an existing offline RL method, conservative Q-learning (CQL), but extends it to include several crucial design decisions that enable PTR to actually work and outperform a variety of prior methods. To our knowledge, PTR is the first RL method that succeeds at learning new tasks in a new domain on a real WidowX robot with as few as 10 task demonstrations, by effectively leveraging an existing dataset of diverse multi-task robot data collected in a variety of toy kitchens. We also demonstrate that PTR can enable effective autonomous fine-tuning and improvement in a handful of trials, without needing any demonstrations. An accompanying overview video can be found in the supplementary material and at this anonymous URL: \url{https://sites.google.com/view/ptr-rss}
+\end{abstract}
+
+\IEEEpeerreviewmaketitle
+
+
+\input{introduction}
+
+%===============================================================================
+
+\input{related}
+	
+%===============================================================================
+
+\input{prelims}
+
+\input{method}
+
+\input{experiments}
+
+
+
+\vspace{0.1cm}
+\section{Discussion and Conclusion}
+\label{sec:conclusion}
+\vspace{0.1cm}
+We presented a system that uses diverse prior data for general-purpose offline RL pre-training, followed by fine-tuning to downstream tasks. The prior data, sourced from a publicly available dataset, consists of over a hundred tasks across ten scenes and our policies can be fine-tuned with as few as 10 demonstrations. We show that this approach outperforms prior pre-training and fine-tuning methods based on imitation learning. One of the most exciting directions for future work is to further scale up this pre-training to provide a single policy initialization, that can be utilized as a starting point, similar to GPT3~\citep{brown2020language}. 
+An exciting future direction is to scale PTR up to more complex settings, including to novel robots. {Since joint training with offline RL was worse than pre-training and then fine-tuning with PTR, another exciting direction for future work is to understand the pros and cons of joint training and fine-tuning in the context of robot learning.}
+
+\vspace{0.1cm}
+
+% \clearpage
+
+
+%===============================================================================
+
+% The maximum paper length is 8 pages excluding references and acknowledgements, and 10 pages including references and acknowledgements
+
+
+% The acknowledgments are automatically included only in the final and preprint versions of the paper.
+%\acknowledgments{todo!}
+
+%===============================================================================
+
+% no \bibliographystyle is required, since the corl style is automatically used.
+% \bibliography{example}  % .bib
+
+
+\bibliography{main}
+\bibliographystyle{plainnat}
+
+
+\newpage
+\clearpage
+\appendix
+
+\subsection{Diagnostic study in simulation}
+\label{app:sim_diagnostic}
+ We perform a diagnostic study in simulation to verify some of the insights observed in our real-world experiments. We created a bin sort task, where a WidowX250 robot is placed in front two bins and is provided with two objects (more details in Appendix~\ref{app:exp_setup}). The task is to sort each object in the correct bin associated with that object. The pre-training data provided to this robot is pick-place data, which only demonstrates how to pick \emph{one} of the objects and place it in one of the bins, but does not demonstrate the compound task of placing both objects. In order to succeed at this such a compound task, a robot must learn an abstract representation of the skill of sorting an object during the pre-training phase and then figure out that it needs to apply this skill multiple times in a trajectory to succeed at the task from just \emph{five} demonstrations of the desired sorting behavior.
+
+
+The performance numbers (along with 95\%-confidence intervals) are shown in Table~\ref{tab:sim_complete}. Observe that \methodname improves upon prior methods in a statistically significant manner, outperforming the BC and COG baselines by a significant margin. This validates the efficacy of \methodname in simulation and corroborates our real-world results. 
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l|r}
+\toprule
+\textbf{Method} & \textbf{Success rate}  \\ \midrule
+BC (joint training) & 7.00 $\pm$ 0.00 \% \\
+COG (joint training) & 8.00 $\pm$ 1.00 \% \\
+BC (finetune) & 4.88 $\pm$ 4.07 \% \\ \midrule
+\textbf{\methodname (Ours)} & \textbf{17.41 $\pm$ 1.77 \%} \\
+\bottomrule
+\end{tabular}
+\caption{\label{tab:sim_complete} \footnotesize{\textbf{Performance of \methodname in comparison with other methods} on the simulated bin sorting task, trained for many more gradient steps for all methods until each one of them converges. Observe that \methodname substantially outperforms other prior methods, including joint training on the same data with BC or CQL. Training on target data only is unable to recover a non-zero performance, so we do not report it in this table. Since the 95\%-confidence intervals do not overlap between \methodname and other methods, it indicates that \methodname improves upon baselines in a statistically significant manner.}}
+\end{table}
+
+
+
+\subsection{Details of Our Experimental Setup}
+\label{app:exp_setup}
+
+\vspace{0.1cm}
+\subsubsection{Real-World Experimental Setup}
+
+A picture of our real-world experimental setup is shown in Figure \ref{fig:setup_overview}. The scenarios considered in our experiments (Section~\ref{sec:result}) are designed to evaluate the performance of our method under a variety of situations and therefore we set up these tasks in different toykitchen domains (see Figure \ref{fig:setup_overview}) on three different WidowX 250 robot arms. We use data from the bridge dataset~\citep{ebert2021bridge} consisting of data collected with many robots in many domains for training but exclude the task/domain that we use for evaluation from the training dataset.  
+
+\begin{figure}[h]
+\centering
+  \includegraphics[width=\linewidth]{setup_overview.pdf}
+  \caption{\footnotesize{\textbf{Setup Overview}: Following \citet{ebert2021bridge}, we use a toykitchen setup described in that prior work for our experiments. This utilizes a 6-DoF WidowX 250 robot. \textbf{(1):}  Held-out toykitchen used for experiments in Scenario 3 (denoted ``toykitchen 6''), \textbf{(2):}  Re-targeting toykitchen used for experiments in Scenario 2 (denoted ``toykitchen 2''), \textbf{(3):} target objects used in the experiments of scenario 3.}, \textbf{(4):} the held-out kitchen setup used for door opening (``toykitchen 1'').}
+  \label{fig:setup_overview}
+  \vspace{-0.3cm}
+\end{figure}
+
+
+
+\subsubsection{Diagnostic Experimental Setup in Simulation}
+\label{sec:sim_appendix}
+
+\begin{figure}{}
+\centering
+    \includegraphics[width=0.8\linewidth]{binsort_figure.jpg}
+  \caption{\footnotesize{\textbf{Bin-Sorting task used for our simulated evaluations.} The task requires sorting the cylinder into the left bin and the teapot into the right bin.}}
+  \label{app:sim_setup}
+\end{figure}
+
+We evaluate our approach in a simulated bin-sorting task on the simulated WidowX 250 platform, aimed to mimic the setup we use for our real-world evaluations. This setup is designed in the PyBullet simulation framework provided by \citet{singh2020cog}. A picture is shown in Figure \ref{app:sim_setup}. In this task, two different bins and two different objects are placed in front of the WidowX robot. The goal of the robot is to correctly sort each of the two objects to their designated bin (e.g the cylinder is supposed to be placed in the left bin and the teapot should be placed in the right bin. We refer to this task as a \emph{compound} task since it requires successfully combining behaviors of two different pick-and-place skills one after the other in a single trajectory while also adequately identifying the correct bin associated with each object. Success is counted only when the robot can accurately sort \emph{both} of the objects into their corresponding bins.
+
+\textbf{Offline pre-training dataset.} The dataset provided for offline pre-training only consists of demonstrations that show how the robot should pick one of the two objects and place it into one of the two bins. Each episode in the pre-training dataset is about 30-40 timesteps long. A picture showing some trajectories from the pre-training dataset is shown in Figure \ref{fig:app_pretrain_rollout_sim}. While the downstream task only requires solving this sorting task with two specific objects (shown in Figure \ref{fig:app_targ_rollout_sim}), the pre-training data consists of 10 unique objects (some shown in Figure \ref{fig:app_pretrain_rollout_sim}). The two target objects that appear together in the downstream target scene are never seen together in the pre-training data. Since the pre-training data only demonstrates how the robot must pick up one of the objects and place it in one of the two bins (not necessarily in the target bin that the target task requires), it neither consists of any behavior that places objects into bins sequentially nor does it consist of any behavior where one of the objects is placed one of the bins while the other one is not. This is what makes this  task particularly challenging.
+
+\textbf{Target demonstration data.} The target task data provided to the algorithm consists of only \textbf{\emph{five}} demonstrations that show how the robot must complete both the stages of placing both objects (see Figure \ref{fig:app_targ_rollout_sim}). Each episode in the target demonstration data is 80 timesteps long, which is substantially longer than any trajectory in the pre-training data, though one would hope that good representations learned from the pick and place tasks are still useful for this target task. While all methods are able to generally solve the first segment of placing the first object into the correct bin, the primary challenge in this task is to effectively sort the second object, and we find that \methodname attains a substantially better success rate than other baselines in this exact step.  
+
+\begin{figure*}
+\centering
+  \includegraphics[width=\textwidth]{BinsortPretrainTrajAppendix.pdf}
+  \caption{\label{fig:app_pretrain_rollout_sim} \footnotesize {Some trajectories from the pre-training data used in the simulated bin-sort task.}}
+\end{figure*}
+
+\begin{figure*}
+\centering
+  \includegraphics[width=\textwidth]{BinsortTargetTrajAppendix.pdf}
+  \caption{\label{fig:app_targ_rollout_sim} \footnotesize {The five demonstration trajectories used for Phase 2 of \methodname.}}
+\end{figure*}
+
+\subsection{Description of the Real-World Evaluation Scenarios}
+\label{app:tasks}
+In this section, we describe the real-world evaluation scenarios considered in Section~\ref{sec:result}. We additionally include a much more challenging version of Scenario 3, for which we present results in Appendix~\ref{app:exp_results}. These harder test cases evaluate the fine-tuning performance on four different tasks, starting from the same initialization trained on bridge data except the toykitchen 6 domain in which these four tasks were set up. In the following sections, the nomenclature for the toy kitchens is drawn from \citet{ebert2021bridge} and as described in the caption of Figure~\ref{fig:setup_overview}.
+
+\subsubsection{Scenario 1: Re-targeting skills for existing to solve new tasks}
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.83\linewidth]{scenario1_overview.pdf}
+  \caption{\footnotesize \textbf{Illustration of pre-training data and finetuning data used for Scenario 1}: re-targeting the put sushi in metal-pot behavior to put the object in the metal pot instead of the orange transparent pot.}
+  \label{fig:retargeting_setup}
+\end{figure}
+
+
+\textbf{Pre-training data.} The pre-training data comprises all of the pick and place data from the bridge dataset~\citep{ebert2021bridge} from toykitchen 2. This includes data corresponding to the task of putting the sushi in the transparent orange pot (Figure \ref{fig:retargeting_setup}).  
+
+\textbf{Target task and data.} Since our goal in this scenario is to re-target the skill for putting the sushi in the transparent orange pot to the task of putting the sushi in the metallic pot, we utilize a dataset of 20 demonstrations that place the sushi in a metallic pot as our target task data that we fine-tune with (shown in Figure~\ref{fig:retargeting_setup}). 
+
+\textbf{Quantitative evaluation protocol.} For our quantitative evaluations in Table \ref{tab:retarget}, we run 10 controlled evaluation rollouts that place the sushi and the metallic pot in different locations of the workspace. In all runs, the arm starts at up to 10 cm distance above the target object. The initial object and arm poses and positions are matched as closely as possible for different methods.
+
+\subsubsection{Scenario 2: Generalizing to Previously Unseen Domains}
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.83\linewidth]{scenario2_overview.pdf}
+  \caption{\footnotesize \textbf{Illustration of pre-training data and fine-tuning data used for Scenario 2 (door opening)}: transferring a behavior to a held-out domain.}
+  \vspace{-0.5cm}
+  \label{fig:door_open_setup}
+\end{figure}
+
+
+\textbf{Pre-training data.} The pre-training data in Scenario 2 consists of 800 door-opening demonstrations on 12 different doors across 3 different toykitchen domains.
+
+\textbf{Target task and data.} The target task requires opening the door of an unseen microwave in toykitchen 1 using a target dataset of only 15 demonstrations.
+
+\textbf{Quantitative evaluation protocol.} We run 20 rollouts with each method, counting successes when the robot opened the door by at least 45 degrees. To perform this successfully, there is a degree of complexity as the robot has to initially open the door till it's open to about 30 degrees. Then due to physical constraints, the robot needs to wrap around the door and push it open from the inside. To begin an evaluation rollout, we reset the robot to randomly sampled poses obtained from held-out demonstrations on the target door.  This is a compound task requiring the robot to first grab the door by the handle, next move around the door, and finally push the door open. As before, we match the initial pose of the robot as closely as possible for all the methods. 
+
+
+\subsubsection{Scenario 3: Learning to Solve New Tasks in New Domains}
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.83\linewidth]{scenario3_overview.pdf}
+  \caption{\footnotesize {\textbf{Illustration of pre-training data and fine-tuning data used for the new tasks we have added in Scenario 3}. The goal is to learn to solve new tasks in new domains starting from the same pre-trained initialization and when fine-tuning is only performed using 10-20 demonstrations of the target task.}}
+  \label{fig:scenario4_overview}
+\end{figure}
+
+\textbf{Pre-training data.} All pick-and-place data in the bridge dataset~\citep{ebert2021bridge} except any demonstration data collected in toykitchen~6, where our evaluations are performed.
+
+\textbf{Target task and data.} The target task requires placing corn in a pot in the sink in the new target domain and the target dataset provides 10 demonstrations for this task. These target demonstrations are sampled from the bridge dataset itself.
+
+\textbf{Quantitative evaluation protocol.} During the evaluation we were unable to exactly match the camera orientation used to collect the target demonstration trajectories, and therefore ran evaluations with a slightly modified camera view. This presents an additional challenge for any method as it must now generalize to a modified camera view of the target toykitchen domain, without having ever observed this domain or this camera view during training. We sampled initial poses for our method by choosing transitions from a held-out dataset of demonstrations of the target task and resetting the robot to those initial poses for each method. We attempted to match the positions of objects across methods as closely as possible.
+
+\subsubsection{More Tasks in Scenario 3: Learning to Solve Multiple New Tasks in New Domains From the Same Initialization}
+\label{app:scenario4}
+
+In Appendix~\ref{app:exp_results}, we have now added results for more tasks in Scenario 3. The details of these tasks are as follows:
+
+\textbf{Pre-training data.} All pick-and-place data from bridge dataset~\citep{ebert2021bridge} except data from toykitchen~6.
+
+\textbf{Target task and data.} We consider four downstream tasks: take croissant from a metallic bowl, put sweet potato on a plate, place the knife in a pot, and put cucumber in a bowl. We collected 10 target demonstrations for the croissant, sweet potato, and put cucumber in bowl tasks, and 20 target demonstrations for the knife in pot task. A picture of these target tasks is shown in Figure \ref{fig:scenario4_overview}.
+
+\textbf{Qualitative evaluation protocol.} For our evaluations, we utilize either 10 or 20 evaluation rollouts. As with all of our other quantitative results, we evaluate all the baseline approaches and \methodname starting from an identical set of initial poses for the robot. These initial poses are randomly sampled from the poses that appear in the first 10 timesteps of the held-out demonstration trajectories for this target task. For the configuration of objects, we test our policies in a variety of task-specific configurations that we discuss below:
+
+\begin{itemize}
+    \item \textbf{Take croissant from metallic bowl:} For this task, we alternate between two kinds of positions for the metallic bowl. In the ``easy'' positions, the metallic bowl is placed roughly vertically beneath the robot's initial starting pose, whereas in the ``hard'' positions, the robot must first move itself to the right location of the bowl and then execute the policy.
+    \item \textbf{Put the cucumber in bowl:} We run 10 evaluation rollouts starting from 10 randomly sampled initial poses of the robot for our evaluations. Here we moved the bowl between the two stovetops in each trial. 
+    \item \textbf{Put sweet potato on plate:} For this task, we performed 20 evaluation rollouts. We only sampled 10 initial poses for the robot, but for each position, we evaluated every policy on two orientations of the sweet potato (i.e., the sweet potato is placed on the table on its flat face or on its curved face). Each of these orientations presents some unique challenges, and evaluating both of them allows us to gauge how robust the learned policy is to changes in orientation. The demonstration data had a variety of orientations for the sweet potato object that differed for each collected trajectory. 
+    \item \textbf{Place knife in pot:} We evaluate this task over 10 evaluation rollouts, where the first five rollouts use a smaller knife, while the other five rollouts use a larger knife (shown in Figure~\ref{fig:setup_overview}). Each knife was seen in the demonstration dataset with equal probability.
+\end{itemize}
+
+We will discuss the results obtained on these new tasks in Appendix~\ref{app:exp_results}.
+
+
+\subsection{Additional Experimental Results}
+\label{app:exp_results}
+
+\begin{figure}[h]
+\vspace{-0.3cm}
+\centering
+  \includegraphics[width=0.9\linewidth]{MultViewpoint.pdf}
+  \vspace{-0.3cm}
+  \caption{\footnotesize \textbf{Sample observations from different camera viewpoints, only used during fine-tuning}. \textbf{Left:} the original camera viewpoint found in Figure~\ref{fig:scenario4_overview}. \textbf{Middle:} an elevated camera viewpoint where the robot and camera have been raised 7 cm. \textbf{Right:} a rotated camera viewpoint where the kitchen has been slightly translated and rotated 15 degrees counterclockwise relative to the camera and robot.}
+  \label{fig:multviewpoint}
+  \vspace{-0.2cm}
+\end{figure}
+
+\textbf{Finetuning to novel camera viewpoints:} Even though Scenario 3 already presents a novel toy-kitchen domain and previously unseen objects during finetuning, we also evaluate \methodname on a more challenging scenario where we additionally alter the camera viewpoint during finetuning. We apply two kinds of alterations to the camera: \textbf{(a)} we elevate the mounting platform of the camera by 7 cm, which necessitates adapting the way the physical coordinates of the robot end-effector are interpreted by the policy, and \textbf{(b)} we rotate the camera by about 15 degrees to induce a more oblique image observation than what was ever seen during pre-training. Note that in both of these scenarios, the robot has never encountered such camera viewpoints during pre-training, which makes this scenario even more challenging. The original dataset in \citep{ebert2021bridge} had the camera elevated to the same position for each domain and always ensured the kitchen was parallel to the camera platform, with translations being the primary changes in the scene for each domain. In Table \ref{tab:viewpoint_comp}, we present our results comparing \methodname and BC (finetune). Observe that \methodname still clearly outperforms BC (finetune), and attains performance close to that of \methodname in Table~\ref{tab:scenario4}, indicating that such shifts in the camera do not drastically hurt \methodname.
+
+
+\begin{table}[h]
+% \small{
+\centering
+\begin{tabular}{l|r|r}
+\toprule
+\textbf{Method} & \textbf{Elevated Viewpoint} & \textbf{Rotated Viewpoint}  \\ \midrule
+BC (finetune) & 2/10  & 3/10  \\
+\textbf{\methodname (Ours)} & \textbf{6/10}  & \textbf{7/10}  \\
+\bottomrule
+\end{tabular}
+\vspace{-0.1cm}
+\caption{\footnotesize{\textbf{Comparison of \methodname and BC (finetune), when evaluated on novel camera viewpoints} with elevated and rotated cameras as shown in Figure~\ref{fig:multviewpoint} for the croissant task. Observe that \methodname still outperforms BC (finetune) in this setting and attains more than 2x success rate of BC (finetune).}}
+\label{tab:viewpoint_comp}
+\end{table}
+
+\subsubsection{Expanded Discussion: Why Does \methodname Outperform BC-based methods, Even With Demonstration Data?}
+
+One natural question to ask given the results in this paper is: why does utilizing an offline RL method for pre-training and finetuning as in \methodname outperform BC-based methods even though the dataset is quite ``BC-friendly'', consisting of only demonstrations? One might speculate that an answer to this question is that our BC baseline can be tuned to be much better. However, note that our BC baseline is not suboptimally tuned. We utilize the procedure prescribed by prior work~\citep{ebert2021bridge} for tuning BC as we discuss in Appendix~\ref{app:hyperparams}. In addition, the fact that \textbf{BC (joint)} does actually outperform \textbf{CQL (joint)} in many of our experiments, indicates that our BC baselines are well-tuned. To explain the contrast to \citet{ebert2021bridge}, note that the setup in this prior work utilized many more target task demonstrations ($\geq 50$ demonstrations from the target task) compared to our evaluations, which might explain why our BC-baseline numbers are lower in an absolute sense. Therefore, the technical question still remains: why  would we expect \methodname to perform better than BC? We will attempt to answer this question using some empirical evidence and visualizations. Also, we will aim to provide intuition for why our approach \methodname outperforms the baseline.
+
+\begin{figure}[h]
+\centering
+\vspace{-0.4cm}
+  \includegraphics[width=0.83\linewidth]{Comparison.pdf}
+  \vspace{-0.5cm}
+  \caption{\footnotesize \textbf{Qualitative successes of \methodname visualized alongside failures of BC (finetune).} As an example, observe that while \methodname is accurately able to reach to the croissant and grasp it to solve the task, BC (finetune) is imprecise and grasps the bowl instead of the croissant resulting in failure.}
+  \label{fig:dumb_behavior2}
+  \vspace{-0.3cm}
+\end{figure}
+
+
+\textbf{To begin answering this question,} it is instructive to visualize some failures for a BC-based method and qualitatively attempt to understand why BC is worse than utilizing \methodname. We visualize some evaluation rollouts for \textbf{BC (finetune)} and \methodname as film strips in {Figure~\ref{fig:dumb_behavior2}}. Specifically, we visualize evaluation rollouts that present a challenging initial state. For example, for the rollout from the take croissant out of metallic pot task, the robot must first accurately position itself over the croissant before executing the grasping action. Similarly, for the rollout from the cucumber task, the robot must accurately locate the bowl and precisely try to grasp the cucumber. Observe in {Figure~\ref{fig:dumb_behavior}} that \textbf{BC (finetune)} typically fails to accurately reach the objects of interest (croissant and the bowl) and executes the grasping action prematurely. On the other hand, \methodname is more robust in these situations and is able to accurately reach the object of interest before it executes the grasping action or the releasing action. Why does this happen?  
+
+\textbf{To understand why this happens}, one mental model is to appeal to the critical states argument from \citet{kumar2022should}. Intuitively, this argument suggests that in tasks where the robot must precisely accomplish actions at only a few specific states (called ``\textbf{critical states}'') to succeed, but the actions at other states (called ``non-critical states'') do not matter as much. Thus, offline RL-style methods can outperform BC-based methods even with demonstration data. This is because learning a value function can enable the robot to reason about which states are more important than others, and the resulting policy optimization can ``focus'' on taking correct actions at such critical states. Our real-world evaluation scenarios exhibit such a structure. The majority of the actions that the robot must take to reach the object do not need to be precise as long as they generally move the robot in the right direction. However, in order to succeed, the robot must critically ensure to position the arm is right above the object in a correct orientation and position itself right above the container in which the object must be placed. These are the critical states and special care must be taken to execute the right action in these states. In such scenarios, the argument of \citet{kumar2022should} would suggest that offline RL should be better. We believe that we observe a similar effect in our experiments: the learned BC policies are often not precise-enough at those critical states where taking the right action is critical to success.  
+
+\begin{figure}[h]
+\centering
+\vspace{-0.4cm}
+  \includegraphics[width=0.78\linewidth]{FinetuningQvalPlot.pdf}
+  \vspace{-0.5cm}
+  \caption{\footnotesize \textbf{Evolution of Q-values on the target task} over the process of fine-tuning with \methodname. Observe that while the learned Q-values on \emph{held-out} trajectories from the dataset just at the beginning of Phase 2 (finetuning) do not exhibit a roughly increasing trend, the checkpoint of \methodname we choose to evaluate exhibits a generally increasing trend in the Q-values despite having access to only 10 demonstrations for these target tasks.}
+  \label{fig:finetunedQvals2}
+  \vspace{-0.3cm}
+\end{figure}
+
+{As supporting evidence} to the discussion above, we further visualize the Q-values over held-out trajectories from the target demonstration data that were never seen by \methodname during fine-tuning in {Figure~\ref{fig:finetunedQvals2}}. To demonstrate the contrast, we present the trend in Q-values before fine-tuning and for the checkpoint selected for evaluation after fine-tuning on the target task. Observe that the Q-values for the chosen checkpoint generally increase over the course of the trajectory indicating that the learned Q-function is able to fit well with the target data. Also, the learned Q-function generalizes to held-out trajectories despite the fact that only 10 demonstrations were provided during the fine-tuning phase. This evidence supports the claim that it is reasonable to expect the learned Q-function to be able to focus on the more critical decisions in the trajectory.
+
+\textbf{To further support our hypothesis that \methodname outperforms BC-based methods because the learned value function enables us to learn about ``critical'' decisions}, we run an experiment that essentially runs a weighted version of BC during finetuning, where the weights are provided by exponentiated advantage values, where the advantages are defined as $A_\theta(\bs, \ba) = Q_\theta(\bs, \ba) - \max_{\ba'} Q_\theta(\bs, \ba')$ under a Q-function learned by \methodname. This approaches essentially matches BC finetuning in all aspects: the policy parameterization, the loss function (mean-squared error), and the details of the training are kept identical to our BC baselines, with the exception of an additional weight given by $\exp(A_\theta(\bs, \ba))$ on a given transition $(\bs, \ba, r, \bs')$ observed in the set of limited task-specific demonstrations. We refer to this approach as ``advantage-weighted BC finetuning''.
+
+In contrast to our BC (finetune) results from Table~\ref{tab:scenario4}, where \methodname significantly outperformed BC (finetune), observe in Table~\ref{tab:aw_bc}, that advantage-weighted BC (finetune) performs comparably to \methodname on the two tasks we studied for our analysis. This result is significant since it implies that all other factors kept identical, utilizing the weights given by the Q-function is the crucial factor in improving the performance of BC and avoids the qualitative failure modes associated with BC methods shown in Figure~\ref{fig:dumb_behavior2}.
+
+\begin{table}[h]
+% \small{
+\centering
+\resizebox{0.99\linewidth}{!}{\begin{tabular}{c|r|r||r}
+\toprule
+\textbf{Task} & \textbf{BC (finetune)} & \textbf{\methodname (Ours)} &\textbf{Advantage-weighted BC (finetune)}  \\ \midrule
+Put cucumber in pot &  0/10 & 5/10 &  {5/10} \\
+Take croissant from metal bowl & 3/10 &  7/10  & {6/10} \\
+\bottomrule
+\end{tabular}}
+\vspace{0.1cm}
+\caption{\footnotesize{\textbf{Performance of advantage-weighted BC} on two tasks from Table~\ref{tab:scenario4}. Observe that weighting the BC objective using advantage-weights computed using the Q-function learned by \methodname leads to much better performance than standard BC (finetune), and close to PTR. This test indicates that the Q-function in \methodname allows us to focus on more critical points, thereby preventing the failures discussed in Figure~\ref{fig:dumb_behavior2}.}}
+\label{tab:aw_bc}
+\end{table}
+
+
+\subsubsection{Hyperparameters for \methodname and Baseline Methods}
+\label{app:hyperparams}
+
+In this section, we will present the hyperparameters we use in our experiments and explain how we tune the other hyperparameters for both our method \methodname and the baselines we consider.  
+
+\textbf{\methodname.} Since \methodname utilizes CQL as the base offline RL method, it trains two Q-functions and a separate policy, and maintains a delayed copy of the two Q-functions, commonly referred to as target Q-functions. We utilize completely independent networks to represent each of these five models (2 Q-functions, 2 target Q-functions, and the policy). We also do not share the convolutional encoders among them. As discussed in the main text, we rescaled the action space to $[-1, 1]^{|\mathcal{A}|}$ to match the one used by actor-critic algorithms, and utilized a Tanh squashing function at the end of the policy. We used a CQL $\alpha$ value of 10.0 for our pick-and-place experiments. The rest of the hyperparameters for training the Q-function, the target network updates, and the policy are taken from the standard training for image-based CQL from \citet{singh2020cog} and are presented in Table~\ref{tab:hparams_cql} below for completeness. The hyperparameters we choose are essentially the network design decisions of \textbf{(1)} utilizing group normalization instead of batch normalization, \textbf{(2)} utilizing learned spatial embeddings instead of standard mean pooling, \textbf{(3)} passing in actions at each of the fully connected layers of the Q-network and the hyperparameter $\alpha$ in CQL that must be adjusted since our data consists of demonstrations. We will ablate the new design decisions explicitly in Appendix~\ref{app:design}.
+
+\begin{table*}[h]
+% \small{
+\centering
+\begin{tabular}{l|c}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value}\\  \midrule
+Q-function learning rate & 3e-4 \\
+Policy learning rate & 1e-4 \\
+Target update rate & 0.005 (soft update with Polyak averaging) \\
+Optimizer type & Adam \\
+Discount factor $\gamma$ & 0.96 (since trajectories have a length of only about 30-40) \\
+Use terminals & True \\
+Reward shift and scale & shift = -1, scale = 10.0 \\
+CQL $\alpha$ & 10.0 \\
+Use Color Jitter & True \\
+Use Random Cropping & True \\
+\bottomrule
+\end{tabular}
+\vspace{0.07cm}
+\caption{\footnotesize{\textbf{Main hyperparameters for CQL training in our real-world experiments.} In the simulation, we utilize a smaller $\alpha$ for CQL, $\alpha=1.0$, and a larger discount $\gamma = 0.98$ since trajectories in the simulation are about 60-70 timesteps in length. }}
+\label{tab:hparams_cql}
+% \vspace{-0.5cm}
+\end{table*}
+
+The only other hyperparameter used by \methodname is the mixing ratio $\tau$ that determines the proportion of samples drawn from the pre-training dataset and the target dataset during the offline finetuning phase in \methodname. We utilize $\tau = 0.7$ for our experiments with \methodname in the main paper, and use $\tau = 0.9$ for the additional experiments we added in the Appendix. This is because $\tau=0.9$ (more bridge data, and a smaller amount of target data) was helpful in scenarios with very limited target data.  
+
+In order to perform checkpoint selection for \methodname, we utilized the trends in the learned Q-values over a set of held-out trajectories on the target data as discussed in Section~\ref{sec:design_choices}. We did not tune any other algorithmic hyperparameters for CQL, as these were taken directly from \citep{singh2020cog}.  
+
+\textbf{BC (finetune).}
+We trained BC in a similar manner as \citet{ebert2021bridge}, utilizing the design decisions that this prior work found optimal for their experiments. The policy for BC utilizes the very same ResNet 34 backbone as our RL policy since a backbone based on ResNet 34 was found to be quite effective in \citet{ebert2021bridge}. Following the recommendations of \citet{ebert2021bridge} and based on result trends from our own preliminary experiments, we chose to not utilize the tanh squashing function at the end of the policy for any BC-based method, but trained a deterministic BC policy that was trained to regress to the action in the demonstration with a mean-squared error (MSE) objective. 
+
+\begin{table}[h]
+% \small{
+\centering
+\begin{tabular}{l|c}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value}\\  \midrule
+Policy learning rate & 1e-4 \\
+Optimizer type & Adam \\
+Use Color Jitter & True \\
+Use Random Cropping & True \\
+Dropout & 0.4 \\
+\bottomrule
+\end{tabular}
+\vspace{0.07cm}
+\caption{\footnotesize{\textbf{Main hyperparameters for Behavior Cloning Baseline Training in our real-world and simulation experiments.} Note: architecture design choices follow closely to \methodname design choices.}}
+\label{tab:hparams_cql}
+\vspace{-0.4cm}
+\end{table}
+
+In order to perform cross-validation, checkpoint, and model selection for our BC policies, we follow guidelines from prior work~\citep{ebert2021bridge,emmons2021rvs} and track the MSE on a held-out validation dataset similar to standard supervised learning. We found that a ResNet 34 BC policy attained the smallest validation MSEs in general, and for our evaluations, we utilized a checkpoint of a ResNet 34 BC policy that attained the smallest MSE.   
+
+Analogous to the case of \methodname discussed above, we also ablated the performance of BC for a set of varying values of the mixing ratio $\tau$, but found that a large value of $\tau = 0.9$ was the most effective for BC, and hence utilized $\tau = 0.9$ for BC (finetune) and BC (joint).
+
+\textbf{BC (joint) and CQL (joint).} The primary distinction between training \textbf{BC (joint)} and \textbf{BC (finetune)} and correspondingly, \textbf{CQL (joint)} and \methodname was that in the case of joint training, the target dataset was introduced right at the beginning of Phase 1 (pre-training phase), and we mixed the target data with the pre-training data using the same value of the mixing ratio $\tau$ used in for our fine-tuning experiments to ensure a fair comparison.
+
+{
+\textbf{Few-shot offline meta-RL (MACAW)~\citep{2020arXiv200806043M}:} We compare to two variants of this algorithm and perform an \textbf{extensive} sweep over several hyperparameters, shown in Table~\ref{tab:hparams_macaw}. 
+}
+
+{
+We trained two different variants of MACAW in our evaluation: \textbf{(1)} Pre-training on the bridge data in Scenario 3 and then fine-tuning on target data of interest, and \textbf{(2)} adapting a set of existing task identifiers to the target task of interest utilizing the same pre-training and fine-tuning domains. We performed early stopping on the meta-training based on validation losses. From there, we started the meta-testing phase, adapting to the target domain of interest. Following \citet{2020arXiv200806043M}, we use a task mini-batch of 8 tasks at each step of optimization rather than using all of the training tasks. We clipped the advantage weight logits to the scale of 20 and attempted to utilize a policy network with a fixed and learned standard deviation. Additionally, we varied the number of Adaptation steps following prior work. Our evaluation protocol for MACAW entails utilizing the validation losses to choose an initial checkpoint for evaluation. Then, we consider checkpoints in the neighborhood ($\pm$ 50K gradient steps) to for evaluations as well and chose the max over all of these checkpoints as the final evaluation success rate.
+}
+
+{
+Quantitatively, as seen in Table~\ref{tab:scenario4}, MACAW was unable to get non-zero success rates on any of the tasks we study. However, we did qualitatively observe nontrivial behavior seen in our evaluation rollouts. For instance, we found that the policies trained via MACAW could consistently grasp the object of interest but were unable to localize where to place the object correctly. Several trials involved hovering around with the object of interest and not placing the object in the container. Other trials involved the agent failing to grasp the object.
+}
+
+\begin{table}[h]
+% \small{
+\centering
+\begin{tabular}{l|c}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value}\\  \midrule
+Optimizer & Adam \\
+Outer Policy learning rate & 1e-4 \\
+Outer Value learning rate & 1e-5, 1e-6 \\
+Inner Policy learning rate & 1e-2, 1e-3 \\
+Inner Value learning rate & 1e-3, 1e-4 \\
+Auxilary Advantage Coefficient & 1e-2, 1e-3, 1e-4 \\
+Policy Parameterization & Fixed std, Learned std \\
+AWR Policy Temperature & 1, 10, 20 \\
+Number of Adaptation Steps & 1, 2, 3 \\
+Task Batch Size & 8 \\
+Train Adaptation Batch Size & 64 \\
+Eval Adaptation Batch Size & 64 \\
+Max Advantage Clip & 20 \\
+Use Color Jitter & True \\
+Use Random Cropping & True \\
+
+\bottomrule
+\end{tabular}
+\vspace{0.07cm}
+\caption{{\footnotesize{\textbf{Main hyperparameters for Training MACAW~\citep{2020arXiv200806043M} in our real-world experiments.} Note: architecture design choices follow closely to \methodname design choices but hyperparameter design choices follow closely the suggestions in \citet{2020arXiv200806043M}.}}}
+\label{tab:hparams_macaw}
+\vspace{-0.2cm}
+\end{table}
+
+\textbf{Pre-trained R3M initialization~\citep{nair2022r3m}:} Next we compare \methodname to utilizing an off-the-shelf pre-trained representation given by R3M~\citep{nair2022r3m}. We compare two baselines that attempt to train an MLP policy on top of the R3M state representation by using BC (finetuning) and CQL (finetuning) respectively. To ensure that this baseline is well-tuned, we tried a variety of network sizes with 2, 3 or 4 MLP layers and also tuned the hidden dimension sizes in [256, 512, 1024]. We also utilized dropout as regularization to prevent overfitting and tuned a variety of values of dropout probability in [0, 0.1, 0.2, 0.4, 0.6, 0.8]. We observe in Table~\ref{tab:scenario4}, that on the four tasks we evaluate on, \methodname outperforms R3M, which indicates that training on the bridge dataset can indeed give rise to effective visual representations that are more suited to finetuning in our setting. The numbers we report in the table are the best over each parametric policy corresponding to each hyperparameter in our ablation. Checkpoint selection was done utilizing early stopping which is the last iteration where the validation error stops decreasing. Learning curves for this baseline can be found in our Anonymous Website.
+
+\textbf{Pre-trained MAE initialization~\citep{he2111masked}:}
+We took a similar training procedure to R3M for our MAE representation. We used an MAE trained on every image from the bridge dataset \citet{ebert2021bridge}. We then fine-tuned a specific target task with a similar ablation on network size, hidden dimension size, and regularization techniques such as dropout.  We observe in Table~\ref{tab:rep_learning_comparison}, that on the four tasks we evaluate on, \methodname outperforms R3M, which indicates that training on the bridge dataset can indeed give rise to effective visual representations that are more suited to finetuning in our setting. The numbers we report in the table are the best over each parametric policy corresponding to each hyperparameter in our ablation. Checkpoint selection was done utilizing early stopping which is the last iteration where the validation error stops decreasing. 
+
+\textbf{Policy expressiveness study.}
+We considered two policy expressiveness choices for BC to compare with our reference BC implementation that is implemented with a set of MLP layers. The first of the two choices was an \textbf{autoregressive policy} where the 7-dimensional action space was discretized into 100 bins. Each action was then predicted autoregressively conditioned on the observation, task id, and the action component from the previous dimension(s). The second approach was with the BeT Architecture from \citet{shafiullah2022behavior}. We utilized the reference implementation from the paper with the default suggested hyperparameters for this set of ablations. The window size for the MinGPT transformer was ablated over between 1, 2, and 10.
+
+\subsection{Validating the Design Choices from Section~\ref{sec:design_choices} via Ablation Studies}
+\label{app:design}
+
+In this section, we will present ablation studies aimed to validate the design choices utilized by \methodname. We found these design choices quite crucial for attaining good performance. The concrete research questions we wish to answer are: \textbf{(1)} How important is utilizing a large network for attaining good performance with \methodname, and how does the performance of \methodname scale with the size of the Q-function?, \textbf{(2)} How effective is a learned spatial embedding compared to other approaches for aggregating spatial information? \textbf{(3)} Is concatenating actions at each fully-connected layer of the Q-function crucial for good performance?, \textbf{(4)} Is group normalization a good alternative to batch normalization? and \textbf{(5)} How does our choice of creating binary rewards for training affect the performance of \methodname?. We will answer these questions next.
+
+\begin{figure}
+% \vspace{-1cm}
+\includegraphics[width=0.9\linewidth]{scaling_ptr.pdf}
+% \vspace{-0.1cm}
+\caption{\footnotesize{\label{fig:scaling_ptr2} \textbf{Scaling trends for \methodname} on the open door task from Scenario 2, and average over two pick and place tasks (take croissant out of the metallic pot and put cucumber in the bowl) from Scenario 3. Note that more high capacity and expressive function approximators lead to the best results.}}
+% \vspace{-0.6cm}
+\end{figure}
+
+\textbf{Highly expressive Q-networks are essential for good performance.} To assess the importance of highly expressive Q-functions, we evaluate the performance of \methodname with varying sizes and architectures on three tasks: the open door task from Scenario 2, and the put cucumber in the pot and take croissant out of metallic bowl tasks from Scenario 3. Our choice of architectures is as follows: \textbf{(a)} a standard three-layer convolutional network typically used by prior work for DM-control tasks (see for example, \citet{kostrikov2021offline}), \textbf{(b)} an IMPALA~\citep{espeholt2018impala} ResNet that consists of 15 convolutional layers spread across a stack of 3 residual blocks, \textbf{(c)} ResNet 18 with group normalization and learned spatial embeddings, \textbf{(d)} ResNet 34 that we use in our experiments, and \textbf{(e)} an even bigger ResNet 50 with group normalization and learned spatial embeddings. 
+
+We present our results in {Figure~\ref{fig:scaling_ptr}}. To obtain more accurate scaling trends, we plot the trend in the average success rates for the pick and place tasks from Scenario 3 along with the trend in the success rate for the open door task separately since these tasks use different pre-training datasets. Observe that the performance of smaller networks (Small, IMPALA) is significantly worse than the ResNet in the door-opening task. For the pick and place tasks that contain a much larger dataset, Small, IMPALA, and ResNet18 all perform much worse than ResNet 34 and ResNet 50. We believe this result is quite exciting since it highlights the possibility of actually benefitting from using highly-expressive neural network models with TD-learning based RL methods trained on lots of diverse multi-task data (contrary to prior work~\citep{lee2022multi}). We believe that this result is a valuable starting point for further scaling and innovation.
+
+
+\textbf{Learned spatial embeddings are crucial for performance.} Next we study the impact of utilizing the learned spatial embeddings for encoding spatial information when converting the feature maps from the convolutional stack into a vector that is fed into the fully-connected part of the Q-function. We compare our choice to utilizing a spatial softmax as in \citet{ebert2021bridge}, and also global average pooling (GAP) that simply averages over the spatial information, typically utilized in supervised learning with ResNets.
+
+
+\begin{table}[h]
+% \small{
+\centering
+% \vspace*{0.1cm}
+\begin{tabular}{l|r}
+\toprule
+\textbf{Method} & \textbf{Success rate}\\  \midrule
+PTR with spatial softmax & 4/10 \\
+PTR with global average pooling & 4/10 \\
+\midrule
+PTR with learned spatial embeddings \textbf{(Ours)} & \textbf{7/10} \\
+\bottomrule
+\end{tabular}
+\vspace{0.1cm}
+\caption{\footnotesize{\textbf{Ablation of \methodname with spatial softmax and GAP on the croissant task.} Observe that \methodname with learned spatial embeddings performs significantly better than using a spatial softmax or global average pooling.}}
+\label{tab:spatial}
+\end{table}
+
+As shown in {Table~\ref{tab:spatial}} learned spatial embeddings outperform both of these prior approaches on the put croissant in pot task. We suspect that spatial softmax does not perform much better than the GAP approach since the softmax operation can easily get saturated when running gradient descent to fit value targets that are not centered in some range, which would effectively hinder its expressivity. This indicates that the approach of retaining spatial information like in \methodname is required for attaining good performance.
+
+\textbf{Concatenating actions at each layer is crucial for performance.} Next, we run \methodname without passing in actions at each fully connected layer of the Q-function on the take croissant out of metallic bowl task and only directly concatenate the actions with the output of the convolutional layers before passing it into the fully-connected component of the network. On the croissant task, we find that not passing in actions at each layer only succeeds in \textbf{2/10} evaluation rollouts, which is significantly worse than the default \methodname which passes in actions at each layer and succeeds in \textbf{7/10} evaluation rollouts (Table~\ref{tab:action_sep}).
+
+\begin{table}[h]
+% \small{
+\centering
+% \vspace*{0.1cm}
+\begin{tabular}{l|r}
+\toprule
+\textbf{Method} & \textbf{Success rate}\\  \midrule
+PTR without actions passed in at each FC layer & 2/10 \\
+PTR with actions passed in at each FC layer (Ours) & \textbf{7/10} \\
+\bottomrule
+\end{tabular}
+\vspace{0.1cm}
+\caption{\footnotesize{\textbf{Ablation of \methodname with actions passed in at each layer.} Observe that passing in actions at each fully-connected layer does lead to quite good performance.}}
+\label{tab:action_sep}
+% \vspace{-0.5cm}
+\end{table}
+
+\textbf{Group normalization is more consistent than batch normalization.} Next, we ablate the usage of group normalization over batch normalization in the ResNet 34 Q-functions that \methodname uses. We found that batch normalization was generally harder to train to attain Q-function plots that exhibit a roughly increasing trend over the course of a trajectory. That said, on some tasks such as the croissant in pot task, we did get a reasonable Q-function, and found that batch normalization can perform well. On the other hand, on the put cucumber in pot task, we found that batch normalization was really ineffective. These results are shown in {Table~\ref{tab:batch_norm}}, and they demonstrate that batch normalization may not be as consistent and reliable with \methodname as group normalization.
+
+\begin{table}
+\centering
+\scalebox{0.75}{
+\begin{tabular}{l|r|r}
+\toprule
+\textbf{Method} & \textbf{Croissant out of metallic bowl} & \textbf{Cucumber in pot} \\  \midrule
+PTR with batch norm. (relative) & + 28.0\% (7/10 $\rightarrow$ 9/10)& - 60.0\% (5/10 $\rightarrow$ 2/10) \\
+\bottomrule
+\end{tabular}
+}
+\vspace{0.1cm}
+\caption{\footnotesize{\textbf{Relative performance of \methodname with batch normalization with respect to \methodname with group normalization.} Observe that while utilizing batch normalization in \methodname can be sometimes more effective than using group normalization (e.g., take croissant out of metallic bowl task), it may also be highly ineffective and can reduce success rates significantly in other tasks. The performance numbers to the left of the $\rightarrow$ correspond to the performance of \methodname with group normalization and the performance to the right of $\rightarrow$ is the performance with batch normalization.}}
+\label{tab:batch_norm}
+% \vspace{-0.5cm}
+\end{table}
+
+
+\textbf{Choice of the reward function.} Finally, we present some results that ablate the choice of the reward function utilized for training \methodname from data that entirely consists of demonstrations. In our main set of experiments, we labeled the last three timesteps of every trajectory with a reward of +1 and annotated all other timesteps with a 0 reward. We tried perhaps the most natural choice of labeling only the last timestep with a 0 reward on the croissant task and found that this choice succeeds \textbf{0/10} times, compared to annotating the last three timesteps with a +1 reward which succeeds \textbf{7/10} times. We suspect that this is because only annotating the last timestep with a +1 reward is not ideal for two reasons: first, the task is often completed in the dataset much earlier than the observation shows the task complete, and hence the last-step annotation procedure induces a non-Markovian reward function, and second, only labeling the last step with a +1 leads to overly conservative Q-functions when used with \methodname, which may not lead to good policies.
+
+\subsection{More Details on Online Fine-tuning}
+\label{app:online_finetuning}
+
+\textbf{Offline pre-training.}
+For both PTR and BC baseline, we used 40 open-door demonstrations as target task data and combined them with the Bridge Dataset to pre-train the policy. To reduce the training time in the real system, we used ResNet 18 backbones.
+
+\textbf{Reset policy.}
+For the reset policy, we additionally collected 22 close-door demonstrations as the target task data and pre-trained the policy with PTR. Similar to the open-door policy, we used ResNet 18 backbones to save training time.
+
+\textbf{Reward classifier.} We used a ResNet 34 classification model and trained it to detect whether the door is open or closed from visual inputs. For the training data, we manipulated the robot to collect around 20 positive and negative trajectories for both open and closed doors.
+
+\textbf{Method.} As shown by \citet{nakamoto2023calql} in simulation, offline value function initializations that learn conservative Q-functions may not be effective at fine-tuning if the learned Q-values are not at the same scale as the ground-truth return of the behavior policy. While this property does not affect offline performance, it is crucial to enforce this property during fine-tuning. That said, this property can be ``baked in'' by simply preventing the CQL regularizer from minimizing the learned Q-function if its values fall below the Monte-Carlo return of the trajectories in the dataset. Therefore, for the online fine-tuning experiment, we incorporate this constraint into PTR.
+
+\textbf{Hyperparameters.} 
+For both online fine-tuning with \methodname and SACfD, we performed the experiment by mixing the Bridge Dataset, offline target data, and the online data in a ratio ($\beta$) of 0.35, 0.15, and 0.5. For \methodname, we used the CQL alpha value of 5 for the offline phase and 0.5 for the online phase. 
+
+\textbf{Evaluation.} The results shown in Figure~\ref{fig:online_door} were evaluated autonomously every 5K environment step during the online fine-tuning. Each evaluation was assessed with 10 trials, one from each initial position. The results shown in Figure~\ref{tab:online-finetune} were additionally evaluated over 3 trials from each initial position, using the offline initialization and the final checkpoint obtained after 20K environment steps of online fine-tuning.
+
+\begin{figure}
+% \vspace{-1cm}
+\includegraphics[width=\linewidth]{dangerous_actions.jpeg}
+% \vspace{-0.1cm}
+\caption{\footnotesize{\label{fig:dangerous-actions} \textbf{Example of unsafe behaviors when running SACfD.} The robot collides with the camera during online exploration, resulting in a system crash.}}
+% \vspace{-0.6cm}
+\end{figure}
+
+\end{document}
+
+

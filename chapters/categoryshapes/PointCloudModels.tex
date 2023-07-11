@@ -1,0 +1,75 @@
+\subsection{3D Basis Shape Model Learning}
+\seclabel{basisshapes}
+Equipped with camera projection parameters and keypoint correspondences (lifted to 3D by NRSfM) on the whole training set, we proceed to build deformable 3D shape models from object silhouettes within the same class. 3D shape reconstruction from multiple silhouettes projected from a single object in calibrated settings has been widely studied. Two prominent approaches are visual hulls~\cite{laurentini1994hull} and variational methods derived from snakes~\cite{esteban2004snake,yusuf2006snake} which deform a surface mesh iteratively until convergence. Some works have extended variational approaches to handle categories \cite{cashman2013dolphins,chen20123d} but typically require some form of 3D annotations to bootstrap models. A contemporary visual-hull based approach \cite{carvi14} requires only 2D annotations as we do for class-based reconstruction and it was successfully demonstrated on PASCAL VOC but does not serve our purpose as it makes strong assumptions about the accuracy of the segmentation and will fill entirely any segmentation with a voxel layer. In contrast, we build parametric shape models for categories that compactly capture intra class shape variations. The benefits of having a model of 3D shape are manifold: 1) we are more robust to noisy inputs (silhouettes and pose) allowing us to pursue reconstruction in a fully automatic setting and 2) we can potentially sample novel shapes from an object category.
+
+%We propose an algorithm to learn class-specific 3D shape models given silhouette information and camera viewpoints estimated in the previous section. Our shape models inherently capture the intraclass variations in object categories and can be used to recover a 3D shape given an object's approximate silhouette and viewpoint in a new image.
+
+\paragraph{Shape Model Formulation.} We model our category shapes as a deformable point cloud - one per object class. As in the \nrsfm model, we use a linear combination of basis vectors to model these deformations. Note that we learn such models from silhouettes and this is what enables us to learn deformable models without relying on point correspondences between scanned 3D exemplars~\cite{blanz2003face}.
+
+%In order to capture the intra-class variations using a single shape model, we must incorporate possible deformations. Similar to the NRSfM approach, the deformations we allow are a linear combination of  deformation bases. This setup, while using a formulation similar to NRSfM is significantly different because we do not assume any known correspondences or annotated points across images and the shape models we aim to infer are much denser (because of the large number of points in the representation).
+
+The annotated training set $T:\{(O_n, P_n)\}_{n=1}^N$, where $O_n$ is the instance silhouette and $P_n \in \mathbb{R}^{2 \times K}$ denotes the annotated keypoint coordinates, is augmented after \nrsfm to contain $\pi_n$ (the projection function from world to image coordinates) and $W_n$ (3D coordinates for a small set of keypoints).
+Our shape model $M = (\overline{S},V)$ comprises of a mean shape $\overline{S}$ and deformation bases $V = \{ V_1,.,V_K \} $ learnt from the augmented training set $T:\{(O_n,\pi_n, W_n)\}_{n=1}^N$. Note that the $\pi_i$ we obtain using NRSfM corresponds to orthographic projection but our algorithm could handle perspective projection as well.
+
+In addition to the above, we use the following notations  --  $\pi(S)$ corresponds to the 2D projection of shape $S$, $C^{mask}$ refers to the Chamfer distance field of the binary mask of silhouette $O$ and $\Delta^k(p;Q)$ is defined as the squared average distance of point $p$ to its $k$ nearest neighbors in set $Q$.
+
+\paragraph{Energy Formulation.} We formulate our objective function primarily based on image silhouettes. For example, the shape for an instance should always project within its silhouette and should agree with the keypoints (lifted to 3D by \nrsfm). We capture these by defining corresponding energy terms as follows:
+
+\paragraph{Silhouette Consistency.} Silhouette consistency simply enforces the predicted shape for an instance to project inside its silhouette. This can be achieved by penalizing the points projected outside the instance mask by their distance from the silhouette (\ie squared distance to the closest silhouette point). In our $\Delta$ notation it can be written as follows:
+\begin{gather}
+ \label{eq:sil_con}E_{s}(S,O,\pi)=\underset{C^{mask}(p)>0}{\sum}\Delta^1(p;O)
+\end{gather}
+
+\paragraph{Silhouette Coverage.}
+Using silhouette consistency alone would just drive points projected outside in towards the silhouette. This wouldn't ensure though that the object silhouette is ``filled'' - i.e. there might be overcarving. We deal with it by having an energy term that encourages points on the silhouette to pull nearby projected points towards them. Formally, this can be expressed as:
+\begin{gather}
+    \label{eq:sil_cov}E_{c}(S,O,\pi)=\underset{p\in O}{\sum}\Delta^m(p;\pi(S))
+\end{gather}
+
+\paragraph{Keypoint Consistency.} Our \nrsfm algorithm provides us with sparse 3D keypoints along with camera projection parameters. We use these sparse correspondences on the training set to deform the shape to explain these 3D points. The corresponding energy term penalizes deviation of the shape from the 3D keypoints $W$ for each instance. Specifically, this can be written as:
+\begin{gather}
+    \label{eq:kpgrad}E_{kp}(S,W)=\underset{\kappa\in W}{\sum}\Delta^m(\kappa;S)
+\end{gather}
+
+\paragraph{Local Consistency.} In addition to the above data terms, we use a simple shape regularizer to restrict arbitrary deformations by imposing a quadratic deformation penalty between every point and its neighbors. We also impose a similar penalty on deformations to ensure local smoothness. The $\delta$ parameter represents the mean squared displacement between neighboring points and it encourages all faces to have similar size. Here $V_{ki}$ is the $i^{th}$ point in the $k^{th}$ basis.
+\begin{gather}
+ \label{eq:local_con}E_{l}(\bar{S},V)=\underset{i}{\sum}\underset{j\in N(i)}{\sum}((\|\bar{S}_{i}-\bar{S}_{j}\| - \delta)^2 + \underset{k}{\sum}\|V_{ki}-V_{kj}\|^2)
+ \end{gather}
+ 
+\paragraph{Normal Smoothness.} Shapes occurring in the natural world tend to be locally smooth. We capture this prior on shapes by placing a cost on the variation of normal directions in a local neighborhood in the shape. Our normal smoothness energy is formulated as
+\begin{gather}
+ \label{eq:normal_con}E_{n}(S)=\underset{i}{\sum}\underset{j\in N(i)}{\sum}(1-\vec{\mathcal{N}_i} \cdot \vec{\mathcal{N}_j})
+\end{gather}
+ Here, $\vec{\mathcal{N}_i}$ represents the normal for the $i^{th}$ point in shape $S$ which is computed by fitting planes to local point neighborhoods. Our prior essentially states that local point neighborhoods should be flat. Note that this, in conjunction with our previous energies automatically enforces the commonly used prior that normals should be perpendicular to the viewing direction at the occluding contour~\cite{Barron2012B}.
+
+Our total energy is given in equation \eqref{formulation}. In addition to the above smoothness priors we also penalize the $L_2$ norm of the deformation parameters $\alpha_i$ to prevent unnaturally large deformations.
+\begin{gather}
+\eqlabel{formulation}
+E_{tot}(\bar{S},V,\alpha) = E_{l}(\bar{S},V)+\underset{i}{\sum}(E_{s}^i+E_{kp}^i+E_{c}^i+E_{n}^i+\underset{k}{\sum}(\|\alpha_{ik}V_k\|_F^{2}))
+\end{gather}
+
+
+\paragraph{Learning.} We solve the optimization problem in equation~\eqref{optimization} to obtain our shape model $M=(\bar{S},V)$. The mean shape and deformation basis are inferred via block-coordinate descent on $(\bar{S},V)$ and $\alpha$ using sub-gradient computations over the training set. We restrict $\|V_k\|_F$ to be a constant to address the scale ambiguity between $V$ and $\alpha$ in our formulation. In order to deal with imperfect segmentations and wrongly estimated keypoints, we use truncated versions of the above energies that reduce the impact of outliers. The mean shapes learnt using our algorithm for 9 rigid categories in PASCAL VOC are shown in Figure \ref{fig:meanDense}. Note that in addition to representing the coarse shape details of a category, the model also learns finer structures like chair legs and bicycle handles, which become more prominent with deformations.
+
+\begin{equation}
+\begin{aligned}
+\eqlabel{optimization}
+& \underset{\bar{S},V,\alpha}{\text{min}}
+& & E_{tot}(\bar{S},V,\alpha) \\
+& \text{subject to:}
+& & S^i = \bar{S} + \underset{k}{\sum}\alpha_{ik} V_k
+\end{aligned}
+\end{equation}
+
+Our training objective is highly non-convex and  non-smooth and is susceptible to initialization. We follow the suggestion of \cite{esteban2004snake} and initialize our mean shape with a soft visual hull computed using all training instances. The deformation bases and deformation weights are initialized randomly. 
+
+
+\paragraph{Implementation Details.}
+The gradients involved in our optimization for shape and projection parameters are extremely efficient to compute. We use approximate nearest neighbors computed using k-d tree to implement silhouette coverage,  keypoint consistency gradients and leverage Chamfer distance fields for obtaining silhouette consistency gradients. Our overall computation takes only about 15 min to learn a deformable shape model for an object category with about 500 annotated examples.
+
+\begin{figure}[htb!]
+\centering
+  \includegraphics[width=\textwidth]{figures/categoryshapes/meanShapesCrop.pdf}
+  \caption{Mean shapes learnt for rigid classes in PASCAL VOC obtained using our basis shape formulation. Color encodes depth when viewed frontally.}
+  \label{fig:meanDense}
+\end{figure}

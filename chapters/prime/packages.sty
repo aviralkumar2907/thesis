@@ -1,0 +1,70 @@
+\usepackage{xcolor}
+% \usepackage[font=footnotesize, labelfont=scriptsize]{subfig}
+\usepackage{xspace}
+\usepackage{mathtools}
+\usepackage{amsmath,amsfonts,bm}
+\usepackage{amssymb}
+% \usepackage{fullpage}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{times}
+\usepackage{graphicx,amsmath,amssymb}
+\usepackage{parskip}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{amsthm, amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{float}
+\usepackage{enumerate}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % for color text.
+\DeclareMathAlphabet      {\mathbf}{OT1}{cmr}{bx}{n}
+%\usepackage{formatting/math_commands}
+% \usepackage{formatting/packages}
+\usepackage{names}
+\usepackage{macros}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}       % hyperlinks
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+% \usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{hyperref}
+\usepackage{natbib}
+% \newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% \input{style/math_commands.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{enumitem}
+\newenvironment{enumpacked}{%
+\begin{enumerate}[noitemsep,nolistsep,leftmargin=*]
+}
+{%
+\end{enumerate}
+}
+
+\newcommand{\niparagraph}[1]{\vspace{2pt}\noindent\textbf{#1}}
+
+\newenvironment{enumpackedp}{%
+\begin{enumerate}[label={(\arabic*)},noitemsep,nolistsep,leftmargin=*]
+}
+{%
+\end{enumerate}
+}
+\newenvironment{itempacked}{%
+\begin{itemize}[noitemsep,nolistsep,leftmargin=*]
+}
+{%
+\end{itemize}
+}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+\node[shape=circle,draw,fill=black,text=white,font=\sffamily\bfseries\scriptsize, inner sep=1.2pt] (char) {#1};}}
+\newcommand*\diamoned[1]{\tikz[baseline=(char.base)]{
+\node[shape=diamond,draw,fill=black,text=white,font=\sffamily\bfseries\small, inner sep=1.0pt] (char) {#1};}}

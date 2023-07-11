@@ -1,0 +1,55 @@
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usepackage{graphicx}
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\newcommand{\TODO}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\textdiff}[1]{\textcolor{red}{#1}}
+\newcommand{\citemissing}{\textcolor{red}{(cite?)}}
+
+\newcommand{\normt}[1]{\left\lVert#1\right\rVert_2}
+\newcommand{\normtmu}[1]{\left\lVert#1\right\rVert_{2, \mu}}
+\newcommand{\normm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\norminf}[1]{\left\lVert#1\right\rVert_\infty}
+\newcommand{\normtt}[1]{\left\lVert#1\right\rVert^2_2}
+
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\fourth}{\frac{1}{4}}
+\newcommand{\vect}[1]{\overrightafrrow{\textbf{#1}}}
+\newcommand{\phat}{\hat{p}}
+\newcommand{\KL}[2]{D_{KL}(#1||#2)}
+\newcommand{\TV}[2]{D_{TV}(#1||#2)}
+\newcommand{\ind}[1]{1[#1]}
+\newcommand{\pardiv}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\parHess}[1]{\frac{\partial^2}{\partial #1 ^2}}
+\newcommand{\Xhat}{{\hat{X}}}
+\newcommand{\xhat}{{\hat{x}}}
+\newcommand{\defeq}{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+
+\newcommand{\argmax}[1]{\underset{#1}{\textrm{argmax}}\ }
+\newcommand{\argmin}[1]{\underset{#1}{\textrm{argmin}}\ }
+\newcommand{\grad}[1]{\nabla{#1}}
+\newcommand{\innerp}[2]{\langle{#1,#2}\rangle}
+\newcommand{\Hess}[1]{\nabla^2{#1}}
+\newcommand{\EXP}[1]{\text{exp}\{#1\}}
+
+% debug q
+\newcommand{\Proj}{\Pi}
+\newcommand{\Projmu}{\Pi_\mu}
+\newcommand{\trans}{T}
+\newcommand{\backup}{\mathcal{T}}
+\newcommand{\Qclass}{\mathcal{Q}}
+\newcommand{\ReplayBuffer}{\mathcal{B}}
+\newcommand{\ltwonorm}{L_2}
+\newcommand{\lpnorm}{L_p}
+\newcommand{\linfnorm}{L_\infty}
+
+\newcommand{\UniformVec}{U[-1,1]^{32}}

@@ -1,0 +1,208 @@
+%% AK: TODOs:
+% - TD experiment with exact behavior policy
+% - Bellman backup with target network proof
+% - Run weighting + stop gradient on gridworld 
+% - Why is this regularization bad?
+% - Formulate why the regularizer is bad? Maybe because the dot product is too high? separate out in-distribution error and OOD error
+% - Some cross-validation
+% - gridworlds cross-validation
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2022_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\include{math_commands}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{fleqn, tabularx}
+\usepackage{multirow}
+\usepackage{mathtools}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{mathrsfs}
+\usepackage{chngcntr}
+
+
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\usepackage[skins,theorems]{tcolorbox}
+
+\include{defs}
+
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+% \usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\newcommand{\rebuttal}[1]{#1}
+
+
+\iclrfinalcopy
+
+
+\title{DR3: Value-Based \underline{D}eep \underline{R}einforcement\\ Learning \underline{R}equires Explicit \underline{R}egularization}
+%%SL.9.17: Generally this title could work, though it might be a little weird if the title is METHODNAME: [some statement that doesn't pertain to the method] (i.e., the rest of the title sounds like it's an analysis paper, so it's somehow jarring to see a method name in there...). But maybe that's OK, because the paper *is* about both an analysis and a method, so in that sense though it might be jarring, it actually sets the right expectation. As a nitpick, it's also a tiny bit awkward to have "Learning" split over two lines (but better than having a three-line title). You could go with "Value-Based Deep RL Requires Explicit Regularization" (it's a bit informal to use an acronym, but it does make the title shorter)
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{
+ \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad {Aviral Kumar$^{1, 2}$~~~~ Rishabh Agarwal$^{2, 3}$} \vspace{0.05cm}\\
+\quad \quad \quad \quad \quad \quad {\textbf{Tengyu Ma$^{4}$~~~ Aaron Courville$^{3}$~~~ George Tucker$^{2}$~~~ Sergey Levine$^{1,2}$}} \vspace{0.1cm}\\
+\quad \quad \quad \quad \quad ~~~ {$^1$ UC Berkeley~~~ $^2$ Google Research~~~ $^3$ MILA~~~ $^4$ Stanford University} \vspace{0.05cm}\\
+\quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad {\texttt{aviralk@berkeley.edu}}
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+\part*{\Large{Significant Publication 2: \\ DR3: Value-Based Deep Reinforcement Learning Requires Explicit Regularization}}
+
+\section*{Author List} Aviral Kumar, Rishabh Agarwal, Tengyu Ma, Aaron Courville, George Tucker, Sergey Levine
+
+\section*{Significance of the Paper} 
+
+{\textbf{Summary.}} This paper aims to understand the reasons behind the``capacity loss'' phenomenon that appears with offline reinforcement learning (RL) methods based on Q-learning instantiated with deep neural network function approximators. The key insight in this paper is the implicit regularization effect of gradient descent with over-parameterized models, which is regarded as the reason behind effective performance of supervised learning, actually inhibits effective use of model capacity with offline RL loss functions. This in turn inhibits effective generalization abilities of these methods. In this paper, I present a method called DR3, which aims to cancel the component of the implicit regularizer that encourages capacity loss.
+
+\textbf{Significance.} This paper presents a starting point for understanding the impact of deep neural network function approximators on offline RL. While traditional analysis of offline RL methods (and more generally all of RL methods) with function approximation operates in the linear setting or with no assumptions on the function class, neither of them represent the conditions under which practical algorithms operate. Therefore, it is necessary to understand and build on assumptions that are closer to reality to be able to build RL algorithms that are easy to use and reliable. I believe that this work of mine presents a starting point for such analyses to build on and shows how insights from theoretical analysis can give rise to simple regularization procedures that work well in practice. 
+
+In practice, my follow-up work (\url{https://arxiv.org/abs/2211.15144}) shows that by leveraging DR3 in conjunction with CQL (my significant publication 1), we are able to make significant progress towards scaling up offline reinforcement learning to use large datasets of size $\sim$2 billion in conjunction with effective use of capacity of large networks ($\sim$80 million parameters) for the first time (to the best of our knowledge).   
+
+\textbf{Impact.} This work was featured as a spotlight presentation at ICLR 2022. This work was features via a oral presentations at three workshops 
+ as shown below (which includes workshops on both RL and over-parameterization):
+ \begin{itemize}
+     \item Deep Reinforcement Learning Workshop at NeurIPS 2021 ({6/140 papers}).
+    \item Overparameterization Workshop at ICML 2021 ({6/45 papers}).
+    \item RL for Real Life Workshop at ICML 2021 ({12/90 papers}).
+ \end{itemize}
+ 
+
+\newpage
+
+
+\maketitle
+
+\vspace{-0.4cm}
+\begin{abstract}
+\vspace{-0.4cm}
+Despite overparameterization, deep networks trained via supervised learning are easy to optimize and exhibit excellent generalization. One hypothesis to explain this is that overparameterized deep networks enjoy the benefits of implicit regularization induced by stochastic gradient descent, which favors parsimonious solutions that generalize well on test inputs. It is reasonable to surmise that deep reinforcement learning (RL) methods could also benefit from this effect. In this paper, we discuss how the implicit regularization effect of SGD seen in supervised learning could in fact be harmful in the offline deep RL setting, leading to poor generalization and degenerate feature representations. Our theoretical analysis shows that when existing models of implicit regularization are applied to temporal difference learning, the resulting derived regularizer favors degenerate solutions with excessive ``aliasing'', in stark contrast to the supervised learning case. We back up these findings empirically, showing that feature representations learned by a deep network value function trained via bootstrapping can indeed become degenerate, aliasing the representations for state-action pairs that appear on either side of the Bellman backup. To address this issue, we derive the form of this implicit regularizer and, inspired by this derivation, propose a simple and effective \emph{explicit} regularizer, called \methodname, that counteracts the undesirable effects of this implicit regularizer. When combined with existing offline RL methods, \methodname\ substantially improves performance and stability, alleviating unlearning in Atari 2600 games, D4RL domains and robotic manipulation from images.
+\end{abstract}
+\vspace{-0.4cm}
+
+
+\input{intro}
+
+\input{prelim}
+
+
+\input{problem_final2}
+
+
+
+\input{method}
+
+% \input{related_work}
+
+% \begin{figure}[t]
+%     \centering
+%     \vspace{-5pt}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Median_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
+%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_rem_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_rem_penalty.pdf}
+%     \vspace{-0.75cm}
+%     % \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ } over the course of training with different dataset types from \citep{agarwal2019optimistic}. Note the increased stability and performance when \methodname\ is used.}}
+%     \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different dataset types from prior work~\citep{agarwal2019optimistic}. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance.}} %Performance is reported using interquartile mean~(IQM), normalization was performed with respect to the behavior policy that collected the entire DQN replay dataset and shaded regions show 95\% percentile confidence intervals~(CIs.)}}
+%     \label{fig:atari_rem_main}
+%     \vspace{-0.7cm}
+% \end{figure}
+
+\input{experiments}
+
+
+\input{analysis}
+
+
+% \input{experiments}
+
+
+% \vspace{-0.2in}
+% \section{Discussion}
+% \vspace{-0.2in}
+% \label{sec:discussion}
+% \vspace{-3pt}
+% Summary
+\section{Discussion} 
+We characterized the implicit preference of TD-learning towards solutions that maximally co-adapt gradients (or features) at consecutive state-action tuples that appear in Bellman backup. This regularization effect is exacerbated when out-of-sample
+state-action samples are used for the Bellman backup and it can lead to poor policy performance. Inspired by the theory, we propose a practical explicit regularizer, \methodname, that yields substantial improvements in stability and performance on a wide range of offline RL problems. We believe that understanding the learning dynamics of deep Q-learning will lead to more robust and stable deep RL algorithms and enable predicting such instability issues, well in advance, which can inspire cross-validation and model selection strategies. This is an important, open challenge in offline RL, for which existing off-policy evaluation techniques are not practically sufficient~\citep{fu2021benchmarks}. 
+% We also note that our analysis does not consider the online RL setting with non-stationary data distributions, and extending our theory and DR3 to online RL is an interesting avenue for future work.
+% \textbf{Limitations:} 
+% While DR3 improves performance on a number of tasks, it is not clear if it is the best possible approach to mitigate the issues we observe. Answering this question requires a deep understanding of the learning dynamics of Q-learning. 
+% \textbf{Societal Impacts:} 
+% Learning-based machine learning systems can have both positive (e.g., positive economic impact) and negative societal impacts  (e.g., loss of jobs in some areas). These implications also broadly apply to our work as any other work in reinforcement learning, and are largely not unique to this work.   
+
+% % \newpage
+% \section*{Reproducibility Statement}
+% %% ICLR website --
+% % https://iclr.cc/Conferences/2022/AuthorGuide
+% % It is important that the work published in ICLR is reproducible. Authors are strongly encouraged to include a paragraph-long Reproducibility Statement at the end of the main text (before references) to discuss the efforts that have been made to ensure reproducibility. 
+
+% %%SL.10.27: Generally, I'm in favor of deleting any conference specific junk from the arxiv version (it seems like conferences change their mind about what kind of statement or checklist they want every 3 months, so it kind of feels like nonsense like this won't stand the test of time)
+% To ensure reproducibility in our empirical results, we provide complete experimental details regarding methods and hyper-parameters used in the Appendix~\ref{app:additional_background}. Additionally, we follow the recommendations of \citet{agarwal2021precipice} for reliable evaluation in deep RL and report the statistical uncertainty in reported results including aggregate performance metrics. We provide individual scores in Appendix~\ref{app:full_results} and we
+% will release scores for individual runs as well as open-source our code. For theoretical results, we provide explanations of all the assumptions and a complete proof of the claims in Appendix~\ref{app:proofs}.
+
+\section*{Acknowledgements}
+We thank Dibya Ghosh, Xinyang Geng, Dale Schuurmans, Marc Bellemare, Pablo Castro and Ofir Nachum for informative discussions, discussions on experimental setup and for providing feedback on an early version of this paper. We thank the members of RAIL at UC Berkeley for their support and suggestions. We thank anonymous reviewers for feedback on an early version of this paper. This research is funded in part by the DARPA Assured Autonomy Program and in part, by compute resources from Microsoft Azure and Google Cloud. TM acknowledges support of Google Faculty Award, NSF IIS 2045685, the Sloan fellowship, and JD.com. 
+
+\bibliography{reference}
+\bibliographystyle{iclr2022_conference}
+
+\appendix
+\newpage
+\input{appendix}
+
+\end{document}

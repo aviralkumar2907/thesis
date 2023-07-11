@@ -1,0 +1,21 @@
+\begin{table*}[t!]
+\small
+\centering
+\vspace*{-0.2cm}
+\caption{\label{table:zero_shot}Optimized objective values (i.e., latency in milliseconds) under zero-shot setting. Lower latency is better. From left to right: the applications used to train the surrogate model in \methodname\, the target applications for which the accelerator is optimized for, the area constraint of the accelerator, \methodname's (best, median) latency, and best online method's (best, median) latency. \methodname\ does not use any additional data from the target applications. On average (last row), \methodname\ yields optimized accelerator for target applications (with zero query to the target applications' dataset) with 1.26$\times$ (up to 1.66$\times$) lower latency over the best online method. The best accelerator configurations identified is highlighted in bold.}
+\vspace{-0.1cm}
+\resizebox{\textwidth}{!}{% <------ Don't forget this %
+\begin{tabular}{l|l|l|l|l}
+\toprule
+\textbf{Train Applications}&\textbf{Test Applications}&\textbf{Area}&\textbf{\methodname\ (Ours)}&\textbf{Evolutionary~(Online)}\\\midrule
+% Train = MobilenetEdge, MobilenetV3, Target = MobilenetV2
+MobileNet~(EdgeTPU, V3)&{MobileNetV2}&29~mm$^2$&(\textbf{311.39}, \textbf{313.76})&(314.31, 316.65)\\\hline
+MobileNet~(V2, V3), \mfive, \msix&{MobileNetEdge, \mfour}&29~mm$^2$&(357.05, 364.92)&(\textbf{354.59}, \textbf{357.29})\\\hline
+MobileNet~(EdgeTPU, V2, V3), \mfour, \mfive, \msix, t-RNN Enc&{U-Net, t-RNN Dec}&29~mm$^2$&(\textbf{745.87}, \textbf{745.91})&(1075.91, 1127.64)\\\hline
+MobileNet~(EdgeTPU, V2, V3),\mfour, \mfive, \msix, t-RNN Enc&{U-Net, t-RNN Dec}&100~mm$^2$&(\textbf{517.76}, \textbf{517.89})&(859.76, 861.69)\\\bottomrule
+\CC \textbf{Geomean of \methodname's Improvement}&\CC---&\CC---&\CC~(1.0$\times$, 1.0$\times$)&\CC~(\texttt{\textbf{1.24$\times$}}, \texttt{\textbf{1.26$\times$}})\\
+\bottomrule
+\end{tabular}% <------ Don't forget this %
+}
+\vspace{-0.1cm}
+\end{table*}

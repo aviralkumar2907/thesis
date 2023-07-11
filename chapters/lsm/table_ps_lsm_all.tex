@@ -1,0 +1,20 @@
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{6pt}
+\begin{table}[htb!]
+\centering
+\vspace{0pt}
+\centering
+\footnotesize
+\resizebox{0.98\linewidth}{!}{
+\begin{tabular}{lccccccccccccc|c}
+    \toprule
+    \textbf{Classes}     &  \textbf{aero}     &  \textbf{bench}     &  \textbf{cabinet}     &  \textbf{car} &    \textbf{chair}     &  \textbf{display}     &  \textbf{lamp}     &  \textbf{speaker} & \textbf{rifle}     &  \textbf{sofa}     &  \textbf{table}     &  \textbf{phone} & \textbf{vessel} & \textbf{mean}\\    
+    \midrule
+    \textbf{Plane Sweep}  &  0.029 & 0.047 & 0.074 & 0.043 & 0.054 & 0.079 & 0.043 & 0.068 & 0.023 & 0.066 & 0.054 & 0.041 & 0.043 & 0.051 \\
+    \textbf{Depth LSM}  &  0.024 & 0.030 & 0.022 & 0.016 & 0.023 & 0.028 & 0.027 & 0.029 & 0.023 & 0.021 & 0.025 & 0.021 & 0.027 & 0.024\\
+    \bottomrule \\
+  \end{tabular}}
+\caption{Mean depth map error ($L_1$ distance between predictions and ground truth at valid pixels) in the ShapeNet test set. Please refer to the main text for more details.}
+\tablelabel{ps_lsm_all}
+%\vspace{-0.7cm}
+\end{table}

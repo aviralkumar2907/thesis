@@ -1,0 +1,54 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{iccv}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{lib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+\iccvfinalcopy % *** Uncomment this line for the final submission
+
+\def\iccvPaperID{1772} % *** Enter the ICCV Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\ificcvfinal\pagestyle{empty}\fi
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Amodal Completion and Size Constancy in Natural Scenes:\\Supplementary Material}
+%\title{Object Size from a Single Image}
+
+\author{Abhishek Kar, Shubham Tulsiani, Jo\~{a}o Carreira and Jitendra Malik\\
+University of California, Berkeley - Berkeley, CA 94720\\
+{\tt\small \{akar,shubhtuls,carreira,malik\}@eecs.berkeley.edu}}
+
+\maketitle
+%\thispagestyle{empty}
+\section{Additional Results}
+We present more qualitative results of our amodal completion and size inference algorithm in this document. All the results are obtained by using our class agnostic amodal completion network on ground truth boxes in the PASCAL VOC \textit{val} set and estimating sizes using our size inference algorithm on these amodal boxes. Each row shows the original image, the ground truth box annotations in PASCAL and finally the amodal boxes along with inferred sizes and the horizon (shown by the horizontal red line). 
+
+We also show the distribution of camera heights inferred using our algorithm in \figref{heightDistr} and the focal lengths used for training our CNN focal length predictor in \figref{fovDistr}.
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/amodal/heights_pred_choc.png}
+    \caption{\figlabel{heightDistr} Distribution of camera heights as inferred on PASCAL VOC. It can be seen that the distribution is peaked around the height at which humans normally take pictures (1.4m) with a long tail.}
+\end{figure}
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/amodal/fov.png}
+    \caption{\figlabel{fovDistr} Distribution of camera focal lengths in the Places dataset shown as horizontal angle of view. The peaks in the distribution correspond to canonical focal lengths in popular wide angle and telephoto lenses. It can be seen that the images cover the full spectrum from wide angle views of scenes (corresponding to the right end of the plot) to close-ups (left end of the histogram). Interestingly, the largest peak in the distribution is close to the field of view of iPhones.}
+\end{figure}
+\input{suppfig}
+\end{document}

@@ -1,0 +1,146 @@
+%%%%%%%% ICML 2021 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{amsthm}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{fleqn, tabularx}
+\usepackage{multirow}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{xcolor}
+
+\definecolor{Gray}{gray}{0.9}
+
+
+\makeatletter
+\newcommand{\mybox}{%
+    \collectbox{%
+        \setlength{\fboxsep}{1pt}%
+        \fbox{\BOXCONTENT}%
+    }%
+}
+\makeatother
+\newcommand{\CC}{\cellcolor{Gray}}
+
+\include{defs}
+
+\newcommand{\arxiv}[1] {{\color{black} #1}}
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{0pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{3pplus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage[skins,theorems]{tcolorbox}
+
+% Use the following line for the initial blind version submitted for review:
+\usepackage[numbers]{natbib}
+\usepackage[final]{neurips_2021}
+
+
+\title{Conservative Data Sharing \\ for Multi-Task Offline Reinforcement Learning}
+%%AK.7.31: Distributional Shift Hinders Data Sharing in Multi-Task Offline Reinforcement Learning
+%% Another one: When Does Data Sharing Actually Help in Multi-Task Reinforcement Learning? : Distributional Shift and Conservative Strategies
+%%TY.7.31: One more idea: Tackling Distributional Shift in Multi-Task Offline Reinforcement Learning
+%%SL.7.31: Generally, I think this title is pretty good, but it could be better. The main issue is that it doesn't make it clear which problem is being solved. At first glance, a careless reader might surmise that the paper is just about a trivial extension of existing offline RL methods to the multi-task setting, which sounds pretty lame. The reason this misunderstanding might occur is that the title doesn't provide a hint for what the problem is.
+%%CF.8.1: I think that this title is pretty good. My main concern is that "distribution shift" is a bit of a catch-all term, that can mean a lot of different things. The title also conveys that identifying the problem is the main contribution of this paper, versus a potential method for addressing it (CDS). I think that both contributions stand on somewhat equal footing, though the perhaps identifying the problem is a bit more important. (The current title is also a bit long)
+%%KY.9.13: what about this: Tackling Distributional Shift in Multi-Task Offline Reinforcement Learning with Conservative Strategies
+%%CF.9.13: I'm not a bit fan of the above because it doesn't mention data sharing at all. Could also do "Tackling Distribution Shift in Multi-Task Offline Reinforcement Learning with Conservative Data Sharing" I think that having the method name in the title could be a good thing. Though that title is also three lines. :(
+%%CF.9.13: Another option: "Conservative Data Sharing Reduces Distribution Shift in Offline Multi-Task Reinforcement Learning" That title is two lines.
+
+\author{Tianhe Yu$^{*, 1, 2}$, Aviral Kumar$^{*, 2, 3}$, Yevgen Chebotar$^{2}$, Karol Hausman$^{1,2}$, \vspace{0.05cm}\\ \textbf{Sergey Levine$^{2,3}$, Chelsea Finn$^{1,2}$} \vspace{0.1cm}\\
+$^1$Stanford University, $^2$Google Research, $^3$UC Berkeley~~~~~~~~ ($^*$Equal Contribution) \vspace{0.1cm}\\ 
+\texttt{tianheyu@cs.stanford.edu, aviralk@berkeley.edu}
+}
+
+\begin{document}
+
+\maketitle
+
+
+\begin{abstract}
+Offline reinforcement learning (RL) algorithms have shown promising results in domains where abundant pre-collected data is available. However, prior methods focus on solving individual problems from scratch with an offline dataset without considering how an offline RL agent can acquire multiple skills. \arxiv{We argue that a natural use case of offline RL is in settings where we can pool large amounts of data collected in various scenarios for solving different tasks, and utilize all of this data to learn behaviors for all the tasks more effectively rather than training each one in isolation. However, sharing data across all tasks in multi-task offline RL performs surprisingly poorly in practice.
+Thorough empirical analysis, we find that sharing data can actually exacerbate the distributional shift between the learned policy and the dataset, which in turn can lead to divergence of the learned policy and poor performance.}
+%%CF.9.13: do you mean divergence/overestimation of the learned Q-function?
+%%KY.9.13: I think we want to mean policy to be more general.
+%%SL.7.31: I wonder if we can simplify the above a bit. Right now, the structure of the above sentence ("While it is possible ... very poor") kind of makes it sound like we invented the problem (share all data across tasks) because we used some weird approach. Maybe simpler phrasing for the above 2-3 sentences would more directly state that multi-task RL is difficult, ask why, and only then point out these issues. Basically, we need to convince the reader that it's not just as simple as naively applying offline RL to multi-task problems.
+%%CF.8.1: I agree that it could make sense to restructure. I'm not a huge fan of what Sergey suggested above because I think it will be weird to say that multi-task RL is hard without context. You could instead just delete the sentence saying that "we study the offline multi-task RL problem, with the goal of devising data-sharing..." (the first part of this sentence should be obvious and the data-sharing part comes too soon). Then you can say that the most natural approach to multi-task offline RL of sharing all of the data across tasks performs surprisingly poorly in practice. then say that we analyze why this happens and find that cross-task data sharing exacerbates distribution shift between the learned policy and the dataset.
+%%KY.9.13: I rewrote the above sentences based on Chelsea's comments.
+To address this challenge, we develop a simple technique for data-sharing in multi-task offline RL that routes data based on the improvement over the task-specific data. We call this approach conservative data sharing (\methodname), and it can be applied with multiple single-task offline RL methods.
+On a range of challenging multi-task locomotion, navigation, and vision-based robotic manipulation problems, \methodname\ achieves the best or comparable performance compared to prior offline multi-task RL methods and previous data sharing approaches.  
+\end{abstract}
+
+\input{intro}
+
+\input{related_work}
+
+\input{prelim}
+
+\input{method}
+
+\input{experiments_new}
+
+\vspace{-5pt}
+\section{Conclusion}
+\vspace{-5pt}
+\label{sec:conclusion}
+In this paper, we study the multi-task offline RL setting, focusing on the problem of sharing offline data across tasks for better multi-task learning. Through empirical analysis, we identify that na\"{i}vely sharing data across tasks generally helps learning but can significantly hurt performance in scenarios where excessive distribution shift is introduced. To address this challenge, we present conservative data sharing (CDS), which relabels data to a task when the conservative Q-value of the given transition is better than the expected conservative Q-value of the target task. On multitask locomotion, manipulation, navigation, and vision-based manipulation domains, CDS consistently outperforms or achieves comparable performance to existing data sharing approaches. While CDS attains superior results, it is not able to handle data sharing in settings where dynamics vary across tasks and requires functional forms of rewards. We leave these as future work. 
+% Another limitation of CDS is that it requires access to the functional form of the reward. Though this is a common assumption as discussed in Section~\ref{sec:prelims}, an interesting future direction would be removing this dependence and replacing it with either a learned reward predictor or other supervision signal like language instructions.
+
+\section*{Acknowledgements}
+We thank Kanishka Rao, Xinyang Geng, Avi Singh, other members of RAIL at UC Berkeley, IRIS at Stanford and Robotics at Google and anonymous reviewers for valuable and constructive feedback on an early version of this manuscript. This research was funded in part by Google, ONR grants N00014-20-1-2675 and N00014-21-1-2685, Intel Corporation and the DARPA Assured Autonomy Program. CF is a CIFAR Fellow in the Learning in Machines and Brains program. 
+
+% Finally, regarding negative societal impact, one potential risk the reward design in RL which is challenging to obtain in the real world. For example, it is generally infeasible to specify rewards for (offline) RL in real-world applications, making (offline) RL hard to scale to real robots. Moreover, training procedures of ML models are generally compute-intensive and collecting large datasets for offline RL is also burdensome, which cause inequitable access to these models and datasets.  We would like push RL community to address these risks in the near future.
+
+
+% In the unusual situation where you want a paper to appear in the
+% references without citing it in the main text, use \nocite
+\bibliography{reference}
+\bibliographystyle{plainnat}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DELETE THIS PART. DO NOT PLACE CONTENT AFTER THE REFERENCES!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+\onecolumn
+\input{appendix}
+
+
+\end{document}
+
+
+% This document was modified from the file originally made available by
+% Pat Langley and Andrea Danyluk for ICML-2K. This version was created
+% by Iain Murray in 2018, and modified by Alexandre Bouchard in
+% 2019 and 2021. Previous contributors include Dan Roy, Lise Getoor and Tobias
+% Scheffer, which was slightly modified from the 2010 version by
+% Thorsten Joachims & Johannes Fuernkranz, slightly modified from the
+% 2009 version by Kiri Wagstaff and Sam Roweis's 2008 version, which is
+% slightly modified from Prasad Tadepalli's 2007 version which is a
+% lightly changed version of the previous year's version by Andrew
+% Moore, which was in turn edited from those of Kristian Kersting and
+% Codrina Lauth. Alex Smola contributed to the algorithmic style files.

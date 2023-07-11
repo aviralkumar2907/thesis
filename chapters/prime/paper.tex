@@ -1,0 +1,94 @@
+\documentclass{article}
+\usepackage{iclr2022_conference,times}
+\input{math_commands.tex}
+\usepackage{packages}
+
+\usepackage{fleqn, tabularx}
+\usepackage{colortbl}
+\usepackage{transparent}
+
+\definecolor{Gray}{gray}{0.9}
+
+\makeatletter
+\newcommand{\mybox}{%
+    \collectbox{%
+        \setlength{\fboxsep}{1pt}%
+        \fbox{\BOXCONTENT}%
+    }%
+}
+\makeatother
+\newcommand{\CC}{\cellcolor{Gray}}
+
+\title{\centering{Data-Driven Offline Optimization for\\ Architecting Hardware Accelerators}}
+
+\iclrfinalcopy
+
+\author{%
+  \quad \quad \quad \quad \quad \quad \quad \quad \quad {Aviral Kumar$^{\dagger, *}$~~~ Amir Yazdanbakhsh$^{\dagger}$} \vspace{0.05cm}\\
+  \quad \quad \quad \quad \quad \quad \quad \quad \textbf{Milad Hashemi~~~ Kevin Swersky~~~ Sergey Levine$^{*}$} \vspace{0.2cm}\\
+  \quad \quad \quad \quad \quad \quad Google Research ~~$^*$ UC Berkeley~~~~ ($^\dagger$ Equal Contribution) \vspace{0.05cm}\\
+  \quad \quad \quad \quad \quad \quad~~~  \texttt{aviralk@berkeley.edu, ayazdan@google.com}
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\part*{\Large{Significant Publication 3: \\ Data-Driven Offline Optimization For Architecting Hardware Accelerators}}
+
+\section*{Author List} Aviral Kumar, Amir Yazdanbakhsh, Milad Hashemi, Kevin Swersky, Sergey Levine
+
+\section*{Significance of the Paper} 
+
+\textbf{Summary.} This paper utilizes ideas from my offline RL work for tackling the problem of hardware accelerator design. The goal in this work is to design an accelerator that optimizes some performance metric (e.g., latency) to optimize the learned model. I show how a transition from simulators to datasets can enable us to design accelerators for never-before-seen workloads, in a zero-shot manner, using data of successful and failed accelerator designs for other workloads. This is quite promising since building cycle-accurate simulators can be time-consuming and my work provides a fully dataset-driven approach to tackle this problem.  
+
+
+\textbf{Significance.} The main significance of the results in the paper is that it shows how even in the challenging problem of designing accelerators, where we must strive to find a small set of good accelerators from a sea of infeasible designs, dataset-driven design approaches can be performant even when provided with bad previously generated designs, whereas simulator-driven approaches may not (while also requiring more manual effort). Our analysis of the designed accelerators in Appendix~\ref{app:analysis} show how our method can automatically tune compute against memory, which of interest in future architecture design. 
+
+More broadly, this work opens up an exciting possibilities for machine learning in computer architecture. It shows the promise of utilizing databases of both successful and failed accelerators (including invalid accelerator designs) for certain workloads, to automatically discover accelerators for \emph{new} workloads. This kind of transfer across workloads is quite exciting as more and more machine learning models start getting deployed into IoT devices.
+
+This work was featured in the \href{https://ai.googleblog.com/2022/03/offline-optimization-for-architecting.html}{Google AI blog} \& media outlets \href{https://medium.com/syncedreview/google-uc-berkeleys-data-driven-offline-optimization-approach-significantly-boosts-hardware-70746a7ff3cc}{[(a)}, \href{https://analyticsindiamag.com/data-driven-vs-simulation-driven-approach-to-build-hardware-accelerators-according-to-google/}{(b)}, \href{https://www.marktechpost.com/2022/03/23/google-ai-and-uc-berkely-researchers-introduce-a-deep-learning-approach-called-prime-that-generates-ai-chip-architectures-by-drawing-from-existing-blueprints-and-performance-figures/}{(c)}, \href{https://www.theregister.com/2022/03/18/google_deep_learning_chip_design/}{(d)]}.
+ 
+
+\newpage
+
+\maketitle
+
+\vspace{-0.3cm}
+\input{body/00_abstract}
+\input{body/01_intro}
+\input{body/02_background}
+\input{body/03_problem}
+\input{body/04_method}
+\input{body/05_related}
+\input{body/06_ablation}
+\input{body/07_discussion}
+
+
+\bibliography{paper.bib}
+\bibliographystyle{iclr2022_conference}
+
+\appendix
+\newpage
+\input{body/08_appendix}
+
+\end{document}

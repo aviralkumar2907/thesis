@@ -1,0 +1,122 @@
+\iffalse
+
+\section{Theoretical Analysis of \methodname\ }%and \AliasingProblemName}
+\label{sec:analysis}
+
+\textcolor{red}{This section goes away} A major challenge with value based RL methods, especially in the offline setting, is bootstrapping error accumulation, which refers to how sampling error increases when the value function itself is used to produce regression targets for temporal difference~(TD) error minimization.
+In this section, we illustrate the benefits of \methodname\ by showing that given a set of features $\phi(\bs, \ba)$, the policy estimation error according to the Q$^\pi$-function learned from these features depends on $\simunnorm(\bs, \ba, \bs'; \phi)$. This indicates that explicitly minimizing $\simunnorm$, as done by \methodname, should result in lower error accumulation and more accurate estimates of policy return, and therefore more effective offline RL.
+% In this section, we theoretically analyze the benefits of \methodname, by illustrating that the value of $\simunnorm$ directly affects bootstrapping error accumulation. By controlling $\simunnorm$, \methodname\ can reduce error accumulation and produce more accurate value estimates, thus improving offline RL.
+%%SL.2.3: Slightly tweaked the above, but we could make it even mroe explicit, such as: can effectively reduce error accumulation. When combined with conservative value learning methods like CQL~\citep{}, we show that Q-functions learned with \methodname\ lower bound the true Q-function, but represent a tighter bound than those obtained with CQL alone. [or something like that]
+
+%%SL.2.3: If 5.1 is the only subsection in Sec 5, then I don't think we need the subsection heading, we could just make the subsection title be the section title
+
+Our goal is to show that training the Q-function with \methodname, which minimizes unnormalized feature similarities, results in a tighter bound on the true policy return when combined with a conservative offline RL algorithm, such as CQL~\citep{kumar2020conservative}. Intuitively, a tighter bound is attained because \methodname\ reduces the degree to which bootstrapping error accumulates. 
+% compounds in temporal difference (bootstrapping) backups with finite datasets.
+%%SL.2.3: I wonder if it might help to briefly mention something about bootstrap error before this, by way of motivation -- e.g., something like: A major challenge with TD-based RL, especially in the offline setting, is boootstrap error accumulation, which refers to how error increases when the value function itself is used to produce regression targets for Bellman error minimization.
+Since we are primarily interested in the relationship between feature similarities and policy return estimates,
+%%SL.2.1: I don't get it -- isn't the whole point to analyze feature learning? How can we analyze a regularizer on the features if the features are constant? Or does "linear function approximation" in this case mean something other than "features are constant"?
+%%AK.2.3: Agreed, but I don't think we can analyze feature learning in the first place at all as of now. This is just aiming to obtain a groundtruth estimate of what properties will make learning better. 
+%%SL.2.3: OK, after reading this a bit more carefully, what I *think* you meant to say here is more like this: We will show that, given a set of feature $whatever$, the policy estimation error according to the Q-function learned from these features depends on $sim(whatever)$. This indicates that explicitly minimizing this quantity should result in lower error accumulation and more accurate estimates of policy return, and therefore more effective reinforcement learning.
+our analysis will focus on the linear function approximation setting, where we will characterize the values of $\simunnorm$ that lead to better estimates.
+
+We assume a notion of realizability on the features $\phi(\bs,\ba)$. While conventional realizability refers to the true Q-function being representable in terms of the provided features, we use a significantly weaker assumption, which we term \emph{conservative realizability}, which only requires that a conservative estimate of the Q-function be realizable under features $\phi(\bs, \ba)$ as is the case with offline RL methods that learn lower-bounds on the value function~(\eg CQL) or pessimistically modify the reward function~\citep{?}.  
+\begin{definition}[Conservative realizability]
+Assume that the learned Q-function for any policy $\pi$ is parameterized as a linear function of features $\phi$: $Q_\phi(\bs, \ba) = {\bw}_\pi^T \phi(\bs,\ba)$. Then features $\phi(\bs, \ba)$ are said to be conservatively realizable with degree $\alpha$ against the behavior policy $\behavior$ if, there exists a function $f(\pi, \behavior, \phi)$ such that, $\forall~ \pi, \bs, \ba,~ Q^\phi(\bs, \ba) \geq Q_\pi(\bs, \ba) - \alpha f(\pi, \behavior, \phi)(\bs, \ba)$, and f satisfies: $f(\behavior, \behavior, \phi) = 0$, $f(\pi, \behavior, \phi) > 0 ~\forall~ \pi \neq \behavior$.  
+\end{definition}
+
+\begin{theorem}[\methodname\ attains tighter bound on return]
+\label{thm:return_bound}
+Suppose the Q-function is given by $Q_\phi(\bs, \ba) = \bw^T \phi(\bs, \ba)$ and for any policy $\pi \in \Pi$, representation $\phi$ is conservatively realizable. 
+Given an offline dataset $\data$ of size $N$, let $\Sigma_\data = \sum_{i=1}^N \phi(\bs_i, \ba_i) \phi(\bs_i, \ba_i)^T$ be the covariance matrix of the dataset features and assume $\sigma_{\min}(\Sigma_\data) := 1/c >0$. In this case, running off-policy evaluation for a given policy $\pi$ via fitted Q-evaluation~\citep{} yields $\hat{\bw}_\pi$ such that the optimal $\bw_\pi$ and $\hat{\bw}^\pi$ satisfy with high probability $\geq 1-\delta$ that
+\begin{equation*}
+    ||\bw_\pi - \hat{\bw}_\pi||_2 \leq \frac{C_{\delta, \gamma} c}{1 - \gamma c \left(\E_{\bs, \ba, \bs' \sim \data}[\simunnorm(\bs, \ba, \bs')] \right)},
+%%AK.2.3: this should technically have an additional term that subtracts the function value f
+\end{equation*}
+where $C_{\delta, \gamma}$ is a constant depending on $\delta, \gamma$. Thus, the expected policy return under initial state-action distribution $\rho(\bs_0, \ba)$, $\hat{J}_\phi(\pi) := \E_{\bs_0 \sim \rho, \ba \sim \pi}[Q_\phi(\bs, \ba)]$, and the actual policy return, $J(\pi)$, satisfies
+\begin{equation*}
+    \left\vert \hat{J}_\phi(\pi) - J(\pi) \right\vert \leq ||\Phi_\rho||_2 ||\bw_\pi - \hat{\bw}_\pi||_2,
+%%AK.1.31: see jamboard and decide whether to write this in terms of \hat{w}^\pi directly or the return of the policy. 
+\end{equation*}
+where $\phi_\rho$ denotes the expected feature vector on the initial state distribution $\bs_0 \sim \rho$.
+\end{theorem}
+This result clearly indicates that $\E_{\bs, \ba, \bs' \sim \mathcal{D}}[\simunnorm(\bs, \ba, \bs')]$ directly controls the amount of error accumulated in the weight vector $\hat{\bw}^\pi$ as a result of bootstrapping. Since $\hat{J}(\pi)$ is closer to $J(\pi)$ when the expected unnormalized similarity is small, optimizing features via \methodname\ to directly minimize this quantity controls the tightness or accuracy of the return estimate $\hat{J}(\pi)$. When applied on top of a conservative offline RL method, such as CQL, which satisfies the conservative realizability condition with $f=$, \methodname\ provides tighter return estimates by reducing the amount of error accumulated during bootstrapping,
+%%AK.2.3: fill this in
+%%AK.1.31: is it unclear how stable came into the picture?
+%%SL.2.1: Yes, there is a missing link between "tighter bound" and "robust and stable" (also, try to avoid the word "robust" as it is easy to misunderstand to mean robust control -- i.e., robust to perturbations)
+
+\fi
+
+\iffalse
+
+\subsection{Why Does \AliasingProblemName\ Happen?}
+\label{sec:why_does_aliasing_happen}
+%%AK.2.1: this section is not edited yet
+%%SL.2.1: It's also unclear how this section relates to the previous one...
+
+Finally, we aim to theoretically understand the cause behind the feature aliasing problem. It is evident from Figure ?? that feature aliasing only persists as long as bootstrapping (i.e., TD error) is used and supervised regression does not exhibit this issue. We will now show that feature aliasing is caused by \emph{compounding} of the implicit regularization of gradient descent towards producing simple ``min-norm'' solutions in non-linear networks when bootstrapping is used.
+%%SL.1.26: The above sentence reads kind of backwards, maybe we can ease the reader into this by first explaining what this compounding is, and then what it has to do with feature aliasing
+Similar to other works in supervised learning~\citep{savarese2019infinite}, operates in the setting with wide 2-layer ReLU networks.
+%%SL.1.26: Above sentence is malformed somehow? Maybe a missing word or typo?
+Here, the Q-function is given by:
+\begin{equation}
+    Q(\bs, \ba) = \sum_{i=1}^{n} w^i_2 \underbrace{\left[ [\bs, \ba]^T \bw^i_1 + b^i_1  \right]_{+}}_{:= \phi^i(\bs, \ba)} +~ b^i_2.
+\label{eqn:relu_q}
+%%SL.1.26: it's not immediately obvious why "here" the q-function is given by this -- are you just writing the equation for last layer features? it's kind of not clear where this comes from
+\end{equation}
+The $i$-th dimension of the features $\phi(\bs, \ba)$ is marked in Equation~\ref{eqn:relu_q}. Now, we define the ``min-norm'' solution for bootstrapping that is equivalent to the solution found by gradient descent on the TD error objective on a finite dataset, and the rest of our analysis will characterize properties of this optimization problem with bootstrapping.
+%%SL.1.26: I'm actually having a lot of difficulty following the paragraph above or what it is trying to say. Perhaps it would help to add a bit more discussion for why we care about min-norm solutions, and what this has to do with gradient descent and bootstrapping
+\begin{definition}[Min-norm solution]
+\label{eqn:min_norm}
+The min-norm solution for parameters $\bw_2$, $\bw_1$, $b_1$ and $b_2$ of the two-layer ReLU network in a given iteration of TD-learning for off-policy evaluation of a given policy $\pi$ is given by:
+\begin{align*}
+    \min_{\bw_1, \bw2, b_1, b_2}~~ & ||\bw_2||_1 \\
+    \text{s.t.}~~ Q_\theta(\bs_i, \ba_i) &= r_i + \gamma \E_{\pi}[Q_{\bar{\theta}}(\bs'_i, \ba')]~~ \forall~ i \in [\data],\\
+    & ||\bw^i_1||_2 = 1~~ \forall~ i \in [1,\cdots, n].
+\end{align*}
+\end{definition}
+%%SL.1.26: this definition comes across as a bit arbitrary. Maybe a bit more context would help. Why is the norm of w_1 equal to 1? I can guess the intuition (I'm guessing you're trying to limit the Lipschitz constant of the features, so that any statement about the norm of the last-layer weights actually means something about the overall function), but this is not really explained, so many readers will see this as pretty ad hoc and wonder what this has to do with reality.
+%%AK.1.24: also need to discuss early stopping somewhere -- else the datapoint thing is a constraint, and one could always fit it and something bad will may never happen. Also, check if we need to include the biases b_1 and b_2 in the optimization objective or not? 
+Here, we  use $\bar{\theta}$ to denote the target Q-network parameters (which is equal to the original Q-network from the previous iteration but is held fixed). We will denote the features of this target network for a state-action tuple $(\bs, \ba)$ as $\bar{\phi}(\bs, \ba)$.
+Having covered the optimization problem, we now prove in Theorem~\ref{thm:bootstrapping} that training with bootstrapping is the primary reason behind the feature aliasing problem. We show this under two separate scenarios, both of which are likely to arise in offline RL settings with TD-learning.
+%%SL.1.26: Kind of unclear what any of this has to do with Definition 2
+The first scenario arises when the magnitude of the Q-value, $Q_{\theta}(\bs, \ba)$ is large compared to the magnitude of the reward $r$. This is expected in scenarios with completely positive or negative reward functions and limited data, when the Q-function erroneously overestimates or underestimates intermediately during training.
+%%SL.1.26: This sounds pretty ad hoc, can you state this more precisely? I think reward is positive is fine, but it looks ad-hoc if you bring it up informally here like this (but it's also not that important I think...)
+The second scenario comes into effect when the policy $\pi$ is quite different
+%%SL.1.26: again, this comes across as vague and imprecise, can you state this more precisely somehow?
+from the behavior policy $\pi_\beta$, where target Q-values are evaluated on unseen state-action pairs, and they are not trained on.
+This is common in several OPE problems, offline RL settings with limited data or when standard off-policy RL algorithms are used.
+%%SL.1.26: I don't think it's more common in OPE problems, but it's fine to just say: this is often the case in offline RL, since the goal of offline RL methods is to learn policies that improve over the behavior policy, and therefore differ from it [or something like that]
+We formally state these conditions as Scenarios~\ref{assumption:magnitude} and \ref{assumption:ood} and show in Theorem~\ref{thm:bootstrapping} that features are aligned under these conditions.
+
+\begin{assumption}[Magnitude difference]
+\label{assumption:magnitude}
+Without loss of generality,
+%%SL.1.26: maybe just bring in this assumption earlier (e.g., in the preliminaries) -- something like, in our analysis we will assume that the reward are always positive. This assumption can be made without loss of generality if the rewards are guaranteed to be finite, because...
+assume that the reward function $r(\bs, \ba)$ is always positive. Then, we assume that $\gamma$ is sufficiently close to 1 and the current Q-function is such that 
+\begin{equation*}
+    Q_\theta = r + \gamma \hat{\gT}^\pi Q_\theta  ~\approx~ Q_\theta = \varepsilon + \gamma \hat{\gT}^\pi Q_\theta,~~~ \varepsilon \sim \gN(0, I).
+%%AK.1.24: basically, we want to say that now the reward function doesnt matter, it is just as good as noise. The eps sampled from N(O, I) may appear a bit odd, we need not have it. I just put it to signify that the term is just noise.
+\end{equation*}
+\end{assumption}
+%%SL.1.26: Perhaps for these assumptions, it would be a bit clearer to state the assumption first, then the intuition, instead of putting the intuition first like you did above -- otherwise the intuition coming before the definition makes it sound imprecise and a bit clumsy
+
+\begin{assumption}[OOD actions]
+\label{assumption:ood}
+Assume that the policy $\pi(\ba|\bs)$ is such that for any state-action tuple $\bs \in \mathcal{D}, \ba \sim \pi(\cdot|\bs)$, $\pi_\beta(\ba|\bs) < \varepsilon$.  
+%%SL.1.26: for *any*? meaning all actions have low probability? or just some (i.e., "there exists")? If this is for all actions, that seems like a pretty unusual situation
+%%AK.1.24: compute the form for epsilon here.... it will depend on the dataset. Also need to relax the for all condition... can be done when analyzing under early stopping
+\end{assumption}
+
+\begin{theorem}
+\label{thm:bootstrapping}
+Assume at least one of scenarios~\ref{assumption:magnitude} and \ref{assumption:ood} holds. Let the feature representation of the target Q-network $Q_{\bar{\theta}}$ be denoted as $\bar{\phi}$. Then, solving the min-norm problem (Definition~\ref{eqn:min_norm}) produces $\phi$ such that, for all $(\bs, \ba, r, \bs') \in \mathcal{D}$, 
+\begin{equation*}
+     \simunnorm(\bs, \ba, \bs'; \phi) > \simunnorm(\bs, \ba, \bs'; \bar{\phi}).
+\end{equation*}
+\end{theorem}
+%%SL.1.26: It's not clear to me what the significance of this is for two reasons: First, are we solving the min-norm problem? I guess you were going to argue that this is what we're doing because of bootstrap, but I don't see this made explicit anywhere. Second, why is having the cos^2 increase a bad thing? That does not prove that it will actually be large, or that anything bad will actually happen.
+A proof can be found in Appendix ??. This key proof idea is that, whenever the TD error either uses target values from unseen state-action tuples or when the magnitude of Q-values is sufficient to overpower the reward signal, Problem~\ref{eqn:min_norm} is effectively under-constrained. In this case, an optimal solution will align state-action features, as doing this also minimizes $||\bw_2||_1$, which is the objective in Problem~\ref{eqn:min_norm}. Before moving on to our method, which attempts to mitigate the feature aliasing issue, we discuss how these results relate to recent work on lower bounds for offline RL.
+%%AK.1.26: one thing that is missing here is that we do not talk about the recursiveness of the argument: since our theory so far depends on two scenarios, we need to show that once aliasing happens one of the two scenarios still remains, so that aliasing happens more again, and so on. But maybe that's hard. What do you guys think?
+%%SL.1.26: Yeah, I see your point. I think maybe the bigger issue is that it's not clear why showing that current network aliasing between time steps is worse than target aliasing between time steps is actually equivalent to the original claims, which talk about aliasing between current and target networks. I think the reason is that a ~ beta and a' ~ pi, but this is not made explicit, and I think most readers won't get it. It's also not clear if proving that this increases like this actually proves that it gets bad (it might asymptote), can you make a more asymptotic argument somehow?
+
+\fi

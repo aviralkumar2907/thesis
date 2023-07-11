@@ -1,0 +1,73 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\usepackage{wrapfig}
+\usepackage{cite}
+% \usepackage{natbib}
+% \usepackage[round]{natbib}
+
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usetikzlibrary{positioning}
+\usepackage{mathtools}
+\usepackage{fleqn, tabularx}
+\usepackage{multirow}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}{Lemma}[theorem]
+% \newtheorem{corollary}{Corollary}[proposition]
+\newtheorem{definition1}{Definition}[section]
+
+
+
+\begin{document}
+
+\blfootnote{This chapter is based on \cite{fu2019diagnosing}, published at ICML 2019, which is joint work with Justin Fu, Matthew Soh, and Sergey Levine.}
+
+% \input{chapters/bear/text/abstract.tex}
+
+% \input{chapters/bear/text/introduction.tex}
+% \input{chapters/bear/text/related.tex}
+% \input{chapters/bear/text/background.tex}
+% \input{chapters/bear/text/method.tex}
+% \input{chapters/bear/text/experiments.tex}
+% \input{chapters/bear/text/conclusions.tex}
+
+%
+To attain higher efficiency, the industry has gradually reformed towards application-specific hardware accelerators.
+%
+While such a paradigm shift is already starting to show promising results, designers need to spend considerable manual effort and perform large number of time-consuming simulations to find accelerators that can accelerate multiple target applications while obeying design constraints.
+%
+Moreover, such a ``simulation-driven'' approach must be re-run from scratch every time the set of target applications or design constraints change. 
+%
+An alternative paradigm is to use a ``data-driven'', offline approach that utilizes logged simulation data, to architect hardware accelerators, without needing any form of simulations.
+%
+Such an approach not only alleviates the need to run time-consuming simulation, but also enables data reuse and applies even when set of target applications changes.
+%
+In this paper, we develop such a data-driven offline optimization method for designing hardware accelerators, dubbed \primemethodname, that enjoys all of these properties.
+%
+Our approach learns a conservative, robust estimate of the desired cost function, utilizes infeasible points and optimizes the design against this estimate without any additional simulator queries during optimization.
+%
+\primemethodname\ architects accelerators---tailored towards both single- and multi-applications---improving performance upon stat-of-the-art simulation-driven methods by about 1.54$\times$ and 1.20$\times$, while considerably reducing the required total simulation time by 93\% and 99\%, respectively.
+%
+In addition, \primemethodname\ also architects effective accelerators for unseen applications in a zero-shot setting, outperforming simulation-based methods by 1.26$\times$\footnote{A more accessible blog post summarizing this paper is available on the Google AI blog at: \url{https://ai.googleblog.com/2022/03/offline-optimization-for-architecting.html}}.
+%
+
+\input{chapters/prime/body/01_intro}
+\input{chapters/prime/body/02_background}
+\input{chapters/prime/body/03_problem}
+\input{chapters/prime/body/04_method}
+\input{chapters/prime/body/05_related}
+\input{chapters/prime/body/06_ablation}
+\input{chapters/prime/body/07_discussion}
+
+
+\end{document}

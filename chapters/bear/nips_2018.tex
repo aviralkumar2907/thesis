@@ -1,0 +1,116 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2018
+
+% ready for submission
+\usepackage[nonatbib,final]{neurips_2019}
+% \usepackage[nonatbib]{nips_2018}
+\usepackage[numbers]{natbib}
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2018}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+    % \usepackage[preprint]{nips_2018}
+
+% to avoid loading the natbib package, add option nonatbib:
+    % \usepackage[nonatbib]{neurips_2018}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subcaption}
+%\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\input{commands.tex}
+\usepackage{wrapfig}
+
+\title{Stabilizing Off-Policy Q-Learning via Bootstrapping Error Reduction}
+
+\newcommand*\samethanks[1][\value{footnote}]{\footnotemark[#1]}
+
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+
+\author{%
+    Aviral Kumar\thanks{Equal Contribution}\\
+    UC Berkeley\\
+    \texttt{aviralk@berkeley.edu}\\
+    \And
+    Justin Fu\samethanks\ \\
+    UC Berkeley\\
+    \texttt{justinjfu@eecs.berkeley.edu}\\
+    \AND
+    George Tucker\\
+    Google Brain\\
+    \texttt{gjt@google.com}\\
+    \And
+    Sergey Levine\\
+    UC Berkeley, Google Brain\\
+    \texttt{svlevine@eecs.berkeley.edu}
+%   David S.~Hippocampus\thanks{Use footnote for providing further information
+%     about author (webpage, alternative address)---\emph{not} for acknowledging
+%     funding agencies.} \\
+%   Department of Computer Science\\
+%   Cranberry-Lemon University\\
+%   Pittsburgh, PA 15213 \\
+%   \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+% \nipsfinalcopy is no longer used
+
+\maketitle
+
+\input{text/abstract.tex}
+
+\input{text/introduction.tex}
+\vspace{-10pt}
+\input{text/related.tex}
+\vspace{-10pt}
+\input{text/background.tex}
+\input{text/method.tex}
+\input{text/experiments.tex}
+\input{text/conclusions.tex}
+
+{\small
+\bibliography{example_paper}
+\bibliographystyle{plainnat}
+}
+
+\input{text/appendix.tex}
+

@@ -1,0 +1,146 @@
+\section{Preliminaries}
+\label{sec:prelim}
+
+\subsection{Markov Decision Processes and Offline RL} 
+
+We study RL in the framework of Markov decision processes (MDPs) specified by the tuple $\mathcal{M} = (\mathcal{S}, \mathcal{A}, \transitions, r, \mu_0, \gamma)$.
+$\mathcal{S}, \mathcal{A}$ denote the state and action spaces. 
+$\transitions(\bs' | \bs, \ba)$ and $r(\bs,\ba) \in [-R_{\max}, R_{\max}]$ represent the dynamics and reward function respectively. 
+$\mu_0(s)$ denotes the initial state distribution, and $\gamma \in (0,1)$ denotes the discount factor. 
+We denote the discounted state visitation distribution of a policy $\pi$ using \hbox{$d_\mathcal{M}^\pi(\bs) := (1 - \gamma)\sum_{t=0}^\infty\gamma^t\mathcal{P}(s_t = \bs | \pi)$}, where $\mathcal{P}(s_t = \bs | \pi)$ is the probability of reaching state $\bs$ at time $t$ by rolling out $\pi$ in $\mathcal{M}$. Similarly, we denote the state-action visitation distribution with $d_\mathcal{M}^\pi(\bs, \ba) \coloneqq d_\mathcal{M}^\pi(\bs)\pi(\ba|\bs)$. The goal of RL is to learn a policy that maximizes the return, or long term cumulative rewards:
+\begin{equation}
+    \max_\policy J(\mathcal{M}, \policy) := \frac{1}{1-\gamma}\E_{(\bs, \ba) \sim d_\mathcal{M}^\pi(\bs, \ba)}[r(\bs, \ba)].
+\end{equation}
+
+
+Offline RL is the setting where we have access only to a fixed dataset $\mathcal{D} = \{(\bs, \ba, r, \bs')\}$, which consists of transition tuples from trajectories collected using a behavior policy $\behavior$. In other words, the dataset $\mathcal{D}$ is sampled from $d^\behavior(\bs, \ba) \coloneqq d^\behavior(\bs) \behavior(\ba|\bs)$. In the offline setting, even in the limit of an infinite size dataset, it may not be possible to find the optimal policy for the underlying MDP~\cite{Chen2019InformationTheoreticCI, kidambi2020morel}.
+Thus, we typically forgo the goal of finding the optimal policy, and instead aim to find the best possible policy using the fixed offline dataset.
+
+\subsection{Model-Free Offline RL Algorithms}
+\label{sec:conservative_model_free}
+One class of approaches for solving MDPs involves the use of dynamic programming and actor-critic schemes~\cite{SuttonBook, BertsekasBook}, which do not explicitly require the learning of a dynamics model. To capture the long term behavior of a policy without a model, we define the action value function as
+\begin{align}
+    Q^\pi(\bs, \ba) & := \mathbb{E} \left[ \sum_{t=0}^\infty \gamma^t \ r(\bs_t, \ba_t) \mid \bs_0 = \bs, \ba_0 = \ba \right], % \\
+    % V^\pi(\bs) & := \mathbb{E} \left[ \sum_{t=0}^\infty \gamma^t \ r(\bs_t, \ba_t) \mid \bs_0 = \bs \right]
+\end{align}
+where future actions are sampled from $\policy(\cdot|\bs)$ and state transitions happen according to the MDP dynamics. Consider the following Bellman operator:
+\[
+\mathcal{B}^\policy Q (\bs, \ba) := r(\bs, \ba) + \gamma \mathbb{E}_{\ \bs' \sim \transitions(\cdot | \bs, \ba), \ba' \sim \policy(\cdot | \bs')} \left[ Q(\bs', \ba') \right],
+\]
+and its sample based counterpart:
+\[
+\widehat{\mathcal{B}}^\policy Q (\bs, \ba) := r(\bs, \ba) + \gamma Q(\bs', \ba'),
+\]
+associated with a single transition $(\bs, \ba, \bs')$ and $\ba' \sim \policy (\cdot | \bs')$. The action-value function satisfies the Bellman consistency criterion given by $\mathcal{B}^\policy Q^\policy(\bs, \ba) = Q^\policy (\bs, \ba) \ \forall (\bs, \ba)$. When given an offline dataset $\mathcal{D}$, standard approximate dynamic programming~(ADP) and actor-critic methods use this criterion to learn by alternating between the following steps~\cite{Munos2008FiniteTimeBF}.
+\begin{enumerate}[leftmargin=*]
+    \item {\bf Policy Evaluation:} The $Q$ function associated with the current policy $\policy$ is approximated by repeatedly applying the Bellman operator:
+    \begin{equation*}
+        Q^{k+1} \leftarrow \arg \min_{Q} \ \mathbb{E}_{\mathcal{D}} \ \left[ \left( Q(\bs, \ba) -  \widehat{\mathcal{B}}^{\policy} Q^k(\bs, \ba) \right)^2 \right].
+    \end{equation*}
+    The approximate value $\hat{Q}^\pi$ is obtained after several steps of the above recursion.
+    \item {\bf Policy Improvement:} After approximating the Q function as $\hat{Q}^\policy$, the policy is improved as:
+    \[
+    \policy \leftarrow \arg \max_{\policy'} \ \mathbb{E}_{\bs \sim \mathcal{D}, \ba \sim \policy'(\cdot | \bs)} \left[ \hat{Q}^\policy (\bs, \ba) \right]
+    \]
+    Actor-critic schemes with parameterized policies and $Q$ functions approximate the $\arg \max$ and $\arg \min$ in above equations with a few steps of gradient descent.
+\end{enumerate}
+
+% \begin{align*}
+%     \policy_{k+1} & \leftarrow \arg \max_{\policy} \ \mathbb{E}_{\bs \sim \mathcal{D}} \ \left[ Q^k (s, \policy(s)) \right] \\
+%     Q^{k+1} & \leftarrow \arg \min_{Q} \ \mathbb{E}_{\mathcal{D}} \ \left[ \left( Q(\bs, \ba) -  \widehat{\mathcal{B}}^{\policy_{k+1}} Q(\bs, \ba) \right)^2 \right].
+% \end{align*}
+% Actor-critic schemes with parameterized policies and $Q$ functions typically replace or approximate the $\arg \max$ and $\arg \min$ in the above equations with a few steps of gradient descent. 
+A number of prior works have observed that such a direct extension of ADP and actor-critic schemes to offline RL leads to poor results due to distribution shift over the course of learning and over-estimation bias in the $Q$ function~\cite{fujimoto2018off, kumar2019stabilizing, wu2019behavior}. To address these drawbacks, prior works have proposed a number of modifications aimed towards regularizing the policy or value function (see Section~\ref{sec:related}). In this work, we primarily focus on CQL~\cite{kumar2020conservative}, which modifies the action-value learning step as:
+
+\vspace*{-15pt}
+\begin{small}
+\begin{align}
+    {Q}^{k+1} \leftarrow& \arg\min_{Q} \beta\left(\E_{\bs \sim \mathcal{D}, \ba \sim \mu(\cdot|\bs)}\left[Q(\bs,\ba)\right]- \E_{\bs, \ba \sim \mathcal{D}}\left[Q(\bs,\ba)\right]\right)\nonumber\\
+    +& \frac{1}{2}\E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[ \left(Q(\bs, \ba) - \widehat{\bellman}^\policy {Q}^k(\bs, \ba))\right)^2 \right],
+    \label{eq:cql_loss}
+\end{align}
+\end{small}
+\vspace*{-15pt}
+
+where $\mu(\cdot|s)$ is a wide sampling distribution such as the uniform distribution over action bounds. CQL effectively penalizes the $Q$ function at states in the dataset for actions not observed in the dataset. This enables a conservative estimation of the value function for any policy~\cite{kumar2020conservative}, mitigating the challenges of over-estimation bias and distribution shift.
+
+
+\subsection{Model-Based Offline RL Algorithms}
+A second class of algorithms for solving MDPs involve the learning of the dynamics function, and using the learned model to aid policy search. Using the given dataset $\mathcal{D}$, a dynamics model $\hat{T}$ is typically trained using maximum likelihood estimation as:
+\[
+\min_{\hat{T}} \ \mathbb{E}_{(\bs, \ba, \bs') \sim \mathcal{D}} \left[ \log \hat{T}(\bs' | \bs, \ba) \right].
+\]
+In addition, a reward model $\hat{r}(\bs, \ba)$ can also be learned similarly if the reward function is unknown. Once a model has been learned, we can construct the learned MDP $\hat{M} = (\mathcal{S}, \mathcal{A}, \hat{T}, \hat{r}, \mu_0, \gamma)$, which has the same state and action spaces, but uses the learned dynamics and reward function. Subsequently, any policy learning~\cite{schulman2017proximal, haarnoja2018soft, Abdolmaleki2018MaximumAP, Rajeswaran-Game-MBRL} or planning algorithm~\cite{Todorov2005, WilliamsMPPI, POLO, Nagabandi2019DeepDM} can be used to recover the optimal policy in the model as:
+\[
+\hat{\policy} = \arg \max_{\policy} J(\hat{M}, \policy).
+\]
+
+This straightforward approach is known to fail in the offline RL setting, both in theory and practice, due to distribution shift and model-bias~\cite{RossB12, kidambi2020morel}. In order to overcome these challenges, offline model-based algorithms use uncertainty quantification to construct a lower bound for policy performance and optimize this lower bound. By using an uncertainty estimation algorithm like bootstrap ensembles~\cite{OsbandAC18, Azizzadenesheli18, BurdaESK19, POLO}, we can obtain $u(\bs, \ba)$, an estimate of uncertainty in dynamics model prediction. 
+Using this, in the case of MOReL~\cite{kidambi2020morel}, a pessimistic MDP is formed using the modified transition and reward functions:
+\begin{align*}
+\widetilde{T}(\cdot|\bs, \ba) & = \delta(HALT) \ \ \mathrm{if} \ \ u(\bs, \ba) \geq \alpha \ \  \mathrm{else} \ \ \hat{T}(\cdot|\bs, \ba) \\
+\widetilde{r} (\bs, \ba) & = - R_{\max} \ \  \mathrm{if} \ \ u(\bs, \ba) \geq \alpha \ \  \mathrm{else} \ \ \hat{r}(\bs, \ba),
+\end{align*}
+where $HALT$ is an absorbing state. 
+Similarly, in the case of MOPO~\cite{yu2020mopo}, an uncertainty penalized MDP is constructed where the reward is given by
+\[
+\widetilde{r} (\bs, \ba) = \hat{r}(\bs, \ba) - \lambda u(\bs, \ba),
+\]
+and the learned dynamics model is used without modification. Offline MBRL algorithms learn a policy in this the modified MDP $\widetilde{M} = (\mathcal{S}, \mathcal{A}, \widetilde{T}, \widetilde{r}, \mu_0, \gamma)$ which has the property that $J(\widetilde{M}, \policy) \leq J(M, \policy) \ \forall \policy$. 
+%%TY.2.1: We should probably make the notations on different MDPs consistent. In the theory section, we use \widetilde{M} for the learned MDP and \widehat{M} for the empirical MDP.
+By constructing and optimizing such a lower bound, offline model-based RL algorithms avoid the aforementioned pitfalls of naive model-based algorithms.
+Again, while any RL or planning algorithm can be used to learn the optimal policy for $\widetilde{M}$, we focus specifically on MBPO~\cite{janner2019trust, sutton1991dyna} which was used in MOPO. MBPO follows the structure of actor-critic algorithms outlined in Section~\ref{sec:conservative_model_free}, but in each iteration uses an augmented dataset $\data \cup \data_{\text{model}}$ for policy evaluation step. Here, $\data$ is the offline dataset and $\data_{\text{model}}$ is a dataset obtained by simulating the current policy using the learned dynamics model. Specifically, at each iteration, MBPO performs $k$-step rollouts using $\widehat{T}$ starting from state $\bs \in \mathcal{D}$ with a particular rollout policy $\mu(\ba|\bs)$, adds the model-generated data to $\data_{\text{model}}$, and optimizes the policy with a batch of data sampled from $\mathcal{D} \cup \data_{\text{model}}$ where each datapoint in the batch is drawn from $\mathcal{D}$ with probability $f \in [0, 1]$ and $\data_{\text{model}}$ with probability $1 - f$.
+
+% Using this, in the case of MOReL~\cite{kidambi2020morel} a pessimistic MDP is formed using the dynamics $\widetilde{T}(\cdot|\bs, \ba) = \delta(HALT)$ if $u(\bs, \ba) \geq \alpha$ and $\widetilde{T}(\cdot|\bs, \ba) = \hat{T}(\cdot | \bs, \ba)$ otherwise; $\widetilde{r}(\bs, \ba) = -R_\max$ if $u(\bs, \ba) \geq \alpha$ and $\widetilde{r}(\bs, \ba) = \hat{r}(\bs, \ba)$ otherwise. In the case of MOPO, 
+
+%%SL.1.31: Assuming this is a stub that will be filled in later?
+%%AR: Yes, was going to write it now.
+
+\iffalse
+
+
+%Based on the dataset, we also define the empirical behavioral policy as $\hatbehavior(\ba|\bs) \coloneqq \frac{\sum_{\bs,\ba \in \mathcal{D}} \mathbf{1} [\bs = \bs , \ba = \ba]}{\sum_{\bs \in \mathcal{D}} \mathbf{1}[\bs = \bs]}$.
+%% AR: Seems out of place here, we should define it when we are actually going to use it.
+
+%% AR: The part below is out of place in this section. We should introduce it when we are going to use it.
+% {On all states $\bs \in \mathcal{D}$, let $\hatbehavior(\ba|\bs) \coloneqq \frac{\sum_{\bs,\ba \in \mathcal{D}} \mathbf{1} [\bs = \bs , \ba = \ba]}{\sum_{\bs \in \mathcal{D}} \mathbf{1}[\bs = \bs]}$ denote the empirical behavior policy of dataset $\mathcal{D}$.} We also characterize the support of a policy relative to the behavior policy based on the below definition. 
+% %%CF: It might be useful to tell the reader why you are telling them this.
+% Intuitively, for $\pi(\ba|\bs)$ to be in-support of $\behavior(\ba|\bs)$, $\pi$ has to concentrate its probability mass in regions where $\behavior$ visits.
+
+% \begin{definition}
+% A policy $\pi(\ba|\bs)$ is $(\alpha, \epsilon)-$\textit{in-support} of the behavior policy, $\behavior(\ba|\bs)$ iff 
+% \[
+% \E_{\bs, \ba \sim d^\pi(\bs, \ba)}\left[\left[ \frac{d_\mathcal{M}^\pi(\bs, \ba)}{d_\mathcal{M}^\behavior(\bs, \ba)} \geq \alpha \right] \right] \leq \varepsilon.
+% \]
+% \end{definition}
+
+%%CF: A fairly abrupt transition here.
+% off-policy RL
+Off-policy Q-learning methods train a parametric Q-function $Q_\theta(s, a)$ by iteratively applying the Bellman optimality operator \mbox{$\mathcal{B}^*Q(\bs, \ba) = r(\bs, \ba) + \gamma \E_{\bs' \sim P(\bs'|\bs, \ba)}[\max_{\ba'} Q(\bs', \ba')]$}, and recover the policy greedily from the learned Q function. In addition to learning the Q-function, actor-critic algorithms also train a separate policy to maximize the Q-values.
+Actor-critic methods alternate between computing $Q^\policy$ via (partial) policy evaluation,
+by iterating the Bellman operator, $\mathcal{B}^\pi Q= r + \gamma P^\pi Q$, where $P^\pi$ is the transition matrix under the policy $\policy$: $P^\pi Q(\bs, \ba) = \E_{\bs' \sim \transitions(\bs' | \bs, \ba), \ba' \sim \pi(\ba'|\bs')} \left[ Q(\bs', \ba') \right],$
+and improving the policy
+$\policy(\ba|\bs)$ by maximizing the expected Q-value under the actions sampled from the policy. Since $\mathcal{D}$ generally does not cover all possible transitions $(\bs, \ba, \bs')$ in the true MDP $\mathcal{M}$, the policy evaluation step actually uses an empirical Bellman operator that only backs up a single sample, which is denoted as $\hat{\bellman}^\policy$.
+% We present the policy evaluation step and the policy improvement step given the dataset $\mathcal{D}$ generated by a behavior policy $\behavior$ formally as follows:
+% \begin{small}
+% \begin{align*}
+%     \hat{Q}^{k+1} \leftarrow& \arg\min_{Q} \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[ \left((r(\bs, \ba) + \gamma \E_{\ba' \sim \hat{\policy}^k(\ba'|\bs')}[\hat{Q}^{k}(\bs', \ba')]) \right.\right.\\
+%     &\left.\left.- Q(\bs, \ba)\right)^2 \right]~\text{(policy evaluation)}\\ 
+%     \hat{\policy}^{k+1} \leftarrow& \arg\max_{\policy} \E_{\bs \sim \mathcal{D}, \ba \sim \policy^k(\ba|\bs)}\left[\hat{Q}^{k+1}(\bs, \ba)\right]~~~ \text{(policy improvement)} 
+% \end{align*}
+% \end{small}
+% OOD actions and offline RL preliminaries
+
+However, model-free offline RL algorithms based on the above actor-critic procedures suffer from action distribution shift~\citep{kumar2019stabilizing,wu2019behavior,jaques2019way,levine2020offline} during training, since the target Q-values for Bellman backups in policy evaluation use actions sampled from the learned policy, $\policy$ whereas the Q-function is trained only on actions sampled from the behavior policy $\behavior$ that generate the dataset $\mathcal{D}$, $\behavior$. Since $\policy$ is trained to maximize Q-values, such a distribution mismatch may be biased towards out-of-distribution (OOD) actions that could lead to erroneously high Q-values. Conservative Q learning (CQL)~\citep{kumar2020conservative}  proposes to mitigate this Q-value over-estimation issue, by aiming to train a Q-function such that the expected return of the policy under the learned Q-function and $\mathcal{M}$ is a lower bound of its true return. To realize this goal, CQL minimizes the expected Q-values under a particular action distribution $\mu(a|s)$ while maximizing the expected Q-values under the behavior policy $\behavior$, in addition to training the Q-function with the Bellman backup.
+% KY: perhaps add the CQL objective here?
+
+Unlike model-free offline RL methods, model-based approaches learn a dynamics model $\widehat{T}$ estimated from the offline dataset $\mathcal{D}$. Under the estimated dynamics $\widehat{T}$, we have an estimated MDP $\widehat{\mathcal{M}} = (\mathcal{S}, \mathcal{A}, \widehat{\transitions}, r, \mu_0, \gamma)$. Model-based offline RL algorithms aim to learn the policy $\policy$ under $\widehat{\mathcal{M}}$ by maximizing the expected return $J(\widehat{\mathcal{M}}, \pi)$. In the setting where $\mathcal{M}$ can be represented as a table, we can show that model-free offline RL methods are equivalent to model-based counterparts in the following lemma.
+%%CF: Now you are really getting into the territory of "Why are the authors telling me this?"
+
+\aravind{Add a lemma here about equivalence between ADP and MBRL in tabular setting. It can be something like the below but in proper equation form.}
+\begin{proposition}
+Model-free policy iteration with a fixed dataset is equivalent to model-based RL using the empirical transition model for tabular representations.
+\end{proposition}
+Using the learned dynamics model from a fixed dataset introduces the challenge of state distribution shift. To account for such an issue, \citet{yu2020mopo} (MOPO)
+%%CF: I don't think the acroym MOPO has been defined yet. This is also a weird way to introduce and cite a method
+proposes to construct an uncertainty-penalized MDP $\widetilde{\mathcal{M}} = (\mathcal{S}, \mathcal{A}, \widehat{\transitions}, \widetilde{r}, \mu_0, \gamma)$ with the penalized reward function $\widetilde{r}(\bs, \ba) = \widehat{r}(\bs, \ba) - u(\bs, \ba)$ where $\widehat{r}$ is the learned reward function and $u$ is an admissible uncertainty estimator such as $u(\bs,\ba) \geq \frac{R_{\max}}{1-\gamma} D_{TV}(T(\bs,\ba), \hat{T}(\bs,\ba))$. In practice, MOPO learns an ensemble of $K$ probabilistic dynamics models $\{\widehat{T_i}\}_{i=1}^K$ and models $u(\bs, \ba)$ as the maximum learned variance over the ensemble of dynamics models. During training, similar to dyna-style algorithms~\cite{sutton1991dyna,janner2019trust}, MOPO performs $k$-step rollouts using $\{\widehat{T_i}\}_{i=1}^K$ starting from state $\bs \in \mathcal{D}$ with a particular rollout policy $\mu(\ba|\bs)$, adds the model-generated data to a separate replay buffer $\hat{\mathcal{D}}$, and optimizes the policy with a batch of data sampled from $\mathcal{D} \cup \hat{\mathcal{D}}$ where each datapoint in the batch is drawn from $\mathcal{D}$ with probability $f \in [0, 1]$ and $\hat{\mathcal{D}}$ with probability $1 - f$.

@@ -1,0 +1,26 @@
+\renewcommand{\arraystretch}{1.4} 
+\setlength{\tabcolsep}{8pt}
+\begin{table*}
+\centering
+\footnotesize
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{cccccccccccc|c}
+\toprule 
+	& 	& \textbf{aero}	& \textbf{bike}	& \textbf{boat}	& \textbf{bus}	& \textbf{car}	& \textbf{chair}	& \textbf{mbike}	& \textbf{sofa}	& \textbf{train}	& \textbf{tv}	& \textbf{mean}
+\\
+\midrule
+
+\multirow{3}{*}{\textbf{Mesh}} 	& KP+Mask	& 1.77 & 1.85 & 3.68 & 1.90 & 1.80 & 2.26 & 1.83 & 6.86 & 2.69 & 3.40 & 2.80 \\
+& KP+SDS	& 1.75 & 1.89 & 3.71 & 1.87 & 1.75 & 2.27 & 1.84 & 6.56 & 2.76 & 3.39 & 2.78 \\
+& PP+SDS	& 1.84 & 2.02 & 4.59 & 1.86 & 1.88 & 2.41 & 2.01 & 7.30 & 2.74 & 3.27 & 2.99 \\
+& Puff~\cite{twarog2012playing} & 3.31 & 2.49 & 2.95 & 3.40 & 2.87 & 3.09 & 2.65 & 2.73 & 3.91 & 3.33 & 3.07 \\
+\midrule
+\multirow{3}{*}{\textbf{Depth}} 	& KP+Mask	& 9.83 & 9.95 & 21.07 & 12.80 & 10.07 & 9.10 & 9.98 & 29.39 & 25.70 & 9.85 & 14.77 \\
+& KP+SDS	& 9.95 & 10.35 & 20.11 & 13.06 & 10.49 & 9.24 & 10.61 & 27.94 & 26.13 & 10.10 & 14.80 \\
+& PP+SDS	& 11.42 & 11.25 & 21.93 & 22.04 & 13.69 & 10.27 & 11.71 & 26.76 & 34.92 & 9.88 & 17.39 \\
+& SIRFS~\cite{barronPAMI13} & 13.58 & 14.48 & 19.64 & 30.14 & 22.60 & 20.12 & 16.81 & 21.54 & 41.40 & 23.67 & 22.40 \\
+\bottomrule
+\end{tabular}}
+\caption{Ablation study for our method assuming/relaxing various annotations at test time on objects in PASCAL VOC. As can be seen, our method degrades gracefully with relaxed annotations. Note that these experiments are in a train/test setting and numbers will differ from Table \ref{tab:carvi_compare}. Please see text for more details.}
+\label{tab:ablation}
+\end{table*}

@@ -1,0 +1,14 @@
+\section{Learning Deformable 3D Models}
+\seclabel{modelLearning}
+
+\begin{figure*}[htb!]
+\includegraphics[width = \textwidth]{figures/categoryshapes/figTrain.pdf}
+\caption{Overview of our training pipeline. We use an annotated image collection to estimate camera projection parameters which we then use along with object silhouettes to learn 3D shape models. Our learnt shape models, as illustrated in the rightmost figure are capable of deforming to capture intra-class shape variation.}
+\label{fig:figtrain}
+\end{figure*}
+
+We are interested in learning 3D shape models that can be robustly aligned to noisy object segmentations by incorporating top-down class-specific knowledge of how shapes from the class typically project onto the image. We want to learn such models from just 2D training images, aided by ground truth segmentations and a few keypoints, similar to \cite{carvi14}. Our approach operates by first estimating the projection parameters (camera) for all objects in a class using a structure-from-motion approach, followed by optimizing over a deformation basis of representative 3D shapes that best explain all silhouettes, conditioned on the estimated cameras. We describe these two stages of model learning in the following subsections. Figure \ref{fig:figtrain} illustrates this training pipeline of ours.
+
+\input{chapters/categoryshapes/NRSFM}
+
+\input{chapters/categoryshapes/PointCloudModels}

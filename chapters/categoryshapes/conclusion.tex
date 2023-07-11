@@ -1,0 +1,12 @@
+\section{Discussion}
+We proposed what may be the first approach to perform fully automatic object reconstruction from a single image on a large and realistic dataset. Critically, our deformable 3D shape model can be bootstrapped from easily acquired ground-truth 2D annotations thereby bypassing the need for a-priori manual mesh design or 3D scanning and making it possible for convenient use of these types of models on large real-world datasets (e.g. PASCAL VOC). We report an extensive evaluation of the quality of the learned 3D models on a 3D benchmarking dataset for PASCAL VOC~\cite{pascal3d} showing competitive results with models that specialize in shape reconstruction using ground truth annotations as inputs while demonstrating that our method is equally capable in the wild, on top of automatic object detectors.
+
+Much research lies ahead, both in terms of improving the quality and the robustness of reconstruction at test time (both bottom-up and top-down components), developing benchmarks for joint recognition and reconstruction and relaxing the need for annotations during training: all of these constitute interesting and important directions for future work. More expressive non-linear shape models \cite{wu20143d} may prove helpful (we present an instance in Chapter \ref{chapter:LSM} with LSMs), as well as a tighter integration between segmentation and reconstruction.
+
+%For now, our models are likely to be useful for 3D-oriented recognition approaches \cite{SavareseF07,zia2013detailed,fidler20123d}.
+%\todo{Remove all supplementary references ?}
+%For now, our models are likely to be useful for 3D-oriented recognition approaches \cite{zia2013detailed,fidler20123d}.
+
+%The existence of strong dependencies between object reconstruction, recognition and segmentation in human vision has been well demonstrated (e.g. \cite{nandakumar2011little}) and we hope our work will contribute exploiting similar interactions in the computational setting. 
+
+%  and found this to lead to more accurate reconstruction compared to using either process in isolation. 

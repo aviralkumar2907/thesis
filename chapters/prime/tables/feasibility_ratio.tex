@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+  \begin{center}
+    \caption{The average feasibility and uniqueness ratio across five runs for architecture search with an area budget of 6.8 $\mathrm{mm^2}$ (see Figure~\ref{fig:va_6.8}).}
+    \label{tab:feas_ratio}
+    \begin{tabular}{l||c|c|c|c|c}
+      & \bench{Evolutionary} & \bench{MBO} & \bench{P3BO} & \bench{Random} & \bench{Vizier}\\
+      \hline
+      Avg. Feasibility Ratio ($\uparrow$ better)	& 0.362 & 0.803 & 0.347 & 0.009 & 0.012 \\
+      Avg. Uniqueness Ratio ($\uparrow$ better) & 0.891 & 0.236 & 0.848 & 1.0 & 0.979
+    \end{tabular}
+  \end{center}
+\end{table}
+
+% Feasibility
+% Evolutionary    0.362305
+% MBO             0.803516
+% P3BO            0.346924
+% Random          0.008740
+% Vizier          0.012305
+
+% uniqueness
+% Evolutionary    0.891211
+% MBO             0.235645
+% P3BO            0.848291
+% Random          1.000000
+% Vizier          0.979102

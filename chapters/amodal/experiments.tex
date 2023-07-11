@@ -1,0 +1,53 @@
+%\section{Experiments}
+%\seclabel{experiments}
+%\subsection{Amodal completion}
+\subsection{Quantitative Evaluation}
+\paragraph{Dataset:} For the purpose of amodal bounding box prediction, we need annotations for amodal bounding boxes (unlike visible bounding box annotations present in all standard detection datasets). We use the PASCAL 3D+~\cite{pascal3d} dataset which has approximate 3D models aligned to 12 rigid categories on PASCAL VOC~\cite{pascal-voc-2012} to generate these amodal bounding box annotations. It also contains additional annotations for images from ImageNet \cite{imagenet_cvpr09} for each of these categories (22k instances in total from ImageNet). For example, it has between 4 different models aligned to ``chair'' and 10 aligned to ``cars''. The different models primarily distinguish between subcategories (but might also be redundant). The 3D models in the dataset are first aligned coarsely to the object instances and then further refined using keypoint annotations. As a consequence, they correctly capture the amodal extent of the object and allow us to obtain amodal ground-truth.  We project the 3D model fitted per instance into the image, extract the binary mask of the projection and fit a tight bounding box around it which we treat as our amodal box (\figref{amodal}). We train our amodal box regressors on the detection training set of PASCAL VOC 2012 (\textit{det-train}) and the additional images from ImageNet for these 12 categories which have 3D models aligned in PASCAL 3D+ and test on the detection validation set (\textit{det-val}) from the PASCAL VOC 2012 dataset.
+
+\paragraph{Experiments:} We benchmark our amodal bounding box predictor under two settings - going from ground truth visible bounding boxes to amodal boxes and in a detection setting where we predict amodal bounding boxes from noisy detection boxes. We compare against the baseline of using the modal bounding box itself as the amodal bounding box (\textit{modal bbox}) which is in fact the correct prediction for all untruncated instances. \tableref{gtBboxTable} summarizes our experiments in the former setting where we predict amodal boxes from visible ground truth boxes on various subsets of the dataset and report the mean IoU of our predicted amodal boxes with the ground truth amodal boxes generated from PASCAL 3D+. As expected, we obtain the greatest boost over the baseline for truncated instances. Interestingly, the class agnostic network performs as well the class specific one signaling that occlusion patterns span across classes and one can leverage these similarities to train a generic amodal box regressor. 
+
+To test our amodal box predictor in a noisy setting, we apply it on bounding boxes predicted by the RCNN\cite{girshick2013rich} system from Girshick \etal. We assume a detection be correct if the RCNN bounding box has an IoU $> 0.5$ with the ground truth visible box \textit{and} the predicted amodal bounding box also has an IoU $> 0.5$ with the ground truth amodal box. We calculate the average precision for each class under the above definition of a ``correct'' detection and call it the Amodal $AP$ (or $AP^{am}$). \tableref{detectionTable} presents our $AP^{am}$ results on VOC2012 \textit{det-val}. As we can see again, the class agnostic and class specific systems perform very similarly. The notable improvement is only in a few classes (\eg diningtable and boat) where truncated/occluded instances dominate. Note that we do not rescore the RCNN detections using our amodal predictor and thus our performance is bounded by the detector performance. Moreover, the instances detected correctly by the detector tend to be cleaner ones and thus the baseline (\textit{modal bbox}) of using the detector box output as the amodal box also does reasonably well. Our RCNN detector is based on the VGG16 \cite{simonyan2014very} architecture and has a mean $AP$ of $57.0$ on the 12 rigid categories we consider.
+
+% Latent positives table
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{6pt}
+\begin{table}[htb!]
+\centering
+\resizebox{.5\linewidth}{!}{
+\begin{tabular}{ccccc}
+\toprule
+& \textbf{all} & \textbf{trunc/occ} & \textbf{trunc} & \textbf{occ} \tabularnewline
+\midrule
+
+\textbf{modal bbox} & 0.66 & 0.59 & 0.52 & 0.64 \tabularnewline
+\textbf{class specific} & 0.68 & 0.62 & 0.57 & 0.65 \tabularnewline
+\textbf{class agnostic} & 0.68 & 0.62 & 0.56 & 0.65 \tabularnewline
+
+\bottomrule
+\end{tabular}}
+\caption{Mean IoU of amodal boxes predicted from the visible bounding box on various subsets of the validation set in PASCAL VOC. Here \textit{occ} and \textit{trunc} refer to occluded and truncated instances respectively. The class specific and class agnostic methods refer to our variations of the training the amodal box regressors (see text for details) and modal bbox refers to the baseline of using the visible/modal bounding box itself as the predicted amodal bounding box.}
+\tablelabel{gtBboxTable}
+\end{table}
+
+% Detection table
+\renewcommand{\arraystretch}{1.4}
+\begin{table*}[htb!]
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{ccccccccccccc|c}
+\toprule
+& \textbf{aero} & \textbf{bike} & \textbf{boat} & \textbf{bottle} & \textbf{bus} & \textbf{car} & \textbf{chair} & \textbf{table} & \textbf{mbike} & \textbf{sofa} & \textbf{train} & \textbf{tv} & \textbf{mean}\tabularnewline
+\midrule
+
+\textbf{modal bbox} & 70.0 & 66.2 & 23.9 & 35.1 & 76.4 & 57.7 & 28.9 & 24.2 & 68.3 & 45.8 & 58.1 & 59.6 & 51.2 \tabularnewline
+\textbf{class specific} & 69.5 & 67.2 & \textbf{26.9} & 36.0 & \textbf{77.0} & \textbf{61.4} & \textbf{31.4} & 29.2 & \textbf{69.0} & \textbf{49.4} & \textbf{59.3} & 59.5 & \textbf{53.0} \tabularnewline
+\textbf{class agnostic} & \textbf{70.0} & \textbf{67.5} & 26.8 & \textbf{36.3} & 76.8 & 61.3 & 31.1 & \textbf{30.9} & 68.9 & 48.4 & 58.6 & \textbf{59.6} & \textbf{53.0} \tabularnewline
+%\midrule
+% \textbf{RCNN} & 0.72 & 0.7 & 0.36 & 0.38 & 0.78 & 0.65 & 0.35 & 0.36 & 0.72 & 0.52 & 0.71 & %0.6 & 0.57 \tabularnewline
+\bottomrule
+\end{tabular}}
+\caption{$AP^{am}$ for our amodal bounding box predictors on VOC 2012 \textit{det-val}. $AP^{am}$ is defined as the average precision when a detection is assumed to be correct only when both the modal and amodal bounding boxes have IoU $> 0.5$ with their corresponding ground truths.}
+\tablelabel{detectionTable}
+\end{table*}
+
+Armed with amodal bounding boxes, we now show how we tackle the problem of inferring real world object sizes from images.

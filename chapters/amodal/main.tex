@@ -1,0 +1,61 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{iccv}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{lib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+ 
+\algnewcommand{\Initialize}[1]{%
+  \State \textbf{Initialize:}
+  \Statex \parbox[t]{\linewidth}{\raggedright #1}
+}
+
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+\iccvfinalcopy % *** Uncomment this line for the final submission
+
+\def\iccvPaperID{1772} % *** Enter the ICCV Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\ificcvfinal\pagestyle{empty}\fi
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Amodal Completion and Size Constancy in Natural Scenes}
+%\title{Object Size from a Single Image}
+
+\author{Abhishek Kar, Shubham Tulsiani, Jo\~{a}o Carreira and Jitendra Malik\\
+University of California, Berkeley - Berkeley, CA 94720\\
+{\tt\small \{akar,shubhtuls,carreira,malik\}@eecs.berkeley.edu}}
+
+\maketitle
+%\thispagestyle{empty}
+
+\input{abstract}
+\input{intro}
+%\input{related}
+\input{amodal}
+\input{inference}
+\input{resultFig}
+\input{focal_length}
+%\input{experiments}
+%\input{applications}
+\input{conclusion}
+\input{acknowledgements}
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{referencesClean}
+}
+
+\end{document}

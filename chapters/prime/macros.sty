@@ -1,0 +1,31 @@
+\newcommand\myworries[1]{\textcolor{red}{#1}}
+\newcommand\running[1]{\textcolor{blue}{#1}}
+
+\newcommand{\benchl}[1]{{\scriptsize\textsf{#1}}\normalsize\xspace}
+\newcommand{\bench}[1]{{\fontsize{8.5}{10}\selectfont\textsf{#1}}\normalsize\xspace}
+\newcommand{\code}[1]{{\fontsize{8.5}{1}\selectfont{\tt #1}}\xspace}
+\newcommand{\codebold}[1]{{\fontsize{8.5}{1}\selectfont{\tt \textbf{#1}}}\xspace}
+\newcommand{\xx}[1]{\textcolor{black}{#1}}
+\newcommand{\xxs}[1]{\textcolor{black}{\scriptsize\textsf{#1}}}
+\newcommand{\supertiny}[1]{\fontsize{5}{4}\selectfont{#1}}
+\newcommand{\xxred}[1]{\textcolor{red}{\textsf{#1}}}
+\DeclareMathOperator{\EX}{\mathbb{\hat{E}}}% expected value
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+\usepackage{scrextend}
+\deffootnote[1em]{1em}{1em}{\textsuperscript{\thefootnotemark}\,}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+
+\newcommand\aviral[1]{\textcolor{red}{aviralkumar@: #1}}
+\newcommand\ayazdan[1]{\textcolor{red}{ayazdan@: #1}}
+\newcommand\sv[1]{\textcolor{red}{SV@: #1}}
+\newcommand\fix[1]{\textcolor{green}{#1}}
+
+\newcommand{\round}[1]{\ensuremath{\lfloor#1\rceil}}
+
+\newcommand{\tgray}[1]{\colorbox{lightgray}{\textbf{#1}}}
+\newcommand\finalcheck[1]{\textcolor{green}{#1}}
+
+\newcommand\review[1]{#1}

@@ -1,0 +1,34 @@
+\IncMargin{1.0em}
+\begin{algorithm}[t]
+\footnotesize
+\DontPrintSemicolon
+\SetAlgoLined
+\SetArgSty{textnormal}
+\SetKwProg{Fn}{Function}{:}{}
+\SetKwFunction{Fppo}{On-Policy}
+\SetKwFunction{Fmcts}{TPO}
+\For{$\xvar{iteration}\leftarrow$ \scriptsize{1, 2, ..., \xvar{number of iterations}}}{
+\If{$\xvar{iteration}\scriptsize{\leq}\rho\;\times$ \xvar{number of iterations}\Comment*[r]{\footnotesize\sffamily\textcolor{black}{\scriptsize{$\textrm{I} \in (0,\;1)$}}}}
+{
+    $\pi_{c}\:\leftarrow\pi_{(\theta_{old})}$\;
+    $L_{c}\:\leftarrow{}L_{\textrm{\supertiny{On-$\pi$}}}^{\textrm{\supertiny{CLIP+VF}}}\scriptstyle (\theta;\phi)$
+    %
+    \Comment*[r]{\sffamily\textcolor{black}{\scriptsize{On-Policy Training; See Eq.~\ref{eq:l_clip}, \ref{eq:l_vf_clip}, \ref{eq:l_vf}, and \ref{eq:ppo_loss}}}}
+}\Else
+{
+$\pi_{c}\:\leftarrow\pi_{(\theta_{old}; TS)}$\;
+\footnotesize{
+$L_{c}\:\leftarrow{}L_{\textrm{\supertiny{Off-$\pi$}}}^{\textrm{\supertiny{PF+VF}}}\scriptstyle (\theta;\phi)$\hspace{0.5cm} \Comment*[r]{\footnotesize\sffamily\textcolor{black}{\scriptsize{Off-Policy Training; See Eq.~\ref{eq:l_vf_clip}, \ref{eq:l_vf}, \ref{eq:l_tpo}, and \ref{eq:tpo_loss}}}}}
+}
+Roll out trajectories \{$\tau_{1}$, $\tau_{2}$, ..., $\tau_{\kappa}$\} for T timesteps each using $\pi_{c}$\;
+\For{$\xvar{e}\leftarrow$ \scriptsize{1, 2, ..., \xvar{number of epochs}}}{
+Optimize $L_{c}$ wrt to $\theta$ and $\phi$ with minibatch size \xvar{M}\;
+}
+$\theta_{old}\leftarrow\theta$\;
+$\phi_{old}\leftarrow\phi$
+}
+\caption{\textbf{\benchl{TPO}}\footnotesize{: \textbf{\benchl{T}}ree Search \textbf{\benchl{P}}olicy \textbf{\benchl{O}}ptimization}}
+\label{alg:tpo}
+\end{algorithm}
+\vspace{-0.2cm}
+\DecMargin{0.5cm}

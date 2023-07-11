@@ -1,0 +1,269 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2020
+
+% ready for submission
+% \usepackage{neurips_2020}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2020}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2020}
+
+% to avoid loading the natbib package, add option nonatbib:
+\usepackage[nonatbib]{neurips_2021}
+\usepackage[numbers]{natbib}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{mathtools}
+
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+\usepackage{amsthm,amsmath}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{url,xcolor}            % simple URL typesetting
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+
+
+\include{defs}
+\include{math_commands}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm,algorithmic}
+\usepackage{mathtools}
+\newtheorem{claim}{Claim}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\renewcommand\theassumption{A\arabic{assumption}}
+
+
+\def\shownotes{1} 
+\ifnum\shownotes=1
+\newcommand{\authnote}[2]{{[#1: #2]}}
+\else 
+\newcommand{\authnote}[2]{{}}
+\fi
+\newcommand{\tnote}[1]{{\color{orange}\authnote{TM}{#1}}}
+
+\title{Value-Based Deep Reinforcement Learning Requires Explicit Regularization}
+%%AK: Somehow aliasing doesnt seem to fit well here.... Is there a different word we could use?
+%%SL.5.13: I feel like we can find a more inspiring title. Right now there are two "weak" words in the beginning: "Mitigating" and "Excessive" -- the former suggests "a partial and incomplete solution" and the latter suggests "something that is not too bad, but problematic in large quantities." Together this kind of sounds like it's an incomplete solution to something that is not a big problem. I think we need a stronger title. A few potential ideas:
+% Stable Representations for Offline Reinforcement Learning
+% Offline Reinforcement Learning with Feature Stabilization
+% Offline Reinforcement Learning without Feature Aliasing (or, more generally Offline Reinforcement learning without [something bad])
+% any other ideas?
+%%AK.5.16: We can also do the form of [Methodname]: Stable offline RL without Feature aliasing or something like that?
+%%SL.5.17: It's a little bit of a reach, but I think we can afford to drop "value-based" in the title and just write "Deep Reinforcement Learning Requires Explicit Regularization". I think that will be a great public title. That said, for the submission, one important thing is that we really should try to get a more theory-focused reviewer (or should we?), in which case we could add something like:
+% Deep Reinforcement Learning Requires Explicit Regularization: a Theoretical and Empirical Analysis of Implicit and Explicit Regularization in Offline RL (it's horribly long, but perhaps the word "theoretical" will index into the right reviewer pool)
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+
+While deep reinforcement learning (RL) methods present an appealing approach to sequential decision making, such methods are often difficult to use in practice due to their instability. What accounts for this instability? In this paper, we focus on the specific case of offline deep RL, and show that value-based offline deep RL methods can learn degenerate features. In supervised learning, deep networks enjoy the benefits of implicit regularization, which leads to effective generalization despite overparameterization. We show that, in the case of deep RL, implicit regularization in offline RL can instead lead to degenerate features.
+Specifically, features learned by the Q-network at state-action tuples appearing on both sides of the Bellman update ``co-adapt'' to each other, giving rise to poor
+solutions. We show that this holds both in theory and practice. In fact, even when initializing a network close to an optimal solution, feature co-adaptation
+can lead the model away from this optimum. To address the adverse impacts of the co-adaptation induced by the implicit regularization, we propose a simple and effective explicit regularizer, \methodname, that  minimizes similarity of learned features of the Q-network at state-tuples appearing on both sides of the Bellman update. Empirically when combined with several existing offline RL methods, \methodname\ improves both performance and stability on Atari 2600 games, D4RL domains, and robotic manipulation from images.
+\end{abstract}
+
+%%SL.5.22: It would be good if we could say something more specific than "poor features" ("degenerate" might be a better word if we can't think of anything better)
+%%SL.5.22: Same comment, would be good if we can say something other than "poor"
+%%SL.5.22: I don't think we said anything about gradient descent prior to this -- perhaps remove mention of gradient descent here?
+
+\input{intro}
+
+\input{prelim}
+
+\input{problem_final2}
+
+\input{method}
+
+\input{analysis}
+
+\input{related_work}
+
+\input{experiments}
+
+
+\vspace{-10pt}
+\section{Discussion}
+\label{sec:discussion}
+\vspace{-10pt}
+% Summary
+This paper showed that implicit regularization of TD-updates leads to feature co-adaptation that gives rise to representations that fail to distinguish between consecutive state-action tuples that both appear in a Bellman backup. This regularization effect is exacerbated when out-of-sample %(and not out-of-distribution) 
+state-action samples are used for the Bellman backup and it can lead to poor policy performance. We devise an explicit regularizer, \methodname\ that directly counteracts this by penalizing the dot product of the learned representations of the network and yields substantial improvements on stability and performance on a wide range of offline RL problems including robotic manipulation tasks, Atari games and continuous control D4RL tasks. Learning-based machine learning systems can have both positive and negative societal impacts  (e.g., loss of jobs in some areas). These implications also broadly apply to our work as any other work in reinforcement learning.  
+
+% Future work
+While DR3 shows substaintial performance improvements, there may be better approaches to mitigate the issues we observed. We believe that understanding the learning dynamics of deep Q-learning and the induced implicit regularization will lead to the development of more robust and stable deep RL algorithms. Furthermore, this understanding can help us to predict the instability issues in value-based RL methods in advance, which can inspire cross-validation and model selection strategies, an important, open challenge in offline RL~\citep{fu2021benchmarks}. 
+% \textbf{Limitations:} 
+% While DR3 improves performance on a number of tasks, it is not clear if it is the best possible approach to mitigate the issues we observe. Answering this question requires a deep understanding of the learning dynamics of Q-learning. 
+% \textbf{Societal Impacts:} 
+% Learning-based machine learning systems can have both positive (e.g., positive economic impact) and negative societal impacts  (e.g., loss of jobs in some areas). These implications also broadly apply to our work as any other work in reinforcement learning, and are largely not unique to this work.     
+
+\bibliography{reference}{}
+\bibliographystyle{plainnat}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Checklist}
+
+%%%% BEGIN INSTRUCTIONS %%%
+%The checklist follows the references.  Please
+%read the checklist guidelines carefully for information on how to answer these
+%questions.  For each question, change the default \answerTODO{} to \answerYes{},
+%\answerNo{}, or \answerNA{}.  You are strongly encouraged to include a {\bf
+%justification to your answer}, either by referencing the appropriate section of
+%your paper or providing a brief inline description.  For example:
+%\begin{itemize}
+%  \item Did you include the license to the code and datasets? \answerYes{See Section~\ref{gen_inst}.}
+%  \item Did you include the license to the code and datasets? \answerNo{The code and the data are proprietary.}
+%  \item Did you include the license to the code and datasets? \answerNA{}
+%\end{itemize}
+%Please do not modify the questions and only use the provided macros for your
+%answers.  Note that the Checklist section does not count towards the page
+%limit.  In your paper, please delete this instructions block and only keep the
+%Checklist section heading above along with the questions/answers below.
+%%%% END INSTRUCTIONS %%%
+
+\begin{enumerate}
+
+\item For all authors...
+\begin{enumerate}
+  \item Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+    \answerYes{}
+  \item Did you describe the limitations of your work?
+    \answerYes{Please see Section~\ref{sec:discussion}.}
+  \item Did you discuss any potential negative societal impacts of your work?
+    \answerYes{Please see Section~\ref{sec:discussion}.}
+  \item Have you read the ethics review guidelines and ensured that your paper conforms to them?
+    \answerYes{}
+\end{enumerate}
+
+\item If you are including theoretical results...
+\begin{enumerate}
+  \item Did you state the full set of assumptions of all theoretical results?
+    \answerYes{Assumptions are described in the main text and in Appendix~\ref{app:proofs}.}
+	\item Did you include complete proofs of all theoretical results?
+    \answerYes{Please see Appendix~\ref{app:proofs}.}
+\end{enumerate}
+
+\item If you ran experiments...
+\begin{enumerate}
+  \item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
+    \answerYes{}
+  \item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
+    \answer{Yes, please see Appendix~\ref{app:method_details}.}
+	\item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
+    \answerYes{}
+	\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
+    \answerYes{Please see Appendix~\ref{app:method_details}.}
+\end{enumerate}
+
+\item If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
+\begin{enumerate}
+  \item If your work uses existing assets, did you cite the creators?
+    \answerYes{We cited the creators of datasets that we use.}
+  \item Did you mention the license of the assets?
+    \answerYes{Please check appendix~\ref{app:method_details}.}
+  \item Did you include any new assets either in the supplemental material or as a URL?
+    \answerNo{}
+  \item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
+    \answerYes{The data we are using is open-sourced, so we could directly use it.}
+  \item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
+    \answerYes{Our data does not have personally identifiable information or offensive content.}
+\end{enumerate}
+
+\item If you used crowdsourcing or conducted research with human subjects...
+\begin{enumerate}
+  \item Did you include the full text of instructions given to participants and screenshots, if applicable?
+    \answerNA{}
+  \item Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable?
+    \answerNA{}
+  \item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
+    \answerNA{}
+\end{enumerate}
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DELETE THIS PART. DO NOT PLACE CONTENT AFTER THE REFERENCES!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\newpage
+\input{appendix}
+
+
+
+\end{document}

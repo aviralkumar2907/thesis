@@ -1,0 +1,76 @@
+%\section{Experiments : Viewpoint Prediction}
+\seclabel{vpExperiments}
+
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{6pt}
+\begin{table*}
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{lcccccccccccc|c}
+\toprule
+ & \textbf{\footnotesize{}aero} & \textbf{\footnotesize{}bike} & \textbf{\footnotesize{}boat} & \textbf{\footnotesize{}bottle} & \textbf{\footnotesize{}bus} & \textbf{\footnotesize{}car} & \textbf{\footnotesize{}chair} & \textbf{\footnotesize{}table} & \textbf{\footnotesize{}mbike} & \textbf{\footnotesize{}sofa} & \textbf{\footnotesize{}train} & \textbf{\footnotesize{}tv} & \textbf{\footnotesize{}mean}\tabularnewline
+\midrule
+{\footnotesize{}$Acc_{\frac{\pi}{6}}$ (Pool5-TNet)} & {\footnotesize{}0.27} & {\footnotesize{}0.18} & {\footnotesize{}0.36} & {\footnotesize{}0.81} & {\footnotesize{}0.71} & {\footnotesize{}0.36} & {\footnotesize{}0.52} & {\footnotesize{}0.52} & {\footnotesize{}0.38} & {\footnotesize{}0.67} & {\footnotesize{}0.70} & {\footnotesize{}0.71} & {\footnotesize{}0.52}\tabularnewline
+{\footnotesize{}$Acc_{\frac{\pi}{6}}$(fc7-TNet)} & {\footnotesize{}0.50} & {\footnotesize{}0.44} & {\footnotesize{}0.39} & {\footnotesize{}0.88} & {\footnotesize{}0.81} & {\footnotesize{}0.70} & {\footnotesize{}0.39} & {\footnotesize{}0.38} & {\footnotesize{}0.48} & {\footnotesize{}0.44} & {\footnotesize{}0.78} & {\footnotesize{}0.65} & {\footnotesize{}0.57}\tabularnewline
+{\footnotesize{}$Acc_{\frac{\pi}{6}}$(ours-TNet)} & {\footnotesize{}0.78} & {\footnotesize{}0.74} & {\footnotesize{}0.49} & \textbf{\footnotesize{}0.93} & {\footnotesize{}0.94} & \textbf{\footnotesize{}0.90} & {\footnotesize{}0.65} & \textbf{\footnotesize{}0.67} & {\footnotesize{}0.83} & {\footnotesize{}0.67} & {\footnotesize{}0.79} & {\footnotesize{}0.76} & {\footnotesize{}0.76}\tabularnewline
+{\footnotesize{}$Acc_{\frac{\pi}{6}}$(ours-ONet)} & \textbf{\footnotesize{}0.81} & \textbf{\footnotesize{}0.77} & \textbf{\footnotesize{}0.59} & \textbf{\footnotesize{}0.93} & \textbf{\footnotesize{}0.98} & {\footnotesize{}0.89} & \textbf{\footnotesize{}0.80} & \textbf{\footnotesize{}0}{\footnotesize{}.62} & \textbf{\footnotesize{}0.88} & \textbf{\footnotesize{}0.82} & \textbf{\footnotesize{}0.80} & \textbf{\footnotesize{}0.80} & \textbf{\footnotesize{}0.81}\tabularnewline
+\midrule
+{\footnotesize{}$MedErr$ (Pool5-TNet)} & {\footnotesize{}42.6} & {\footnotesize{}52.3} & {\footnotesize{}46.3} & {\footnotesize{}18.5} & {\footnotesize{}17.5} & {\footnotesize{}45.6} & {\footnotesize{}28.6} & {\footnotesize{}27.7} & {\footnotesize{}37.0} & {\footnotesize{}25.9} & {\footnotesize{}20.6} & {\footnotesize{}21.5} & {\footnotesize{}32.0}\tabularnewline
+{\footnotesize{}$MedErr$(fc7-TNet)} & {\footnotesize{}29.8} & {\footnotesize{}40.3} & {\footnotesize{}49.5} & {\footnotesize{}13.5} & {\footnotesize{}7.6} & {\footnotesize{}13.6} & {\footnotesize{}45.5} & {\footnotesize{}38.7} & {\footnotesize{}31.4} & {\footnotesize{}38.5} & {\footnotesize{}9.9} & {\footnotesize{}22.6} & {\footnotesize{}28.4}\tabularnewline
+{\footnotesize{}$MedErr$(ours-TNet)} & {\footnotesize{}14.7} & {\footnotesize{}18.6} & {\footnotesize{}31.2} & {\footnotesize{}13.5} & {\footnotesize{}6.3} & \textbf{\footnotesize{}8.8} & {\footnotesize{}17.7} & {\footnotesize{}17.4} & {\footnotesize{}17.6} & {\footnotesize{}15.1} & {\footnotesize{}8.9} & {\footnotesize{}17.8} & {\footnotesize{}15.6}\tabularnewline
+{\footnotesize{}$MedErr$(ours-ONet)} & \textbf{\footnotesize{}13.8} & \textbf{\footnotesize{}17.7} & \textbf{\footnotesize{}21.3} & \textbf{\footnotesize{}12.9} & \textbf{\footnotesize{}5.8} & {\footnotesize{}9.1} & \textbf{\footnotesize{}14.8} & \textbf{\footnotesize{}15.2} & \textbf{\footnotesize{}14.7} & \textbf{\footnotesize{}13.7} & \textbf{\footnotesize{}8.7} & \textbf{\footnotesize{}15.4} & \textbf{\footnotesize{}13.6}\tabularnewline
+\bottomrule
+\end{tabular}}
+\caption{Viewpoint Estimation with Ground Truth box}
+\label{table:poseGtEval}
+\end{table*}
+
+An important component of the proposed reconstruction framework is the viewpoint estimation system \secref{viewpoints} which allows us to fit learned models to objects in new images. We evaluate this component under two settings -- viewpoint prediction accuracy when the object localization is known and a detection setting with unkown localization. We observe that our proposed approach significantly improves the state-of-the-art for viewpoint estimation in both these settings.
+
+
+\paragraph{Dataset.}
+Xiang \etal \cite{pascal3d} provide annotations for $(\phi,\varphi,\psi)$ corresponding to all the instances in the PASCAL VOC 2012 detection train, validation set as well as for ImageNet images. We use the PASCAL train set and the ImageNet annotations to train the CNN described in \secref{viewpoints} and use the PASCAL VOC 2012 validation set annotations to evaluate our performance. 
+
+
+\paragraph{Viewpoint Estimation with Ground Truth box.}
+To analyze the performance of our viewpoint estimation method independent of factors like mis-localization, we first tackle the task of estimating the viewpoint of an object with known bounds. Let $\Delta(R_1,R_2) = \frac{ \| log(R_1^TR_2)\|_F}{\sqrt{2}}$ denote the geodesic distance function over the manifold of rotation matrices. $\Delta(R_{gt},R_{pred})$ captures the difference between ground truth viewpoint $R_{gt}$ and predicted viewpoint $R_{pred}$. We use two complementary metrics for evaluation -
+\begin{itemize}
+\item \textbf{Median Error :} The common confusions for the task of viewpoint estimation often are predictions which are far apart (eg. left facing vs right facing car) and the median error ($MedErr$) is a widely use metric that is robust to these if a significant fraction of the estimates are accurate.
+\item \textbf{Accuracy at $\theta$ :} A small median error does not necessarily imply accurate estimates for all instances, a complementary performance measure is the fraction of instances whose predicted viewpoint is within a fixed threshold of the target viewpoint. We denote this metric by $Acc_{\theta}$ where $\theta$ is the threshold. We use $\theta = \frac{\pi}{6}$.
+\end{itemize}
+Recently, Ghodrati \etal \cite{ghodrati14viewpoint} achieved results comparable to state-of-the art by using a linear classifier over layer 5 features of TNet. We denote this method as 'Pool5-TNet' and implement it as a baseline. To study the effect of end-to-end training of the CNN architecture, we use a linear classifier on top of the fc7 layer of TNet as another baseline (denoted as 'fc7-TNet' ). With the aim of  analyzing viewpoint estimation independently, the evaluations were restricted only to objects marked as non-occluded and non-truncated. The performance of our method and comparisons to the baseline are shown in Table \ref{table:poseGtEval}. The results clearly demonstrate that end-to-end training improves results and that our method with the TNet architecture performs significantly better than the 'Pool5-TNet' method used in \cite{ghodrati14viewpoint}. We also observe a significant improvement by using the ONet architecture and only use this architecture for further experiments/analysis. In Figure \ref{figure:viewpointPreds}, we show our predictions sorted in terms of the error and  it can be seen that the predictions for most categories are reliable even at the 90th percentile.
+
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{6pt}
+\begin{table}[htb!]
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{lcccccc}
+\toprule
+ &  \multicolumn{4}{c}{\footnotesize{}$AVP$} &  {\footnotesize{}$AVP_{\frac{\pi}{6}}$} & {\footnotesize{}$ARP_{\frac{\pi}{6}}$} \tabularnewline
+\midrule
+\textbf{\footnotesize{}Number of bins} & \textbf{\footnotesize{}4 } & \textbf{\footnotesize{}8} & \textbf{\footnotesize{}16} & \textbf{\footnotesize{}24} & \textbf{\footnotesize{}-} & \textbf{\footnotesize{}-}\tabularnewline
+\midrule
+\textbf{\footnotesize{}Xiang \etal \cite{pascal3d}} & {\footnotesize{}19.5} & {\footnotesize{}18.7} & {\footnotesize{}15.6} & {\footnotesize{}12.1} & {\footnotesize{}-} & {\footnotesize{}-}\tabularnewline
+\textbf{\footnotesize{}Pepik \etal \cite{pepik12dpm}} & {\footnotesize{}23.8} & {\footnotesize{}21.5} & {\footnotesize{}17.3} & {\footnotesize{}13.6} & {\footnotesize{}-} & {\footnotesize{}-}\tabularnewline
+\textbf{\footnotesize{}Ghodrati \etal \cite{ghodrati14viewpoint}} & {\footnotesize{}24.1} & {\footnotesize{}22.3} & {\footnotesize{}17.3} & {\footnotesize{}13.7} & {\footnotesize{}-} & {\footnotesize{}-}\tabularnewline
+\textbf{\footnotesize{}ours} & \textbf{\footnotesize{}49.1} & \textbf{\footnotesize{}44.5} & \textbf{\footnotesize{}36.0} & \textbf{\footnotesize{}31.1} & {\footnotesize{}50.7} & {\footnotesize{}46.5}\tabularnewline
+\bottomrule
+\end{tabular}}
+
+\caption{Mean performance of our approach for various metrics. The detailed results for  individual classes can be found at the PASCAL3D leaderboard (\url{http://cvgl.stanford.edu/projects/pascal3d.html}).}
+\label{table:poseDetEval}
+\end{table}
+
+
+\paragraph{Viewpoint Estimation with Detection.}
+Xiang \etal \cite{pascal3d} introduced the $AVP$ metric to measure advances in the task of viewpoint estimation in the setting where localizations are not known a priori. The metric is similar to the $AP$ criterion used for PASCAL VOC detection except that each detection candidate has an associated viewpoint and the detection is labeled correct if it has a correct predicted viewpoint bin as well as a correct localization (bounding box IoU $>$ 0.5). Xiang \etal \cite{pascal3d} also compared to Pepik \etal \cite{pepik12dpm} on the AVP metric using various viewpoint bin sizes and Ghodrati \etal \cite{ghodrati14viewpoint} also showed comparable results on the metric. To evaluate our method, we obtain detections from RCNN \cite{rcnn} using MCG \cite{mcg2014} object proposals and augment them with a pose predicted using the corresponding detection's bounding box.
+
+We note that there are two issues with the $AVP$ metric - it only evaluates the prediction for the azimuth ($\phi$) angle and discretizes viewpoint instead of treating it continuously. Therefore, we also introduce two additional evaluation metrics which follow the IoU $>$ 0.5 criteria for localization but modify the criteria for assigning a viewpoint prediction to be correct as follows -
+\begin{itemize}
+\item $AVP_{\theta}$ : $\delta(\phi_{gt},\phi_{pred})<\theta$
+\item $ARP_{\theta}$ :  $\Delta(R_{gt},R_{pred})<\theta$
+\end{itemize}
+Note that $ARP_{\theta}$ requires the prediction of all euler angles instead of just $\phi$ and therefore, is a stricter metric.
+
+The performance of our CNN based approach for viewpoint prediction in the detection setting is shown in Table \ref{table:poseDetEval} and it can be seen that we significantly outperform the state-of-the-art methods across all categories. While it is not possible to compare our pose estimation performance independent of detection with DPM based methods like \cite{pascal3d,pepik12dpm}, an indirect comparison results from the analysis using ground truth boxes where we demonstrate that our pose estimation approach is an improvement over \cite{ghodrati14viewpoint} which in turn performs similar to \cite{pascal3d,pepik12dpm} while using similar detectors.

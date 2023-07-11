@@ -1,0 +1,20 @@
+We adopt a coarse-to-fine approach to reconstruction and build dense shape models progressively. We assume the availability of a small set of consistent per-class keypoint correspondences as well as ground-truth segmentations and take advantage of both to jointly estimate camera viewpoint and rough modes of shape variation within a category. We build upon the Non-rigid Structure-from-Motion (NRSFM) algorithm of Torresani \etal \cite{Torresani2008NRSFM} which can deal with missing data (occluded keypoints) and propose a modification that allows it to leverage object segmentations for improved robustness -- this is described in the next section. Given the viewpoint estimates and deformation weights from NRSFM, our method proceeds to build class shape models much denser than the initial small set of keypoints. We propose two alternative shape models that are obtained using techniques inspired by standard multiview shape-from-silhouette approaches: a dense parametric 3D morphable model (sec. \ref{OPTIMIZ}) and a non-parametric visual hull based model (sec. \ref{VH}). Equipped with these models we can reconstruct a new object given just its keypoints and silhouette, but this results in a dominantly top-down, memory-induced 3D shape which may not align well with the fine shape details that only become apparent when looking at pixels. This motivates our aim to combine top-down with bottom-up reconstruction.
+
+We propose a simple sequential architecture, and render a dense depth map using our top-down shape model, which serves as guidance to a state-of-the-art intrinsic image decomposition algorithm that produces our final outputs: pixelwise object surface depth, normals, albedo and illumination information. Our motivation is that shape-from-shading algorithms are more naturally competent at predicting high frequency localized shape (say bezels and lights in cars), which vary considerably between different object instances, but have trouble capturing rough global shape, which is more stable across a class and that is characterized by long-range dependencies: it seems necessary to reason over different class instances to reliably capture such low-frequency shape information. 
+
+\subsubsection{Intrinsic Images:}We use the SIRFS algorithm of Barron and Malik \cite{barronPAMI13,Barron2012B} which is driven by priors on shape, albedo and illumination that try to capture the statistical regularities in the natural world. For example, shapes are smooth and some colors are more frequent than others. Formally, the SIRFS formulation is:
+
+\begin{equation*}
+\begin{aligned}
+& \underset{Z,L}{\text{minimize}}
+& & g(I-S(Z,L))+f(Z)+h(L)
+\end{aligned}
+\end{equation*}
+where $R=I-S(Z,L)$ is a log-reflectance image, $Z$ is a depth map and $L$ is a spherical-harmonic model of illumination. $S(Z,L)$ is a rendering engine which linearizes $Z$ into a set of surface normals and produces a log shading image with the illumination $L$. $g$, $f$ and $h$ are the loss functions corresponding to reflectance, shape and illumination respectively. 
+
+We use an extended version of SIRFS that allows incorporating a noisy shape observation into the optimization. The loss term corresponding to this is as follows:
+
+\begin{equation*}
+f_o(Z,Z') = \underset{i}{\sum}((Z_i-Z_i')^2+\epsilon^2)^{\gamma_o}
+\end{equation*}
+where $Z'$ is the noisy shape and $\epsilon$ us added to make the loss differentiable everywhere. We use the depth maps obtained from our shape-from-silhouette methods as $Z'$ to better guide the solution to this highly non-convex problem. 

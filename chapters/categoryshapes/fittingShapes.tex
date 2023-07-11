@@ -1,0 +1,38 @@
+\section{Reconstruction in the Wild}
+\seclabel{testing}
+Given an image, our goal is to reconstruct the depicted objects. As the initial step, we use existing state-of-the-art systems~\cite{BharathECCV2014} to detect and segment the objects present in the image. We then proceed to individually reconstruct each of the detected objects. We approach the problem of reconstructing these objects from the big picture downward - like a sculptor first hammering out the big chunks and then chiseling out the details. We infer their coarse 3D poses and use these along with the predicted instance segmentations to fit our top-down shape models to obtain a coarse top-down shape (\secref{testingModel}). Finally, we recover high frequency shape details from shading cues present in the image (\secref{sirfs}).
+
+\subsection{Category Specific Shape Inference}
+\seclabel{testingModel}
+
+We have at our disposal category-level deformable shape models which can be driven by data-specific and shape-prior based energy terms to infer an object's shape.  Recall that the proposed energy terms (\secref{basisshapes}), in particular silhouette consistency ($E_{s}(S,O,\pi)$) and silhouette coverage ($E_{c}(S,O,\pi)$) depend on a known object silhouette $O$ and camera projection $\pi$. We first describe how we estimate $O,\pi$ and then formulate an optimization  problem to infer object shape $S$.
+
+
+\paragraph{Initialization.} Given an object detection along with its predicted instance segmentation, we use the largest connected component in the predicted segmentation to obtain the object silhouette $O$. We use the viewpoint prediction system described from \cite{ShubhamPose} to predict the viewpoint for the detected object, thereby obtaining the camera rotation $R$. Our learnt models are at a canonical bounding box scale - all objects are first resized to a particular width during training. Given the predicted bounding box, we scale the learnt mean shape accordingly and obtain camera scale $c$. The translation $T$ is initialized to be the center of the predicted bounding box. These provide us an initial estimate of the camera parameters $\pi_0 \equiv (c,R,T)$.
+
+
+\paragraph{Formulation.}
+We want to infer a shape that best explains the observed object silhouette, respects generic shape priors (smoothness, continuity) and lies on the linear manifold of category-level shapes. Note that, unlike model learning phase, we do not have access to annotated keypoint locations and thus do not enforce the reconstruction to explain any keypoint locations. These observations are incorporated by the reconstruction energy defined in \eqlabel{testRecon} (using $E_{s},E_{c},E_{n}$ defined in \secref{basisshapes}).
+
+\begin{gather}
+ \eqlabel{testRecon}E_{r} = E_{s} + E_{c} + E_{n}
+\end{gather}
+
+In addition to inferring the instance shape, we also observe that the initial camera estimate $\pi_0$ is only approximate as the $R$ is predicted upto a dicretization and $c,T$ are initialized coarsely. To alleviate this, we treat the camera parameters $\pi$ as optimization variables.  We further add regularizers to enforce the prior that shape deformation should be small and the the estimated camera should not deviate significantly from the initial camera estimate $\pi_0$ . Our final optimization for inferring the object reconstruction is given in \eqref{energyTest}.
+
+\begin{equation}
+\begin{aligned}
+\eqlabel{energyTest}
+& \underset{\alpha,\pi}{\text{min}}
+& & E_{r}(S,\pi) + \delta(\pi,\pi_0) +\underset{k}{\sum}(\|\alpha_{k}V_k\|_F^{2})) \\
+& \text{subject to:}
+& & S = \bar{S} + \underset{k}{\sum}\alpha_{k} V_k
+\end{aligned}
+\end{equation}
+
+\paragraph{Inference.} In the above optimization,  we first set the optimization variables $\alpha$ and $\pi$ to $0$ and $\pi_0$ respectively.  We then solve the above minimization for the deformation weights $\alpha$ as well as all the camera projection parameters $\pi$ (scale, translation and rotation) by optimizing~\eqref{optimization}  using block-coordinate descent (alternately optimizing $\pi$ and $\alpha$). The resulting output from the minimization provides us the projection parameters $\pi$ as well as the inferred 3D shape $S = \bar{S} + {\sum_k}\alpha_{k} V_k$. We use the efficient implementations of energy gradients described earlier and consequently, our overall computation takes only about 2 sec to reconstruct a novel instance using a single CPU core.
+
+\input{chapters/categoryshapes/compare_table}
+\subsection{Bottom-up Shape Refinement}
+\seclabel{sirfs}
+\input{chapters/categoryshapes/sirfs}

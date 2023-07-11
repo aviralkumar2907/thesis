@@ -1,0 +1,215 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2021
+
+% ready for submission
+\PassOptionsToPackage{numbers, compress}{natbib}
+\usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2021}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{amsthm}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{fleqn, tabularx}
+\usepackage{multirow}
+\usepackage[export]{adjustbox}
+\usepackage{amsmath}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{xcolor}
+
+\definecolor{Gray}{gray}{0.9}
+
+
+\makeatletter
+\newcommand{\mybox}{%
+    \collectbox{%
+        \setlength{\fboxsep}{1pt}%
+        \fbox{\BOXCONTENT}%
+    }%
+}
+\makeatother
+\newcommand{\CC}{\cellcolor{Gray}}
+
+\include{defs}
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{0pt plus 2pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{3pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+\title{Multi-Task Offline Reinforcement Learning with Conservative Data Sharing}
+%%CF.5.17: The current title (Multi-Task Offline Reinforcement Learning with Conservative Data Sharing) seems pretty good to me.
+% KY: ideas for better titles?
+%%SL.5.15: Multi-Task Offline Reinforcement Learning with Optimal Relabeling? There is something appealing about this paper being known as "the multi-task offline RL paper" :)
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Offline reinforcement learning (RL) algorithms have shown promising results in domains where abundant pre-collected data is available. However, prior methods focus on solving individual problems from scratch with an offline dataset without considering how an offline RL agent can acquire multiple skills. We argue that a natural use case of offline RL is in settings where we can pool large amounts of data collected in a number of different scenarios for solving various tasks, and utilize all this data to learn strategies for all the tasks more effectively rather than training each one in isolation. To this end, we study the offline multi-task RL problem, with the goal of devising data-sharing strategies for effectively learning behaviors across all of the tasks. While it is possible to share all data across all tasks, we find that this simple strategy can actually exacerbate the distributional shift between the learned policy and the dataset, which in turn can lead to very poor performance.
+To address this challenge, we develop a simple technique for data-sharing in multi-task offline RL that routes data based on the improvement over the task-specific data. We call this approach conservative data sharing (\methodname), and it can be applied with any single-task offline RL method. On a range of challenging multi-task locomotion, navigation, and image-based robotic manipulation problems, \methodname\ achieves the best or comparable performance compared to prior offline multi-task RL methods and previously proposed online multi-task data sharing approaches.  
+\end{abstract}
+
+\input{intro}
+
+\input{related_work}
+
+\input{prelim}
+
+\input{method}
+
+\input{experiments_new}
+
+\section{Conclusion}
+\vspace{-5pt}
+\label{sec:conclusion}
+In this paper, we study the multi-task offline RL setting, focusing on the problem of sharing offline data across tasks for better multi-task learning. Through empirical analysis, we identify that na\"{i}vely sharing data across tasks generally helps learning but can significantly hurt performance in scenarios where excessive distribution shift is introduced. To address this challenge, we present conservative data sharing (CDS), which relabels data to a task when the conservative Q-value of the given transition is better than the expected conservative Q-value of the target task. On multitask locomotion, manipulation, navigation, and vision-based manipulation domains, CDS consistently outperforms or achieves comparable performance to existing data sharing approaches. While CDS attains superior results, it is not able to handle data sharing in settings where dynamics vary across tasks. Another limitation is that CDS requires functional forms of rewards. We leave these as future work. 
+% Another limitation of CDS is that it requires access to the functional form of the reward. Though this is a common assumption as discussed in Section~\ref{sec:prelims}, an interesting future direction would be removing this dependence and replacing it with either a learned reward predictor or other supervision signal like language instructions.
+
+Finally, regarding negative societal impact, one potential risk the reward design in RL which is challenging to obtain in the real world. For example, it is generally infeasible to specify rewards for (offline) RL in real-world applications, making (offline) RL hard to scale to real robots. Moreover, training procedures of ML models are generally compute-intensive and collecting large datasets for offline RL is also burdensome, which cause inequitable access to these models and datasets.  We would like push RL community to address these risks in the near future.
+
+\begin{ack}
+Use unnumbered first level headings for the acknowledgments. All acknowledgments
+go at the end of the paper before the list of references. Moreover, you are required to declare
+funding (financial activities supporting the submitted work) and competing interests (related financial activities outside the submitted work).
+More information about this disclosure can be found at: \url{https://neurips.cc/Conferences/2021/PaperInformation/FundingDisclosure}.
+
+Do {\bf not} include this section in the anonymized submission, only in the final paper. You can use the \texttt{ack} environment provided in the style file to autmoatically hide this section in the anonymized submission.
+\end{ack}
+
+\bibliography{reference}
+\bibliographystyle{plainnat}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Checklist}
+
+
+\begin{enumerate}
+
+\item For all authors...
+\begin{enumerate}
+  \item Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+    \answerYes{}
+  \item Did you describe the limitations of your work?
+    \answerYes{Please see Section~\ref{sec:conclusion}.}
+  \item Did you discuss any potential negative societal impacts of your work?
+    \answerYes{Please see Section~\ref{sec:conclusion}.}
+  \item Have you read the ethics review guidelines and ensured that your paper conforms to them?
+    \answerYes{}
+\end{enumerate}
+
+\item If you are including theoretical results...
+\begin{enumerate}
+  \item Did you state the full set of assumptions of all theoretical results?
+    \answerYes{}
+	\item Did you include complete proofs of all theoretical results?
+    \answerYes{Proofs can be found in Appendix~\ref{app:proofs}.}
+\end{enumerate}
+
+\item If you ran experiments...
+\begin{enumerate}
+  \item Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
+    \answerYes{We provide code, data and instructions for Gym and Antmaze experiments and code/data for all experiments will be made public with the final.}
+  \item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
+    \answerYes{Please see Appendix~\ref{app:details}}
+	\item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
+    \answerYes{Please see Appendix~\ref{app:details} for the full results with error bars.}
+	\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
+    \answerYes{Please see Appendix~\ref{app:details}}
+\end{enumerate}
+
+\item If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
+\begin{enumerate}
+  \item If your work uses existing assets, did you cite the creators?
+    \answerYes{Yes we cite \citet{fu2020d4rl}, \citet{yu2020metaworld}, \citet{kalashnikov2021mt}.}
+  \item Did you mention the license of the assets?
+    \answerYes{Please see Appendix~\ref{app:details}}
+  \item Did you include any new assets either in the supplemental material or as a URL?
+    \answerYes{We provide datasets for some of our tasks with the supplementary material.}
+  \item Did you discuss whether and how consent was obtained from people whose data you're using/curating?
+    \answerYes{Datasets in \citep{fu2020d4rl,yu2020metaworld} are open-sourced and we corresponded with the authors of \citep{kalashnikov2021mt} to access the dataset.}
+  \item Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
+    \answerYes{There is no personally identifiable information or offensive content, since the tasks are simulated RL tasks.}
+\end{enumerate}
+
+\item If you used crowdsourcing or conducted research with human subjects...
+\begin{enumerate}
+  \item Did you include the full text of instructions given to participants and screenshots, if applicable?
+    \answerNA{}
+  \item Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable?
+    \answerNA{}
+  \item Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
+    \answerNA{}
+\end{enumerate}
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\appendix
+
+\input{appendix}
+
+\end{document}

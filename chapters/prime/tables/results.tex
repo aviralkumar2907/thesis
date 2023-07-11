@@ -1,0 +1,33 @@
+\begin{table}[!b]
+\vspace{-0.5cm}
+\caption{Performance comparison between \protect{\bench{\tpo}} and \protect{\bench{PPO}} after \xxs{4M} time-steps. $\Delta$ values show the difference between \tpo and PPO for each category. A positive $\Delta$ value indicates that TPO outperforms PPO.
+}
+\vspace{-0.3cm}
+\footnotesize
+\begin{center}
+{
+\setlength\tabcolsep{1.5pt}
+\begin{tabular}{|l|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|P{1.2cm}|}\hline
+ \multirow{2}{*}{Benchmarks}& \multicolumn{3}{|c|}{\textbf{Min.}}&\multicolumn{3}{|c?}{\textbf{Avg.}}&\multicolumn{3}{|c|}{\textbf{Max.}}\\
+ \cline{2-10}
+ & PPO & \tpo & $\Delta$ & PPO & \tpo & $\Delta$ & PPO & \tpo & $\Delta$ \\
+\hline\hline
+
+\bench{Ant-v2} & \xxs{1722.75} & \xxs{{4455.57}} & \xxs{$+$2732.81} &\xxs{1873.85} & \xxs{{4777.06}} & \xxs{$+$2903.21} &\xxs{2022.08} & \xxs{{5011.08}} & \xxs{$+$2989.0}\\
+ 
+ \bench{HalfCheetah-v2} & \xxs{1658.70} & \xxs{{1788.77}} & \xxs{$+$130.06} & \xxs{2530.81} & \xxs{{3949.05}} & \xxs{$+$1418.24} & \xxs{5049.07} & \xxs{{6734.45}} &\xxs{$+$1685.38} \\
+ 
+ \bench{Hopper-v2} & \xxs{1744.24} & \xxs{{2205.47}} &\xxs{$+$461.22}& \xxs{1937.82} & \xxs{{3196.14}}  &\xxs{$+$1258.32}& \xxs{2051.89} & \xxs{{3613.36}}&\xxs{$+$1561.47}\\
+ 
+ \bench{Humanoid-v2} & \xxs{4269.44} & \xxs{{5391.43}}  &\xxs{$+$1121.99}& \xxs{4439.58} &  \xxs{{5460.93}}&\xxs{$+$1021.35} & \xxs{4609.72} & \xxs{{5530.43}} & \xxs{$+$920.71}\\
+ 
+ \bench{Swimmer-v2} & \xxs{109.91} & \xxs{{119.48}} &\xxs{$+$9.57}& \xxs{113.74} & \xxs{{120.81}} &\xxs{$+$7.07}& \xxs{116.74} & \xxs{{122.39}}&\xxs{$+$5.65}\\
+ 
+ \bench{Walker2d-v2} & \xxs{3605.27} & \xxs{{3788.83}} &\xxs{$+$183.56}& \xxs{3942.57} & \xxs{{4092.21}} &\xxs{$+$149.63}& \xxs{4155.37} & \xxs{{4667.64}}&\xxs{$+$512.27}\\
+ 
+ \hline
+\end{tabular}}
+\end{center}
+\vspace{-0.3cm}
+\label{table:summary:results}
+\end{table}

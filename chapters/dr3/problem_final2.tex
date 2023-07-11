@@ -1,0 +1,774 @@
+\vspace{-0.3cm}
+\section{Implicit Regularization in Deep RL via TD-Learning}
+\vspace{-0.3cm}
+\label{sec:problem}
+While the ``deadly-triad''~\citep{suttonrlbook} suggests that training value function approximators with bootstrapping off-policy can lead to divergence, modern deep RL algorithms have been able to successfully combine these properties~\citep{Hasselt2018DeepRL}. However, making too many TD updates to the Q-function in offline deep RL is known to sometimes lead to performance degradation and unlearning, even for otherwise effective modern algorithms~\citep{fu2019diagnosing, fedus2020revisiting,agarwal2019optimistic,kumar2021implicit}. Such unlearning is not typically observed when training overparameterized models via supervised learning, so what about TD learning is responsible for it? We show that one possible explanation behind this pathology is the implicit regularization induced by minimizing TD error on a deep Q-network. Our theoretical results suggest that this implicit regularization ``co-adapts'' the representations of state-action pairs that appear in a Bellman backup (we will define this more precisely below).
+%, and this co-adaptation is exacerbated when utilizing unseen state-action pairs for the Bellman backup. 
+%%SL.12.5: I still think we should not talk about "unseen state-action pairs" at this level of abstraction, because no one is going to understand it
+% even with algorithms that account for distribution shift. 
+%%AK: commented the stuff above because we don't really show this theoretically
+Empirically, this typically manifests as ``co-adapted'' features for consecutive state-action tuples, even with specialized TD-learning algorithms that account for distributional shift, and this in turn leads to poor final performance both in theory and in practice. We first provide empirical evidence of this co-adaptation phenomenon in Section~\ref{app:problem_more} (additional evidence in Appendix~\ref{app:more_evidence_coadaptation}) and then theoretically characterize the implicit regularization in TD learning, and discuss how it can explain the co-adaptation phenomenon in Section~\ref{sec:theory}.
+
+\begin{figure}[t]
+    \centering
+    \vspace{-5pt}
+    \includegraphics[width=0.67\linewidth]{figures_iclr/final_plot.pdf}~\vline~\vline~
+    \includegraphics[width=0.32\linewidth]{figures_iclr/final_dqn_fig.pdf}
+    \vspace{-0.3cm}
+    \caption{\small{Feature dot-products $\phi(\bs, \ba)^\top \phi(\bs', \ba')$ increase during training when backing up from \emph{out-of-sample} but in-distribution actions (\textbf{TD-learning}: left, \textbf{Q-learning}: right), though the average Q-value converges and stays relatively constant. Using only seen state-action pairs for backups (\textbf{offline SARSA}) or not performing Bellman backups (i.e., \textbf{supervised regression}) avoids this issue, with stable and relatively low dot products. \textit{Left}: TD-learning with high feature dot products eventually destabilizes and produces incorrect Q-values, \textit{Right}: DQN attains extremely large feature dot products, despite a relatively stable trend in Q-values.}}  
+    \label{fig:dot_products}
+    \vspace{-0.6cm}
+\end{figure}
+
+\vspace{-5pt}
+\subsection{Feature Co-Adaptation And How It Relates To Implicit Regularization}
+\label{app:problem_more}
+\vspace{-5pt}
+In this section, we empirically identify a \emph{feature co-adaptation} phenomenon that appears when training value functions via bootstrapping, where the feature representations of consecutive state-action pairs exhibit a large value of the dot product $\phi(\bs, \ba)^\top \phi(\bs', \ba')$. Note that feature co-adaptation may arise because of high cosine similarity or because of high feature norms. Feature co-adaptation appears even when there is no explicit objective to increase feature similarity.
+
+\textbf{Experimental setup.} We ran supervised regression and three variants of approximate dynamic programming (ADP)
+on an offline dataset consisting of 1\% of uniformly-sampled data from the replay buffer of DQN on two Atari games, previously used in \citet{agarwal2019optimistic}. First, for comparison, we trained a Q-function via \textbf{supervised regression} to Monte-Carlo~(MC) return estimates on the offline dataset to estimate the value of the behavior policy. Then, we trained variants of ADP which differ in the selection procedure for the action $\ba'$ that appears in the target value in $\mathcal{L}_\mathrm{TD}(\theta)$ (Equation~\ref{eqn:td_error}). The \textbf{offline SARSA} variant aims to estimate the value of the behavior policy, $Q^{\pi_\beta}$, and sets $\ba'$ to the actual action observed at the next time step in the dataset, such that $(\bs', \ba') \in \mathcal{D}$. The \textbf{TD-learning} variant also aims to estimate the value of the behavior policy, but utilizes the expectation of the target Q-value over actions $\ba'$ sampled from the behavior policy $\pi_\beta$, $\ba' \sim \pi_\beta(\cdot|\bs')$. We do not have access to the functional form of $\pi_\beta$ for the experiment shown in Figure~\ref{fig:dot_products} since the dataset corresponds to the behavior policy induced by the replay buffer of an online DQN, so we train a model for this policy using supervised learning. However, we see similar results comparing \textbf{offline SARSA} and \textbf{TD-learning} on a gridworld domain where we can access the exact functional form of the behavior policy in Appendix~\ref{app:exact_behavior_policy}. %Unlike SARSA, this action $\ba'$ may be different from the one in $\mathcal{D}$, though it comes from the same distribution.
+All of the methods so far estimate $Q^{\pi_\beta}$ using different target value estimators.
+We also train \textbf{Q-learning}, which chooses the action $\ba'$ to maximize the learned Q-function. While Q-learning learns a different Q-function, we can still compare the relative stability of these methods to gain intuition about the learning dynamics. %To measure feature co-adaptation, we track the average dot product between the learned features at consecutive state-action tuples, $\text{sim}(\bs, \ba, \bs', \ba') := \phi(\bs, \ba)^\top \phi(\bs', \ba')$. 
+In addition to feature dot products $\phi(\bs, \ba)^\top \phi(\bs', \ba')$, we also track the average prediction of the Q-network over the dataset to measure whether the predictions diverge or are stable in expectation.
+
+%%AK: also need to figure out an arrangement for figures in the paper
+\textbf{Observing feature co-adaptation empirically.} As shown in Figure~\ref{fig:dot_products} (right), the average dot product (top row) between features at consecutive state-action tuples continuously increases for both Q-learning and TD-learning (after enough gradient steps), whereas it flatlines and converges to a small value for supervised regression. We might at first think that this is simply a case of Q-learning failing to converge. However, the bottom row shows that the average Q-values do in fact converge to a stable value. Despite this, the optimizer drives the network towards higher feature dot products. There is no explicit term in the TD error objective that encourages this behavior, 
+% and in fact the TD error relatively stays flat \textcolor{red}{(Figure ??)} during training, 
+indicating the presence of some implicit regularization phenomenon. This \emph{implicit} preference towards maximizing the dot products of features at consecutive state-action tuples is what we call ``feature co-adaptation.''
+
+\textbf{When does feature co-adaptation emerge?} Observe in Figure~\ref{fig:dot_products} (right) that the feature dot products for offline SARSA converge quickly and are relatively flat, similarly to supervised regression. This indicates that utilizing a bootstrapped update alone is not responsible for the increasing dot-products and instability, because while offline SARSA uses backups, it behaves similarly to supervised MC regression. Unlike offline SARSA, feature co-adaptation emerges for TD-learning, which is surprising as TD-learning also aims to estimate the value of the behavior policy, and hence should match offline SARSA in expectation. The key difference is that while offline SARSA always utilizes actions $\ba'$ observed in the training dataset for the backup, TD-learning may utilize potentially unseen actions $\ba'$ in the backup, even though these actions $\ba' \sim \pi_\beta(\cdot|\bs')$ are \emph{within} the distribution of the data-generating policy. This suggests that utilizing \textbf{out-of-sample} actions in the Bellman backup, even when they are not out-of-distribution, critically alters the learning dynamics. This is distinct from the more common observation in offline RL, which attributes training challenges to out-of-distribution actions~\citep{levine2020offline}, but not out-of-sample actions. The theoretical model developed in Section~\ref{sec:theory} will provide an explanation for this observation with a discussion about how feature co-adaption caused due to out-of-sample actions can be detrimental in offline RL. 
+
+% While action $\ba'$ can be out-of-distribution in the case of Q-learning, this action is sampled from the data-generating distribution of the behavior policy for TD-learning and is hence, not out-of-distribution in this case.
+
+%%AK: does it feel like a jump here, or is it fine?
+% The only difference between offline SARSA and Q-learning is whether unseen actions are used to compute the Bellman target\gjt{I don't think that is an accurate statement. The action selection mechanism is different.}:
+%%SL.9.17: Yeah, this is correct. Maybe it would be better to mention the TD thing as well in the first paragraph, rather than introducing it for the first time in this paragraph below? That would avoid one very likely criticism you would otherwise get about the comparison between SARSA and Q-learning being non-sensical because they are just learning totally different things
+% while $(\bs', \ba')$ used in Q-learning may be unobserved in $\mathcal{D}$, the $(\bs', \ba')$ tuples used in SARSA appear in the dataset, i.e., $(\bs', \ba') \in \mathcal{D}$÷.
+%%SL.9.17: some readers won't understand why
+% Thus, we might wonder if the use of OOD actions in the backup is the primary culprit for the difference in the observed trends. 
+
+% To understand if this is the case, in Figure~\ref{fig:dot_products} (left), we compare offline SARSA to another variant that we call \textbf{TD-learning},
+% %%AK: need to rename TD-learning to something else?
+% which utilizes potentially unseen but in-distribution actions sampled from the behavior policy for the Bellman update, such that $\ba' \sim \pi_\beta(\cdot|\bs')$. Like offline SARSA, TD-learning also aims to estimate the value of the behavior policy $Q^{\pi_\beta}$, but it differs from offline SARSA in that the actions $\ba'$ are sampled from the data-generating distribution of the behavior policy. Thus, while they are not \emph{out-of-distribution}, they are also generally not actions that were seen in the dataset $\mathcal{D}$, in contrast to offline SARSA.
+% %%SL.9.17: This paragraph is already really hard to read, adding a footnote that creates another branch point for the reader creates an overwhelming cognitive load. Try to merge this footnote into the paragraph, and generally just shorter, more concise, and more digestible sentences.
+% % to compute the value of the behavior policy $Q^{\pi_\beta}$. \textbf{Offline SARSA} and \textbf{TD-learning} should match in expectation. 
+% As expected, we observe in Figure~\ref{fig:dot_products} (left) that the Q-values predicted by TD-learning match those learned by \textbf{offline SARSA}. However, in contrast to \textbf{offline SARSA}, we find that the dot product similarity for TD-learning increases after enough gradient steps, and this is accompanied by instability in the Q-values. This trend is absent in offline SARSA. This suggests that utilizing out-of-sample actions (even when they are not OOD) in the Bellman backup critically alters the learning dynamics. The theoretical model developed in Section~\ref{sec:theory} provides an explanation for this observation. 
+%%AK: one concern: we overload "TD-learning" to mean generic bootstrapping algorithms as well as the "TD learning" baseline we plot. Should we change one of them to something else? Like calling TD-learning generically as bootstrapping and TD learning baseline as FQE.
+
+%%SL.9.17: You can probably shorten this paragraph if you want to save some space
+ 
+% What is the implicit mechanism causing co-adaptation, and why does it occur only when using out-of-sample state-action tuples for the backup? This issue is not corrected by existing offline RL methods, which only avoid out-of-distribution actions~\citep{levine2020offline}, so how does co-adaptation affect offline RL performance? In the next section, we will show how an implicit regularization effect that is studied as a potential benefit of SGD in supervised deep learning can explain this phenomenon, and how this leads to a number of issues in the RL setting.
+
+% \textbf{How do Bellman backups with out-of-sample actions behave?} 
+% As shown in Figure~\ref{fig:dot_products} (left), with \textbf{TD-learning}, the dot products steadily increase during training though the average Q-value predictions are roughly constant over the this phase. These Q-values on average match those learned by \textbf{offline SARSA} and \textbf{supervised regression},
+% %%SL.7.13: Supervised regression doesn't appear in the left plots!
+% but the dot products for \textbf{SARSA} and supervised learning remain flat. In contrast, with \textbf{TD-learning}, the dot products increase after too many gradient steps, and this is accompanied by instability in the Q-values, which then diverge. Note that the only difference between \textbf{TD-learning} and \textbf{SARSA} is the resampling of the target value action, where \textbf{TD-learning} uses a new (out-of-sample) action from the same distribution, while \textbf{SARSA} uses the dataset action.
+% %these two approaches quickly converge over the course of training unlike \textbf{TD-learning}. With more training, we find that \textbf{TD-learning} exhibits unstable Q-values, which eventually diverge, whereas the predictions for both \textbf{offline SARSA} and \textbf{supervised regression} converge and do not destabilize with more training.
+% % Notably, with \textbf{TD-learning}, the dot-products steadily increase during training and the Q-values eventually diverge, whereas both the dot-products and Q-values of \textbf{offline SARSA} and \textbf{supervised regression} quickly converge and remain stable throughout training (Figure 2). 
+% These observations indicate that Bellman backups alone are not responsible for the increasing dot-products and instability because \textbf{offline SARSA} uses Bellman backups, but behaves similarly to \textbf{supervised regression}.
+% %%SL.7.13: Again, this is not apparent from the figure, because supervised regression is not shown on the left side!
+% On the other hand, \textbf{TD-learning}, which uses out-of-sample actions in the Bellman backup, exhibits increasing dot-products, which eventually ends in  instability, suggesting that out-of-sample actions critically alter the learning dynamics. The theoretical model developed in Section~\ref{sec:theory} provides an explanation for this observation.
+
+% Next, we train two methods that estimate the value of the behavior policy that generated the dataset via dynamic programming. The first approach, which we refer to as  standard \textbf{TD-learning}, estimates $Q^{\pi_\beta}$ by minimizing TD-error $\mathcal{L}_\mathrm{TD}(\theta)$ (Equation in Section~\ref{sec:background}), 
+% % $\sum_{\bs, \ba, \bs' \in \mathcal{D}, \ba' \sim {\pi}_\beta(\cdot | \bs')} \left(R(\bs, \ba) + \gamma \bar{Q}_\theta(\bs', \ba') - Q_\theta(\bs, \ba) \right)^2$, 
+% where the action $\ba' \sim {\pi}_\beta(\cdot|\bs)$ is sampled from the behavior policy and can be \textit{out-of-sample} for the training dataset, i.e., $(\bs', \ba') \notin \mathcal{D}$, but is \emph{in-distribution}. \aviral{This version is implemented by first learning a model of the behavior policy using supervised classification.} The second approach, which we refer to as \textbf{offline SARSA}, performs Bellman backups from the exact $(\bs', \ba')$ tuple observed in the dataset $\mathcal{D}$ (i.e., $\ba'$ appearing in $\mathcal{L}_\mathrm{TD}(\theta)$ is observed in $\mathcal{D}$).
+% % minimizing $\sum_{\bs, \ba, \bs', \ba' \in \mathcal{D}} \left(R(\bs, \ba) + \gamma \bar{Q}_\theta(\bs', \ba') - Q_\theta(\bs, \ba) \right)^2$). 
+% Offline SARSA is the same as TD-learning in expectation. However, TD-learning uses potentially out-of-sample actions\footnote{Note that these actions are sampled from the data generating distribution, hence are not out-of-distribution, but may be absent from the training dataset.} in the backup.   As we will show, utilizing out-of-sample state-action tuples in the backup plays a critical role in the learning dynamics.
+% Finally, we also train standard \textbf{Q-learning}, which chooses actions $\ba'$ that maximize the learned Q-function. Such actions are also out-of-sample.  
+
+
+%%SL.7.13: My high-level comment on this section is the following: Right now, your analysis launches into the out-of-sample action discussion right away, without adequately explaining feature co-adaptation. This feels like it's putting the cart before the horse -- before the reader has fully appreciated or even understood what co-adaptation means, they are confronted with this somewhat nuanced discussion about out-of-sample actions. Maybe we should have a couple of sentences before this that basically say "notice how the feature dot products tend to go up right around the same time that things get unstable, isn't that funny? this is what we call feature co-adaptation, let's see what kinds of methods have this issue, and what kinds don't" -- this could be written in just a few sentences, and it should come *before* the discussion of out-of-sample actions, which is secondary to this.
+
+
+% \begin{figure}[t]
+%     \centering
+%     \vspace{-5pt}
+%     \includegraphics[width=0.45\linewidth]{figures/figure1_dotproduct_dot_products_final.pdf}\\
+%     ~~~\includegraphics[width=0.45\linewidth]{section3_figs/figure1_dotproduct_q_values (1).pdf}
+%     \vspace{-0.24cm}
+%     %%SL.5.22: Let's not label it "MC", that's not very informative. Call it "supervised" instead.
+%     %%AK: TODO for me, will change it. 
+%     %%AK: change labels here
+%     \caption{\small{Dot-product $\text{sim}(\bs, \ba, \bs', \ba')$ increases through training when backing up from out-of-sample actions though the average Q-value stays relatively constant, whereas utilizing seen state-action pairs for backups or supervised learning exhibit near-constant dot product similarities as well.}}  
+%     \label{fig:dot_products}
+%     \vspace{-0.6cm}
+% \end{figure}
+% \textbf{How do Bellman backups with out-of-sample actions behave?} 
+% As shown in Figure~\ref{fig:dot_products} (left), with \textbf{TD-learning}, the dot products steadily increase during training though the average Q-value predictions are roughly constant over the this phase. These Q-values on average match those learned by \textbf{offline SARSA} and \textbf{supervised regression},
+% %%SL.7.13: Supervised regression doesn't appear in the left plots!
+% but the dot products for \textbf{SARSA} and supervised learning remain flat. In contrast, with \textbf{TD-learning}, the dot products increase after too many gradient steps, and this is accompanied by instability in the Q-values, which then diverge. Note that the only difference between \textbf{TD-learning} and \textbf{SARSA} is the resampling of the target value action, where \textbf{TD-learning} uses a new (out-of-sample) action from the same distribution, while \textbf{SARSA} uses the dataset action.
+% %these two approaches quickly converge over the course of training unlike \textbf{TD-learning}. With more training, we find that \textbf{TD-learning} exhibits unstable Q-values, which eventually diverge, whereas the predictions for both \textbf{offline SARSA} and \textbf{supervised regression} converge and do not destabilize with more training.
+% % Notably, with \textbf{TD-learning}, the dot-products steadily increase during training and the Q-values eventually diverge, whereas both the dot-products and Q-values of \textbf{offline SARSA} and \textbf{supervised regression} quickly converge and remain stable throughout training (Figure 2). 
+% These observations indicate that Bellman backups alone are not responsible for the increasing dot-products and instability because \textbf{offline SARSA} uses Bellman backups, but behaves similarly to \textbf{supervised regression}.
+% %%SL.7.13: Again, this is not apparent from the figure, because supervised regression is not shown on the left side!
+% On the other hand, \textbf{TD-learning}, which uses out-of-sample actions in the Bellman backup, exhibits increasing dot-products, which eventually ends in  instability, suggesting that out-of-sample actions critically alter the learning dynamics. The theoretical model developed in Section~\ref{sec:theory} provides an explanation for this observation.
+
+%To discern the differences between TD-learning and supervised learning, we first note in Figure~\ref{fig:dot_products} (right) that both the Q-value predictions and dot-product values quickly stabilize for \textbf{supervised regression} (shown in red). A similar convergent behavior in both dot products and learned Q-values is observed when utilizing in-sample actions in the case of \textbf{offline SARSA}, even though SARSA uses Bellman backups (Figure~\ref{fig:dot_products}, ``in-sample''). Next, we turn to case of \textbf{TD-learning}, which utilizes out-of-sample actions. We would expect TD-learning to converge to the same solution as offline SARSA, and we indeed observe similar Q-values in average (compare red vs blue lines in Figure~\ref{fig:dot_products} (left)), however, crucially the feature dot product values are much larger for TD-learning. In fact, the feature dot products in TD-learning continually increase with more training (Figure~\ref{fig:dot_products}) while it stabilizes for offline SARSA. This indicates that even though the Q-function outputs similar values, performing Bellman backups with out-of-sample actions gives rise to increasing dot-product values. Furthermore, as shown in Figure~\ref{fig:dot_products} (middle), once the values of dot-products are large enough (after more training steps), training further leads to an unstable trend in Q-values.
+
+
+% \vspace{-5pt}
+
+\input{iclr_theory}
+
+\iffalse
+We will first derive the implicit regularization effect induced due to noise in stochastic gradient descent. Following prior work~\citep{blanc2020implicit} in supervised learning, we will model this noise as additive Gaussian noise added to the regression targets. \citet{blanc2020implicit} has identified that in supervised learning, SGD with label noise
+%%SL.5.26: is the "label noise" part even significant? almost any supervised learning problem assumes label noise
+diverges from a solution $\theta^*$ corresponding to a loss function $L(\theta)$, if and only if it is not a first-order stationary point of:
+%%SL.5.26: I found the above sentence pretty hard to parse, can we state this in a simpler way?
+\begin{equation*}
+    \min_\theta~~ R(\theta) ~~~ \text{s.t.}~~~ L(\theta) = 0,
+\end{equation*}
+where $R(\theta)$ is an implicit regularizer given by the mean squared L2-norm of the gradient of the learned function with respect to its parameter $\theta$.
+%%SL.5.26: add an equation for this
+Our goal in this section is to derive the corresponding regularizer for TD-learning, $R_\mathrm{TD}(\theta)$, under similar assumptions, and then analyze its effect on the solution found via TD-learning.  
+
+We first set up the notation. Let $Q_\theta(\bs, \ba)$ denote the Q-network; for brevity, we will use $\bx$ as shorthand for $(\bs, \ba)$, such that $\bx := (\bs, \ba)$ is the input to $Q_\theta$. Given a dataset $\data = \{(\bs_i, \ba_i, r_i, \bs'_i)\}_{[n]}$ and following prior work,
+%%SL.5.26: add citation
+we will assume that the Q-function minimizes  mean-squared TD-error with added label-noise, $\hat{L}(\theta)$, such that \textcolor{red}{George, can we move the label noise to gradient noise?}
+\begin{equation*}
+%%SL.5.26: reverse the order here, have \hat{L} come first, then \ell
+    \ell_\theta(i) = \frac{1}{2} \left(Q_\theta(\bx_i) - \mathrm{StopGrad}\left[r_i + \gamma Q_\theta(\bx'_i) \right] - \epsilon_i \right)^2; ~~~\epsilon_i \sim \mathcal{N}(0, \sigma^2); ~~~ \hat{L}(\theta) := \frac{1}{n}\sum_{i=1}^n \ell_\theta(i),
+\end{equation*}
+where $\mathrm{StopGrad}$ denotes the stop-gradient operation typically used in TD-learning, $\epsilon_i$ is random Gaussian scalar noise, and $(\bx_i, \bx'_i)$ represent state-action pairs appearing together in a Bellman backup.
+%%SL.5.26: make it more explicit what \bx'_i is
+TD-learning would then minimize $\hat{L}(\theta)$ via gradient descent. We will assume that $Q_\theta(\bx_i)$,  $\nabla_\theta Q_\theta(\bx_i)$ and $\nabla^2_\theta Q_\theta(\bx_i)$ are all Lipschitz with some coefficients. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% DO NOT DELETE THIS BLOCK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% To identify the implicit regularizer, building on \citep{blanc2020implicit}, our strategy would be as follows: Assume that we initialize the parameter $\theta$ to $\theta_0 = \theta^*$. If we can find a regularizer $R_\mathrm{TD}(\theta)$ such that gradient descent on the regularized TD-error loss without label noise, $\bar{L}(\theta) := L(\theta) + \alpha R_\mathrm{TD}(\theta)$ closely follows the trajectory obtained via gradient-descent on TD-error with label noise, $\hat{L}(\theta)$ in a local neighborhood around $\theta^*$, we an utilize the regularized objective $\bar{L}(\theta)$ to reason about trajectories of gradient descent starting the optimal solution $\theta^*$. The gradient-descent update equations for both the objectives are shown below:
+% \begin{equation}
+% \label{eqn:gradient_descent}
+%     \theta_{k+1} \leftarrow \theta_k - \eta \nabla_\theta \hat{L}(\theta_k) ~~~~~~~~~ \bar{\theta}_{k+1} \leftarrow \bar{\theta}_k - \eta \nabla_\theta \left( L(\bar{\theta}_k) + \alpha R_\mathrm{TD}(\bar{\theta}_k) \right).
+% \end{equation}
+% Simplifying the expression on the left-side we obtain the following:
+% \begin{align*}
+%     \theta_{k+1} &= \theta_k - \eta \sum_i \nabla_\theta Q_\theta(\bx_i) \left(Q_\theta(\bx_i) - (r_i + \gamma Q_\theta(\bx'_i)) - \epsilon_i \right)\\
+%     \implies \theta_{k+1} &= \theta_k - \eta \underbrace{\sum_{i} \nabla_\theta Q_\theta(\bx_i) \left[Q_\theta(\bx_i) - (r_i + \gamma Q_\theta(\bx'_i)) \right]}_{\text{(a)} := \nabla_\theta L(\theta_k)} + \eta  \underbrace{\sum_i \nabla_\theta Q_\theta(\bx_i) \epsilon_i.}_{\text{(b)} \sim \mathcal{N}(0, \sigma^2 \nabla_\theta Q_\theta \nabla_\theta Q_\theta^\top).}
+% \end{align*}
+% Note that due to the additive nature of label noise, the parameters $\theta_k$ constantly evolve using gradients of the original TD-error loss function without noise (term (a)) along with a data-dependent noise (term (b)) drawn from $\mathcal{N}(0, \sigma^2 \nabla Q_\theta \nabla Q_\theta^\top)$. A natural next step is to obtain the difference of iterates $\theta_k$ and $\bar{\theta}_k$ in a recursive equation:
+% \begin{equation}
+%     \label{eqn:difference}
+%     \nu_{k+1} := \theta_{k+1} - \bar{\theta}_{k+1} \approx \nu_{k} - \eta \nabla^2 L(\theta^*) \nu_k + \varepsilon^*_k, ~~~\text{where}~~ \varepsilon^*_k \sim \mathcal{N}(0, \nabla Q_{\theta^*} \nabla Q_{\theta^*}^\top).   
+% \end{equation}
+% To obtain Equation~\ref{eqn:difference}, we used another intermediate step of Taylor expansion around the start point $\theta^*$, ignoring terms with two or more powers of $\theta_k - \theta^*$, $\bar{\theta}_k - \theta^*$ as well as two or more powers of learning rate $\eta$. Equation~\ref{eqn:difference} provides a relation on $\nu_k$: $\nu_{k+1} = (I - \eta \nabla^2 L(\theta^*)) \nu_k + \varepsilon_k$,  Additionally, since $\theta^*$ is an optimum, we obtain the following expression for $\nabla^2 L(\theta^*)$:
+% \begin{equation}
+%     \sum_i \nabla^2 Q_{\theta^*}(\bx_i) \underbrace{\left(Q_{\theta^*}(\bx_i) - (r_i + \gamma Q_{\theta^*}(\bx'_i))\right)}_{=0 \text{~at~} \theta^*} + \sum_i \nabla Q_{\theta^*}(\bx_i) \left(\nabla Q_{\theta^*}(\bx_i) - \gamma \nabla Q_{\theta^*}(\bx'_i)\right)^\top.
+% \end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%SL.5.26: Can we abstract away some of this derivation into a theorem statement and move the derivation to an appendix? This would help to get the paper under the length limit.
+To identify the implicit regularizer, we build on the approach of \citet{blanc2020implicit} for supervised learning. We assume that we initialize the parameter $\theta$ to $\theta_0 = \theta^*$, which is an optimal Q-function, satisfying \emph{all} the Bellman consistency equations on all the states in the MDP, not just the states in the dataset.
+%%SL.5.26: Do we need to assume that we *initialize* there? Can we just say that we are analyzing the optimum or something? Is this really the assumption that prior work makes?
+Now, we will run gradient descent on the loss $\hat{L}(\theta)$ with a sufficiently small learning rate $\eta$, starting from $\theta_0$. This results in the iterates shown below in Equation~\ref{eqn:gradient_descent}. We will then bound the divergence between the $k$-th gradient iterate $\theta_k$ and $\theta^*$, and derive the condition on $\theta^*$ that allows this divergence $||\theta_k - \theta^*||_2$ to be small. This condition will specify the implicit regularizer $R_\mathrm{TD}(\theta^*)$ at a stable optimum $\theta^*$. The gradient descent equation in Equation~\ref{eqn:gradient_descent} can be simplified as shown below in Equations~\ref{eqn:gradient_descent_simplified} and \ref{eqn:grad_descent2}:
+\begin{align}
+\label{eqn:gradient_descent}
+    \theta_{k+1} &:= \theta_k - \eta \nabla_\theta \hat{L}(\theta_k).\\
+    \label{eqn:gradient_descent_simplified}
+     \theta_{k+1} &= \theta_k - \eta \sum_i \nabla_\theta Q_\theta(\bx_i) \left(Q_\theta(\bx_i) - (r_i + \gamma Q_\theta(\bx'_i)) - \epsilon_i \right)\\
+     \label{eqn:grad_descent2}
+    \implies \theta_{k+1} &= \theta_k - \eta \underbrace{\sum_{i} \nabla_\theta Q_\theta(\bx_i) \left[Q_\theta(\bx_i) - (r_i + \gamma Q_\theta(\bx'_i)) \right]}_{\text{(a)} := \nabla_\theta L(\theta_k)} + \eta  \underbrace{\sum_i \nabla_\theta Q_\theta(\bx_i) \epsilon_i.}_{\text{(b)} \sim \mathcal{N}(0, \sigma^2 \nabla_\theta Q_\theta \nabla_\theta Q_\theta^\top).}
+\end{align}
+Note in Equation~\ref{eqn:grad_descent2} that, due to the additive nature of label noise, the parameters $\theta_k$ evolve based on the gradients of the original TD-error loss function \emph{without} noise ($L(\theta)$, term (a)), along with a data-dependent noise (term (b)) sampled from $\mathcal{N}(0, \sigma^2 \nabla Q_\theta \nabla Q_\theta^\top)$. Next, since $\theta_k$ is initialized in the local neighborhood of $\theta^*$, we can rewrite Equation~\ref{eqn:grad_descent2} in terms of $\nabla^2 L := \nabla^2_\theta L(\theta)|_{\theta^*}$, $\nabla^3 L := \nabla^3_\theta L(\theta)|_{\theta^*}$ and $M := \nabla_\theta Q_\theta \nabla_\theta Q_\theta^\top|_{\theta^*}$ by using Taylor expansion around $\theta^*$. Also note that since $\theta^*$ is a global optimum, $\nabla_\theta L(\theta^*) = 0$. Denoting $\nu_k = \theta_k - \theta^*$, we obtain ($\varepsilon_k \sim \mathcal{N}(0, \sigma^2 \nabla Q_\theta \nabla Q_\theta^\top)$):
+%%SL.5.26: why are there two sets of parens on that last equation?
+\begin{align}
+    \label{eqn:\nu_k}
+    \theta_{k+1} ~&= \theta_k - \eta \left( \nabla L + \nabla^2 L (\theta_k - \theta^*) + \frac{1}{2} \nabla^3 L (\theta_k - \theta^*, \theta_k - \theta^*) \right) + \varepsilon_k, ~~~~~~\\
+    \label{eqn:recursive_v}
+    \implies \nu_{k+1} ~&= (I - \eta \nabla^2 L )\nu_k  - \frac{\eta}{2} \nabla^3 L (\nu_k, \nu_k) + \varepsilon_k, ~~~~ \varepsilon_k \sim \mathcal{N}(0, \eta \sigma^2 M).
+\end{align}
+From Equation~\ref{eqn:recursive_v} we can make a few observations. First, the distance between $\theta_k$ and $\theta^*$, $||\nu_k||_2$ decreases at a rate proportional to $(I - \eta \nabla^2 L)$. $\nabla^2 L$ only spans certain directions due to the overparameterized nature of the landscape. Thus $\nu_k$ will not contract on along every direction, and the noise $\varepsilon_k$ in each iteration can compound through powers of $(I - \eta \nabla^2 L)$ leading to an increased in the value of $\nu_{k}$,
+%%SL.5.26: presumably it makes it increase under some conditions on that matrix?
+thus making $\theta_k$ diverge from $\theta^*$. However, if the starting $\theta^*$ is such that the third derivative $\nabla^3 L (\nu_k, \nu_k)$ can compensate for any potential increase in the value of $\nu_k$, then $\nu_{k} \rightarrow 0$ as $k \rightarrow \infty$. Theorem~\ref{thm:implicit_noise_reg} formalizes this to obtain an expression for the resulting implicit regularizer. A proof for Theorem~\ref{thm:implicit_noise_reg} can be found in Appendix ??.
+\begin{theorem}[Informal, Implicit regularization at optimal TD-solutions]
+\label{thm:implicit_noise_reg}
+Assuming notations
+%%SL.5.26: "Assuming notations" seems like a weird phrase
+and conditions of label-noise gradient descent on TD error discussed so far, a global minimizer of TD error $\theta^*$ on the dataset $\mathcal{D}$ is a stable optimum if and only if it minimizes implicit regularizer $R_\mathrm{TD}(\theta)$ given by:
+\begin{equation}
+\label{eqn:regularizer}
+    R_\mathrm{TD}(\theta) = \mathrm{tr} \left(\sum_{i=1}^n \nabla_\theta Q_\theta(\bx_i) \left( \nabla_\theta Q_\theta(\bx_i) - \gamma \nabla_\theta Q_\theta(\bx'_i) \right)^\top \right).
+\end{equation}
+\end{theorem}
+\textbf{Interpretation of Theorem~\ref{thm:implicit_noise_reg}.} Theorem~\ref{thm:implicit_noise_reg} indicates that out of all possible global minimizers $\theta^*$ of the TD error
+%%SL.5.26: this is a fairly basic point, but I think when we introduce the notion of implicit regularization earlier, it might help to expand on what this "out of all possible minimizers" thing means. E.g., something like this: When training overparameterized functions, such as deep networks, multiple different parameter vectors $\theta$ will minimize $L(\theta)$. But not all of these minimizers will generalize equally well. \citet{someone} proposes that the minimizer found via SGD will satisfy the following constrained optimization problem: [stuff], where $R(\theta)$ is an \emph{implicit} regularizer that arises from the structure of SGD with overparameterized models. Intuitively, $R(\theta)$ causes SGD to prefer simpler (and therefore more generalizable) solutions, even when we might otherwise expect overparameterized models to be liable to overfit. This model has been put forward as one explanation for the effective generalization of overparameterized deep networks~\citep{stuff}. [this could go at the top of Sec 3.2.1 for example]
+on the training dataset, gradient descent with label noise will only stabilize at a minimizer of $R_\mathrm{TD}(\theta)$. $R_\mathrm{TD}$ consists of two types of terms: positive terms equal to gradient norms, $\sum_i ||\nabla_\theta Q_\theta(\bx_i)||^2_2$, and additional negative terms equal to the expected dot-product of gradients at consecutive states, $\sum_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx'_i)$.
+%%SL.5.26: Is it completely obvious where these come from? I realize this is just algebra, but we could spoon-feed it to the reader more by writing out the distributed equation so that these terms actually show up.
+If all state-action pairs $\bx'_i$ appearing on the right-hand-side of the Bellman update also appear in the dataset $\mathcal{D}$, as in the case of SARSA (Figure~\ref{fig:dot_products}), they would also contribute to the gradient norm term, and the value of $R_\mathrm{TD}$ will be bounded below.  We can show that in this case the optimal $\theta^*$ would effectively minimize $(1 - \gamma) \sum_i ||\nabla_\theta Q_\theta(\bx_i)||_2^2$.
+%%SL.5.26: can we make these statements a bit more formal? e.g., have a corollary or something for the special case where all x' are in the dataset, and another one for the case where that is not true?
+This corresponds to a regularizer one would obtain when training the Q-network via pure supervised learning~\citep{blanc2020implicit}, indicating that SARSA is regularized in similar ways as supervised regression. 
+%%AK: is there consensus on this aspect?
+
+%%AK: I am sure the para below doesnt have a great flow. If someone has any suggestions to make it more dramatic, it will be great -- this is the key RL explanation part of this math.
+On the other hand, if a state-action pair $\bx'_i$ only appears on the right-hand-side of the backup, \ie, $(\bs', \ba')$ correspond to out-of-sample state-action pairs,
+%%SL.5.26: remind the reader why this would be the case, like this: However, the regularizer behaves very differently when some state-action pairs $\bx'_i$ only appear on the right-hand-side of the backup. This happens with any algorithm where $\ba'$ is not the dataset action, which is the case for all actor-critic and Q-learning algorithms that compute target values by selecting $\ba'$ according to the current policy. Note that $(\bs',\ba')$ does not need to be \emph{out-of-distribution}, merely \emph{out-of-sample}, and hence this would even be the case when evaluating $\pi_\beta(\ba'|\bs')$ with samples from $\pi_\beta(\ba'|\bs')$ for the target value actions.
+then the implicit regularizer, $R_\mathrm{TD}(\theta)$ is minimized only at solutions $\theta^*$ for which gradients at $\bx_i$ and the corresponding $\bx'_i$ are very similar in terms of dot-product.
+%%SL.5.26: some pretty informal statements here, can we summarize this more precisely in a formal corollary?
+This is the co-adaptation phenomenon observed in Section~\ref{sec:analysis}: gradients at out-of-sample state-action pairs $\bx'_i$ are extremely similar to the gradients at $\bx_i$ at the resulting optimum.
+%%SL.5.26: gradients are similar? or features are similar?
+Section~\ref{sec:analysis} instead demonstrated the co-adaptation phenomenon for penultimate layer features, which are also the gradients with respect to the parameters of the last layer, since these values are cheap to compute.
+%%SL.5.26: put the above in a footnote, phrase like this: One discrepancy is that Section~\ref{sec:analysis} analyzes dot products between the last-layer features, whereas this derivation focuses on dot products between gradients. Note, however, that the last-layer features are the gradients of the weights in the last layer. [maybe allude to some NTK stuff?]. Alternatively, given that you use "gradients" and "features" interchangeably below, you could also put some discussion like this in the main text, but earlier: Note that this regularizer concerns the \emph{gradients} of the model. However, regularization of gradients and regularization of features are closely related~\citep{something} -- for example, the gradients of the last-layer weights are equal to the penultimate layer features for networks with linear readout layers.
+Thus, we have shown that stochastic gradient descent on the TD-error tends to stabilize only at solutions that exhibit highly co-adapted features between out-of-sample points used for the backup and the points in the dataset. \textcolor{red}{also add when it will diverge; tr(...) cant be < 0, else we wont contract.}
+\fi
+
+
+\iffalse
+\subsubsection{Implicit Regularization of Neural Network Architectures}
+%%SL.5.26: Change the title -- the point is not that it's architecture specific, but that it is focused on overparameterization and min norm.
+
+In the previous section, we showed, that agnostic of the neural network architecture, implicit regularization arising out of the stochasticity in SGD produces Q-functions with highly co-adapted features. In this section, we analyze a different kind of implicit regularization originating from the inductive bias and invariance of the neural network architecture.
+%%SL.5.26: This seems like a really strange way to "sell" this analysis -- it's basically saying that before we analyzed the general case, now we'll make some more (unrealistic) assumptions and show that the results still hold under these additional (unrealistic) assumptions. That's a very strange statement. The fact that this analysis is architecture-specific is not really a plus. Can we come up with a better way to motivate why we have this analysis? A reasonable way to go could be something like: In this section, we will show that a similarly deleterious implicit regularization effect in TD-learning can be derived from a very different model of implicit regularization with overparameterized deep networks, based on minimum norm solutions. [and then at the end of this subsection, you can conclude with something like: We've shown that two very different models of implicit regularization in deep nets proposed in prior work~\citep{} both lead to the same conclusion in the TD-learning setting: the very same implicit regularization effects that promote effective generalization in supervised deep learning lead to learning of features that can fail to distinguish between successive state-action tuples in the TD-learning setting.]
+For this analysis, we study a 2-layer wide ReLU network using ideas from prior works~\citep{blanc2020implicit,savarese2019infinite,wei2019regularization}.
+%%SL.5.26: can we rephrase the above sentence and talk about how we adopt a similar model of implicit regularization as prior work?
+For simplicity, we assume that the input space of the Q-function is 1-dimensional, which can be attained by mapping state-action pairs $(\bs_i, \ba_i)$ to a one-dimensional representation $\bx_i \in \mathbb{R}$, though our argument can potentially be generalized to higher-dimensional inputs analogous to \citet{}.
+%%SL.5.26: Whoa, that seems like a crazy assumption. Is that really how prior work does it?? I mean, I can see how this can be made to work, but it's an enormous leap.
+%%AK: cite the savarese paper 2 from 2019 that uses radon transform
+
+To begin, we define a canonical 2-layer ReLU network with 1D inputs: $Q_\theta(\bx_i) = \sum_i \bw_i \sigma(\ba_i \bx_i + \bb_i) + \bd_i$, where $\sigma(\cdot) = \max(\cdot, 0)$ is the ReLU function. It is well known~\citep{wei2019regularization,savarese2019infinite} that minimizing $L(\theta) = \sum_i (Q_\theta(\bx_i) - y_i)^2$ for input-output pairs $(\bx_i, y_i)$ on a 2-layer ReLU network of sufficient width produces a solution that satisfies the following optimization (left):
+%%AK: The para above is not talking about TD-learning but optimizations already use TD, so I need to fix that.
+%%SL.5.26: yeah, this is an issue -- above says y, below says r + gamma*Q
+\begin{equation}
+\begin{aligned}
+    &\text{\textbf{Neural Network parameterization}} \\
+    \min_{\bw, \ba, \bb, \bd}~~& ||\bw||_1 \\
+    \text{s.t.}~&~ \forall~ \bx_i \in \mathcal{D},~~ Q_\theta(\bx_i) = r_i + \gamma \bar{Q}_\theta(\bx'_i) 
+    \label{eqn:relu_nets}
+\end{aligned}
+\;~~ \vline\;
+\begin{aligned}
+    &\text{\textbf{Function space parameterization}} \\
+    ~~~\min_{Q}~~& \int_{-\infty}^{\infty} |Q''(\bx)| d \bx \\
+    \text{s.t.}~~&~ \forall \bx_i \in \mathcal{D}, ~~ Q(\bx_i) = r_i + \gamma \bar{Q}(\bx'_i).
+\end{aligned}
+\end{equation}
+The optimization on the left can be converted to a function space parameterization (Equation~\ref{eqn:relu_nets}, right) that minimizes the second-derivative of the function $Q''(\bx)$ w.r.t. the input $\bx \in \mathbb{R}$ while fitting the data. This amounts to fitting the smoothest possible function that attains zero Bellman error.
+%%SL.5.26: Let's just introduced the supervised model *first*, and only then talk about Bellman error, otherwise we are throwing more at the reader than they can reasonably handle.
+In supervised learning this gives rise to a piecewise linear function with kinks at the points from the dataset, $\bx_i \in \mathcal{D}$ (Theorem 3.1 in \citet{savarese2019infinite}). In our case, we are interested in answering the following question: Among all solutions with zero Bellman error on the training data, do co-adapted solutions attain maximum smoothness? 
+%%SL.5.26: That doesn't seem like the right way to pose the question, because "maximum smoothness" is a vague and imprecise term. Let's rather refer to the formal statement of the objective.
+
+To answer this question, we first set up some notation. Let $(\bx_i, \bx'_i)$ be the representations of state-action tuples that appear together in a Bellman update.
+%%SL.5.26: already defined this
+Without loss of generality, let $\{\bx_i\}_{[n]} \in \mathcal{D}$ be ordered as $\bx_1 < \bx_2 < \cdots < \bx_N$. We further make a locality assumption on the consecutive tuples:
+\begin{assumption}[State-action pairs on two sides of a Bellman backup are close to each other]
+\label{assumption:state_next_state_are_close}
+If $(\bx_i, \bx'_i)$ appear on the two sides of the Bellman equation, and if $\bx_{i-1}$ and $\bx_{i+1}$ be the left and right neighbors of $\bx_i$ observed in $\mathcal{D}$, then, we assume $|\bx_i - \bx'_i| \leq \min \left(|\bx_i - \bx_{i-1}|, |\bx_{i+1} - \bx_i| \right)$. 
+\end{assumption}
+Assumption~\ref{assumption:state_next_state_are_close} encodes the notion that the next state,
+%%SL.5.26: Don't overload terminology, you're using "state" to mean two different things. This will be perceived as (intentionally) deceptive, because the consecutive actions are *not* similar.
+$\bx'_i$, is closer to the current state $\bx_i$ compared to the neighbors of $\bx_i$ found in the dataset. This is reasonable to assume in practice, where states and next states generally do not differ from each other by a huge amount, often changing by a few pixels.
+%%SL.5.26: I disagree with the above statement -- why the heck would \bx'_i be closer to \bx_i than \bx_{i+1}? Presumably the next action of pi_beta is at least as close to the current action of pi_beta than the next action of pi. Maybe you mis-stated something above and intended to write something else? But as written this just doesn't seem plausible.
+%%AK: is there a better, simpler assumption? And can I cite something to say that the states- next states are closeby?
+Under Assumption~\ref{assumption:state_next_state_are_close}, we show the following result:
+%%AK: refine theorem statement and verify edge cases once (a lot of the edge cases are measure zero, so maybe just almost surely will eliminate time?)
+\begin{theorem}[Informal, ReLU networks attain additional kinks
+%%SL.5.26: let's avoid informal statements in theorems ("kinks")
+and learn incorrect Q-values]
+\label{thm:relu_nets_kinks}
+Assuming~\ref{assumption:state_next_state_are_close} and other notation from this section, the optimal solution for Equation~\ref{eqn:relu_nets} (right) consists of kinks
+%%SL.5.26: that doesn't seem like a precise theorem statement...
+at $\mathcal{D} \cup \{\bx'_1, \cdots, \bx'_n\}$. Moreover, the Q-values at any $\bx_j$ for which $\bx'_j \notin \mathcal{D}$ will be incorrect.
+%%AK: TODO: refine the theorem to make it more formal
+\end{theorem}
+%%AK: TODO; also add SARSA discussion?
+When fitting supervised targets to a deep ReLU network, the resulting solution is a piecewise linear function, with pieces intersecting only at the datapoints $\bx_1, \cdots, \bx_n$. On the other hand, Theorem~\ref{thm:relu_nets_kinks} shows that the optimal solution that satisfies Bellman equations will have additional kinks on out-of-sample state-action tuples used for the backup, i.e., $\{\bx'_1, \cdots, \bx'_n\} \backslash \mathcal{D}$. These kinks will alter the values learned at several other state-action pairs, while still satisfying Bellman constraints on the training data and being more smooth as measured by the integral of the second derivative of the function. This is a form of co-adaptation: implicit regularization towards smooth functions in a ReLU network makes predictions at $\bx$ and $\bx'$ coupled together so as to maximize smoothness. Having seen that implicit regularization stemming from a variety of factors including noisy updates and neural network architectures when combined with TD error and gradient descent and its direct relationship with feature co-adaptation, the next section aims to devise an explicit regularizer that can tackle these adverse effects of implicit regularization.   
+\fi
+
+
+\iffalse
+\subsection{Consequences of Feature Co-Adaptation in TD-Learning}
+Having seen that TD-learning co-adapts features at unseen actions to features at state-action tuples in the dataset, we now study its consequences. We will show that this co-adaptation can prevent learning high-frequency information in the Q-function crucial for control and destabalize learning, even when initialized in the vicinity of a good solution.
+
+\begin{wrapfigure}{r}{0.4\textwidth}
+    \centering
+    \vspace{-22pt}
+    \includegraphics[width=0.48\linewidth]{section3_figs/dynamics.pdf}
+    \includegraphics[width=0.48\linewidth]{section3_figs/optimal_q.pdf}
+    \includegraphics[width=0.48\linewidth]{section3_figs/supervised_q.pdf}
+    \includegraphics[width=0.48\linewidth]{section3_figs/td_learning.pdf}
+    \vspace{-0.21cm}
+    \caption{\small{\textbf{TD-learning fails to represent high frequency changes in Q-functions much more than supervised learning.} On the 1D MDP (dynamics, top-left), TD learning ignores the high-frequency components of the Q-function leading to worse action selection compared to supervised regression.}} 
+    \label{fig:1d_mdp}
+    \vspace{-0.6cm}
+\end{wrapfigure}
+%%AK: Tengyu had an interesting suggestion here: represent the action choices of each function via a shaded interval on the the number line, using blue for a_0 and red for a_1. The number of switches will determine the complexity of the Q-function, and this will show that TD has 4 switches, supervised has 8 and actual has 12 or 13 switches.
+\textbf{Inability to model high-frequency components of Q-function.} Prior work has noted that Q-functions can be highly non-smooth even when reward functions and dynamics are relatively simple~\citep{dong2020expressivity}.
+%%AK: does gamma models also note something related to complexity of Q vs reward via the discount profile stuff?
+Would feature co-adaptation lead the Q-function to ignore certain high-frequency components in the objective?
+As a didactic example of this phenomenon, we utilize a 2-action MDP with a 1-D state space $\mathcal{S} \in [0, 1]$ from~\citep{dong2020expressivity}. This MDP exhibits a piecewise linear dynamics (Fig.~\ref{fig:1d_mdp}, top-left) and an identity reward function $r(\bs, \ba) = \bs$ with two actions $\ba \in \{0, 1\}$. The optimal Q-function exhibits high-frequency changes (Fig.~\ref{fig:1d_mdp}, top-right). We find that running Q-learning (Fig.~\ref{fig:1d_mdp}, bottom-right)
+attains Q-functions that completely ignore these high-frequency changes. This often makes the resulting policy choose the worse action of the two possible actions. On the contrary, a supervised projection (Fig.~\ref{fig:1d_mdp}, bottom-left) of the Q-function does capture many of these high frequency shifts in the Q-function. To formalize this didactic example, we prove the following result showing that high-frequency components of the Q-function are not modelled as a direct consequence of Theorem~\ref{thm:aliasing_exists}. The proof and a complete statement for Theorem~\ref{thm:num_pieces} can be found in Appendix ??.
+
+%%AK: this will have some conditions on dynamics too, maybe we mention that as a detail in the appendix? But if it is unclear, maybe we should add it here, and explain it here...
+\begin{theorem}[Informal]
+Assume that the state-space $\mathcal{S}$ of the MDP is given by the 1-D number line, and that the groundtruth Q-function is (approximately) piecewise linear in the state $s$ with $N^*$ pieces. Denote the (approximate) number of linear pieces in a learned infinite-capacity ReLU Q-network via direct supervised regression as $N_{\mathrm{Sup}}$ and via TD-learning as $N_{\mathrm{TD}}$. Then: $N_{\mathrm{TD}} \leq N_{\mathrm{Sup}} \leq N^*$.     
+\label{thm:num_pieces}
+\end{theorem}
+%%AK: In the proof of this theorem, we show this for approximate number of pieces, which is the integral of the second derivative of the function w.rt.t the input over the input space, but I think going into details would just hurt understanding here.
+
+%%AK: I am a little unsure about the following part, in the sense if we should have it or not? This might seem obvious to some extent? 
+% \textbf{Severe co-adaptation renders distributional shift corrections ineffective.} To test whether offline RL corrections alleviate feature co-adaptation, we performed a controlled experiment -- we constrained offline RL regularizers to only control the last linear layer of the Q-network, whereas bootstrapping was allowed to train the entire network. While we might expect that offline RL methods may still be effective by adapting the last weight layer to the features, contrary to this expectation, as shown in Figure ??, we find that all such variants (denoted as CQL($\phi$)) perform extremely poorly compared to the complete offline RL method. Further note the inability to minimize the regularizer corresponding to distributional shift and an increased dot-product similarity, $\Delta(\bs, \ba, \bs', \ba')$. This indicates that feature co-adaptation can lead to failure of offline RL methods. \textcolor{red}{add new figure for this}
+%%AK: If we do keep this, maybe we should also add some line to justify why offline RL methods are still sensitive -- this is because they are not exactly doing SARSA?
+
+\textbf{Lack of stability near ``good'' Q-function solutions.}
+%%SL.5.22: instead of using a vague term like "good" with scare quotes, can we just say optimal? And what does "lack of stability" mean? Maybe just state it directly: Implicit regularization can prevent convergence, even when initializing at an optimal solution. [or something like that]
+Finally, we study if co-adaptation of features cause the TD-learning process to diverge away, even when initialized favorably in the vicinity of a good Q-function (e.g., one obtained via supervised regression to MC returns or one obtained via online RL). Running Q-learning from such a favorable initialization eventually produces solutions that perform poorly as shown in Figure ?? below. Moreover, \textcolor{red}{say something about ranks here}. Indeed, in accordance with Theorem~\ref{thm:aliasing_exists}, the feature co-adaption phenomenon drives learning towards solutions with lower $\srank(\bM_{\mathrm{TD}}(\phi))$ values, giving rise to poor performance. \textcolor{red}{add figure, theorem}      
+\fi
+
+%%SL.5.17: what are Bellman constraints?
+% are only enforced approximately (i.e., when the TD error
+% %%SL.5.17: was the TD error ever defined?
+% is not exactly 0), the implicit regularization towards minimum $||\bw||_2$ norm solutions will lead to the Q-function ignoring high-frequency components. That is, if the true Q-function changes dramatically from one state to the next, low TD-error solutions will fail to represent these changes.
+%%SL.5.17: I don't see why the above theorem indicates that this is true
+%%AK: add a worst-case theorem as discussed with George today?
+%%SL.5.17: maybe we should put this didactic example into a separate \paragraph{} with more setup, instead of presenting this as a kind of footnote -- as-is, I think many people will not really understand it
+
+
+%%AK: Check if we can take this paper's "peicewise linear theory" and convert it to a policy improvement bound differentiating between TD and supervised, as opposed to just fitting Q*-values?
+
+% \subsection{Consequences of Overly Regularized Representations in TD Learning}
+% Having seen aliasing of features on state-action tuples used for bootstrapping emerge as one pathological consequence of overly regularized representations in TD-learning compared to supervised learning, we next ask the following question we study the impact of over-regularization have on the performance of TD-learning. In particular, we ask: do TD-learning algorithms find generalizing and stable optima? To answer these questions, we consider a simple scenario where learning is initialized from a 
+
+
+% \textbf{Abstract model.} Our abstract model captures feature learning as making a discrete selection among $K$ different feature vector candidates, $\{\Phi_1, \Phi_2, \cdots, \Phi_K\}$, $\Phi_i \in \mathbb{R}^{|\data|\times d}$,
+%%SL.5.13: It would be way easier to understand if we could get continuous domains, and then just frame this as an optimization over \Phi (i.e., optimization over \Phi corresponds to selecting the best \Phi \in [some set]), that way we don't have to have this "discrete selection" business and could just say that it's part of the optimization process.
+% and then training a linear layer $\bw \in \mathbb{R}^{d}$ to obtain the Q-function.
+%%SL.5.13: One way you could phrase is this: Our abstract model of the learning process separates the neural network into two parts: a representation $\Phi$ and a weight vector $\bw \in ...$, such that the full model is given by $\Phi(..)^T \bw$ (i.e., $\bw$ corresponds to the last linear layer). The learning process is framed as a \emph{bilevel} optimization problem, where the weights $\bw$ are chosen subject to a constraint that the learning process chooses the optimal features $\Phi \in [set]$ for $\bw$ (or something like that)
+% To mimic the overparameterized nature of neural networks, we assume that we operate in the overparameterized regime with $n < d$.
+%%SL.5.13: This is kind of weird -- usually the last layer features are not that high dimensional, but the model parameters are. Are you sure we shouldn't look for some way to "NTK-ify" this? Perhaps a better way to frame this is that we are in the NTK regime where the choice of Phi corresponds to the choice of NTK (i.e., it's not fixed, as is more common in this analysis), while bw corresponds to the neural net parameters? That would justify the overparameterized regime and make this less weird.
+% Assume that the initial value of the weight vector $\bw^{(0)} = 0$. We then write out the minimum-norm optimization problem shown below in Equation~\ref{eqn:min_norm} that attains the same solution as the optimal solution found by minimizing training TD error in this model, and characterize the properties of features $\Phi_K^*$ that are selected to obtain the minimum-norm solution. \textcolor{red}{more assumptions?}     
+%%SL.5.13: It won't be clear to some people what min-norm has to do with neural net training, can you cite something to justify this?
+% \begin{align}
+%     \min_{\bw, \boldm_i \in \{0^d, 1^d \}}~~& ||\bw||_2^2 \nonumber\\
+%     \text{s.t.}~~&~ \bar{\Phi}^\top \bar{\Phi} \bw = \bar{\Phi}^\top R + \gamma \bar{\Phi}^\top P^\pi \bar{\Phi} \bw, ~~ \bar{\Phi} = \left[\Phi_1, \cdots, \Phi_k\right] \otimes [\boldm_1, \cdots, \boldm_K]
+% \label{eqn:min_norm}
+% \end{align}
+%%SL.5.13: ouch, this \bm_i is... difficult to parse
+% Our first result characterizes the feature representation $\bar{\Phi}$ -- equal to one of $\Phi_i$ selected based on the learned masks $\bm_i$ -- that satisfies the Bellman consistency condition but also minimize the implicit regularizer, $||\bw||_2^2$,
+% %%SL.5.13: where does this implicit regularizer come from?
+% and use this to depict the existence of this phenomenon.
+
+
+\iffalse
+
+\section{Representation Regularization in Offline Q-Learning}
+\label{sec:problem}
+%%SL.5.13: See my comment on the title about "excessive" (maybe we call it Implicit Over-Regularization?). That said, this again sounds *extremely* similar to IUP, to the point where the section title alone could lead many readers to suspect this is just a direct copy of the IUP paper.
+%%AK: yeah I agree. I am a little unsure what to call it, besides maybe admitting that this is similar IUP in high-level motivation but not low-level technical details. Do you think that's doable? My rationale was that right now readers might have the impression that we are trying to do something like IUP but also trying to distinguish it from IUP, without making clear what our contribution is and what's already there. Perhaps just saying something like "Fine-grained analysis" or something that explicitly quantifies the extent of this contribution is different? Avoiding that might just create questions. What do you think?
+%%AK: the title sounds lika having a good connotation, is there a bad word for "regularization" that is not just "over-regularization" or "aliasing"?
+
+% In this section, we study the mechanism by which implicit regularization effects are induced in offline Q-learning, and discuss how these effects can lead to pathological issues such as overly aliased representations and convergence to poor solutions. These aliasing properties exist even when learning is initialized from good solutions that do not exhibit this aliasing, and can make the learning eventually diverge. We first provide an empirical analysis of this phenomenon and then theoretically formalize these observations in a simple abstract model of learning dynamics of Q-learning.
+Offline RL algorithms discussed previously are unstable and suffer from hyperparameter tuning challenges. A simple choice such as the number of training steps can be game-changing -- too few gradient steps will of course give rise to underfitted Q-functions, but perhaps surprisingly, too many gradient steps also lead to poor performance (Figure~\ref{fig:atari_5_percent}, Figure 2 in \citep{kumar2021implicit}). This phenomenon resembles statistical overfitting at first, however, it is actually underfitting caused due to excessive representational regularization of training deep networks with TD error that manifests as aliased features. While this issue has been broadly noted in previous work~\citep{kumar2021implicit}, in this section we will provide a fine-grained analysis of this phenomenon first empirically and then theoretically. In Section~\ref{sec:method}, we will then discuss a simple regularization scheme that can mitigate this issue. \textcolor{red}{TODO}  
+%%SL.5.13: Maybe a somewhat more forceful lead-in could look like this:
+% While the offline RL algorithms discussed in the previous section mitigate the worst challenges of offline RL~\citep{bear}, effectively using such methods in practice still requires extensive hyperparameter tuning. A particularly delicate choice is the number of gradient steps to take on the offline dataset -- too few gradient steps obviously produce underfitted, suboptimal value functions. But surprisingly, too many gradient steps also often result in poor performance, as illustrated in Figure ??. What is the reason for this performance collapse? While this phenomenon initially resembles overfitting, it is in fact an instance of \emph{underfitting}: although deep networks trained with SGD should provide a very good fit in standard supervised settings, we will argue that training with TD backups introduces a pathological over-regularization effect, induces excessive aliasing, and greatly constrains the expressive power of the resulting features. We first analyze this empirically, and then present a theoretical analysis. In Section ??, we will discuss how a simple regularization scheme can mitigate this issue.
+%%AK: I havent added this fully, and instead cited IUP for the basic "noting" of this phenomenon and then said that we provide finegrained analysis of it. But I can change it. 
+
+\iffalse
+\subsection{Empirical Analysis}
+\label{sec:empirical_analysis}
+\begin{wrapfigure}{r}{0.49\textwidth}
+    \vspace{-47pt}
+    \centering
+    \includegraphics[width=\linewidth]{atari/perf_3_games.pdf}
+    \includegraphics[width=\linewidth]{atari/unnorm_3_games.pdf}
+    \includegraphics[width=\linewidth]{atari/norm_3_games.pdf}
+    \vspace{-0.65cm}
+    \caption{\small{Performance of offline DQN and BC on 5\% DQN replay dataset~\citep{agarwal2019optimistic} (top), normalized similarity scores for DQN and BC (bottom). As compared to DQN, $\simnorm$ (cosine similarity) decays significantly faster for BC. 
+    \textcolor{red}{Remove the middle row that's not useful. Reduce to 2 games. Also add SARSA}}
+    } 
+    \label{fig:atari_3_games}
+    \vspace{-0.4cm}
+\end{wrapfigure}
+%% The first para is saying aliasing exists in very simple language
+%%SL.5.13: I think before we dive into why it happens, can we just show what the problem is? E.g., show some learning curves where performance peaks and drops, and explain what's going on. Only then talk about *why* it happens
+%%AK: sorry for bringing this up again. But I feel like that would make it like iUP basically. I have cited this issue of what happens using a figure later in the paper in the para above as well as citing figure from IUP. We can put a wrapfig in the accompanying text above, but it feels a little copied if we spend the technical section on this. Maybe this is not a good choice. What do you think? 
+As noted in~\citep{kumar2021implicit}, one of the most notably visible impacts of representation regularization is the pathological feature aliasing phenomenon that arises with more training. While this aliasing issue has been previously quantified via a collapse in the rank of the feature matrix $\Phi$, this evidence does not shed light on the exact mechanism by which aliasing happens -- even standard supervised learning would exhibit a drop in rank($\Phi$); though not in enormous amounts. % one closing line on how as a result it is less clear how to measure aliasing and connection to bootstrapping empirically.   
+%%AK: tried to add a comparison against 
+
+\textcolor{red}{This first part of Section 3.1 will likely be removed in favor of a didactic example} \textit{How can we connect the degree of aliasing to bootstrapping?} Since the difference between bootstrapping and standard supervised learning is primarily that the Q-function at $(\bs, \ba) \in \mathcal{D}$ is trained  with targets generated using Q-values at $(\bs', \ba')$ instead of fixed targets, excessive similarity between $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$ leads to highly coupled Q-values on the two sides of the Bellman update, which can lead to issues such as overestimation and divergence~\citep{durugkar2018td}. Hence, it is informative to measure the similarities in representations $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$. We measure two notions of similarity: \textbf{(1)} we measure the cosine similarity between $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$, and \textbf{(2)} we measure an aggregate    
+
+Observe in  Figure~\ref{fig:atari_3_games} that perhaps surprisingly the similarity between $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$ decreases and saturates at low values with behavior cloning (BC),
+%%SL.5.13: This feels like a non-sequitur -- you're comparing representations at two different states, why does it matter that BC is trying to match the behavior policy?
+On the other hand, DQN, which is trying to actually improve upon the behavior policy, essentially aliases
+%%SL.5.13: There is no evidence of aliasing, just of high dot product (which is not the same)
+feature representations at $(\bs, \ba)$ and $(\bs, \ba')$, giving rise to very high similarity values.
+%%SL.5.13: Without more context about what's going on, I would say at this point that this is probably due to the OOD actions problem you mentioned before, which DQN does nothing to fix. Additionally, I think it's very likely that many reviewers at this point woudl complain that it's non-sensical to compare BC (which learns policies) with DQN (which learns Q-functions).
+This indicates that, compared to supervised learning (e.g., BC), implicit regularization effects in deep Q-learning have a tendency to alias predictions at states and corresponding next states. \textcolor{red}{Would be good to show this with SARSA vs MC: that way we can make a stronger statement like: Note that while both SARSA and MC returns are essentially computing the same quantity and differ only in the nature of implicit regularization induced. This difference makes a huge difference -- in one case, representations at consecutive states are essentially completely aliased, while supervised learning is able to disentangle representations.}
+%%SL.5.13: Overall, I think this paragraph is rather problematic. If you want to explain this part, it would be good to really slow it way down and walk the reader through it much more slowly, otherwise so many of the choices in the above paragraph come across as ad hoc, making the conclusions unconvincing.
+
+\fi
+
+\subsection{A Didactic Example}
+\label{sec:empirical_analysis}
+
+As noted in~\citep{kumar2021implicit}, one of the most notably visible impacts of representation regularization is the pathological feature aliasing phenomenon that arises with more training. While this aliasing issue has been previously quantified via a collapse in the rank of the feature matrix $\Phi$, this evidence does not shed light on the exact mechanism by which aliasing happens -- even standard supervised learning would exhibit a drop in rank($\Phi$) with more training, and while prior work shows that bootstrapping exacerbates it empirically, it is unclear how exactly this amplification happens. In this section, we describe the intuition behind this mechanism with a didactic example of a 2-action, 1D line MDP~\citep{dong2020expressivity} with a piece-wise linear deterministic dynamics function, $P(\bs'|\bs, \ba) = \mathbb{I}(\bs' = f(\bs, \ba))$ shown in Figure ??. The reward $r(\bs, \ba)$ at any state is the value of the state itself, i.e., $r(\bs, \ba) = \bs$.
+
+The optimal Q-function for this MDP is shown in Figure ??, and 3-layer deep ReLU network Q-functions estimators learned via supervised regression and TD-learning on the identical finite dataset are shown respectively in Figures ?? and ??. While neither supervised regression nor TD learning can learn the complete structure of the optimal Q-function, TD learning fails to represent important high-frequency components of the Q-function (marked in yellow), leaning a ``simple'', smooth Q-function. Since it fails to model the changes in the Q-function well, the resulting policy often chooses the worse action. Quantitatively, the policy extracted from such a TD Q-function is worse than that extracted from the supervised Q-function at more than half the states.  
+%%AK: todo: mark in yellow via keynote
+
+%% The next para is saying aliasing is undesirable
+\textbf{Why do we observe overly smooth Q-functions in the didactic example when trained with TD learning?}  While excessive aliasing of internal representations in the neural network is expected to generally lead to poor performance, aliasing between $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$ is especially detrimental when learning with Bellman backups. Intuitively, since Bellman backups train features such that the difference of Q-values, $Q(\bs, \ba) - \gamma Q(\bs', \ba')$ matches the reward function, $r(\bs, \ba)$, only on a finite number of state-action tuples seen in the dataset, the features $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$ can learn to only be sufficiently different to predict the reward, thereby achieving low TD error and may be excessively regularized otherwise, thus not capturing long-term structure in the Q-function. Put in other words, there are many possible assignments of weights to a function approximator that could give rise to equally low TD error at the cost of varying degrees of aliasing or regularization.
+
+%%SL.5.13: This feels really hand-wavy. I'm also not sure I agree with this argument -- after all, how would it be any different if there *wasn't* aliasing? Wouldn't you still get a good fit between the difference and reward? This kind of a makes a non-falsifiable statement.
+%%AK: this figure is like the example in the MB vs MF paper, but with Bellman backups run on it.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{atari/cql_on_bootstrapping_feat.pdf}
+    \includegraphics[width=\linewidth]{atari/cql_losses_bootstrapped_feat.pdf}
+    \includegraphics[width=\linewidth]{atari/sim_s_ns_cql_on_bootstrapping_feat.pdf}
+    \vspace{-0.65cm}
+    \caption{\small{CQL($\phi$), trained using 5\% DQN replay dataset, that learns on features trained solely via bootstrapping where the CQL regularizer $\mathcal{R}(\theta)$ only updates the linear weights of the Q-network. Different values of $\alpha_R$ correspond to different strengths of conservative regularization. We also show standard CQL~(red) for comparison.}} 
+    \label{fig:atari_3_games_cql_bootstrap}
+    \vspace{-0.6cm}
+\end{wrapfigure}
+When excessive aliasing is induced by such a mechanism, even modern offline RL methods that are meant to prevent against distributional shift
+%%SL.5.13: It's unclear what preventing distributional shift has to do with this
+are rendered ineffective. To demonstrate this empirically, we trained a modified version of CQL~\citep{kumar2020conservative}, CQL$(\phi)$, that learns on features $\phi(\bs, \ba)$ solely trained via bootstrapping, and the CQL regularizer is allowed to only update the last linear layer weights. As shown in Figure~\ref{fig:atari_3_games_cql_bootstrap}, no strength of conservative regularization is able to minimize out-of-distribution Q-values resulting in higher values of CQL loss and significantly worse performance as compared to CQL. This indicates that, no matter what, aliased representations can significantly hamper the efficacy of offline RL methods.
+%%SL.5.13: This experiment seems weird. You said (and showed before) that features learned with bootstrapping are bad, and it seems like now you are saying if you take those features and retrain, it's still bad, but that's not surprising. I think the subtlety here is that you are also showing that the CQL regularizer is ineffective, but that seems obvious? And it also requires a degree of familiarity with CQL to understand, that the reader might not have. Maybe we can do away with this paragraph?
+
+%%AK: this is the experiment where we initialize the Q-function from a good checkpoint and show it still performs poorly so it is reasoning about the stability aspect.
+Finally, to demonstrate the detrimental extent of this implicit regularization on stability of the offline RL algorithm, we perform a controlled experiment where Q-learning is initialized from a ``good'' Q-function that doesn't exhibit aliasing.
+%%SL.5.13: where does this come from?
+As shown in Figure ??,
+%%AK: TODO(AK): add figure!
+more learning iterations with modern offline RL algorithms can still drive the algorithm away from this good solution towards more aliased and poor performing solutions. This shows that aliasing caused due to the implicit regularization of training does not just affect the peak performance of an algorithm, but also plays a significant role in destabilizing algorithms when they reach their peak performance.  
+
+\subsection{Theoretical Analysis of Implicit Regularization in Offline Deep Q-Learning}
+\label{sec:theory_evidence}
+%%SL.5.13: Calling this "implicit regularization" seems premature -- all we showed is that features get larger dot products, which doesn't mean there is some sort of "implicit regularization" going on
+In this section, we formalize our empirical observations from Section~\ref{sec:empirical_analysis} and provide a theoretical analysis of the implicit regularization issue. We aim to answer two questions: \textbf{(1)} How do implicit regularization effects in TD learning affect the the aliasing of representations at consecutive states used in the Bellman update? and, \textbf{(2)} How does excessive aliasing affect performance of the algorithm? To answer these questions, we first introduce a simple abstract model of neural network behavior
+%%SL.5.13: Rephrase as something like: we first introduce a simple abstract model of neural network training dynamics in value-based RL, and then use this model to analyze the effect of repeated SGD updates on the TD objective. [or something like that]
+that allows us to answer these questions.
+
+% abstract model
+%% AK: TODO (AK): Also check if we can generalize this to arbitrary continous domains
+%%SL.5.13: In its current form, I'm a bit nervous about this version of the theory. I think the SGD implicit regularization version is more convincing and makes fewer arbitrary choices. I do think this version could be made better if we can get rid of the discrete set though. Would be good to get Tengyu's take on it too...
+\textbf{Abstract model.} Our abstract model captures feature learning as making a discrete selection among $K$ different feature vector candidates, $\{\Phi_1, \Phi_2, \cdots, \Phi_K\}$, $\Phi_i \in \mathbb{R}^{|\data|\times d}$,
+%%SL.5.13: It would be way easier to understand if we could get continuous domains, and then just frame this as an optimization over \Phi (i.e., optimization over \Phi corresponds to selecting the best \Phi \in [some set]), that way we don't have to have this "discrete selection" business and could just say that it's part of the optimization process.
+and then training a linear layer $\bw \in \mathbb{R}^{d}$ to obtain the Q-function.
+%%SL.5.13: One way you could phrase is this: Our abstract model of the learning process separates the neural network into two parts: a representation $\Phi$ and a weight vector $\bw \in ...$, such that the full model is given by $\Phi(..)^T \bw$ (i.e., $\bw$ corresponds to the last linear layer). The learning process is framed as a \emph{bilevel} optimization problem, where the weights $\bw$ are chosen subject to a constraint that the learning process chooses the optimal features $\Phi \in [set]$ for $\bw$ (or something like that)
+To mimic the overparameterized nature of neural networks, we assume that we operate in the overparameterized regime with $n < d$.
+%%SL.5.13: This is kind of weird -- usually the last layer features are not that high dimensional, but the model parameters are. Are you sure we shouldn't look for some way to "NTK-ify" this? Perhaps a better way to frame this is that we are in the NTK regime where the choice of Phi corresponds to the choice of NTK (i.e., it's not fixed, as is more common in this analysis), while bw corresponds to the neural net parameters? That would justify the overparameterized regime and make this less weird.
+Assume that the initial value of the weight vector $\bw^{(0)} = 0$. We then write out the minimum-norm optimization problem shown below in Equation~\ref{eqn:min_norm} that attains the same solution as the optimal solution found by minimizing training TD error in this model, and characterize the properties of features $\Phi_K^*$ that are selected to obtain the minimum-norm solution. \textcolor{red}{more assumptions?}     
+%%SL.5.13: It won't be clear to some people what min-norm has to do with neural net training, can you cite something to justify this?
+\begin{align}
+    \min_{\bw, \boldm_i \in \{0^d, 1^d \}}~~& ||\bw||_2^2 \nonumber\\
+    \text{s.t.}~~&~ \bar{\Phi}^\top \bar{\Phi} \bw = \bar{\Phi}^\top R + \gamma \bar{\Phi}^\top P^\pi \bar{\Phi} \bw, ~~ \bar{\Phi} = \left[\Phi_1, \cdots, \Phi_k\right] \otimes [\boldm_1, \cdots, \boldm_K]
+\label{eqn:min_norm}
+\end{align}
+%%SL.5.13: ouch, this \bm_i is... difficult to parse
+Our first result characterizes the feature representation $\bar{\Phi}$ -- equal to one of $\Phi_i$ selected based on the learned masks $\bm_i$ -- that satisfies the Bellman consistency condition but also minimize the implicit regularizer, $||\bw||_2^2$,
+%%SL.5.13: where does this implicit regularizer come from?
+and use this to depict the existence of this phenomenon.
+
+\begin{theorem}
+\label{thm:aliasing_exists}
+Let the singular value decomposition of $\Phi_i$ be given as $\Phi_i = \bU_i \Sigma_i \bV_i^\top$ and $\bw^{(*)}, \boldm^{(*)}$ minimize the objective in Equation~\ref{eqn:min_norm}. Assume that the reward vector lies in the column space of $\Phi_i$, $\forall i \in [K]$, i.e., $\exists~ y_i, R = \Phi_i y_i $.  Then, $\bar{\Phi}$ is such that:
+\begin{equation*}
+    \bar{\Phi} := \arg \min_{i}~ \big|\big| \Sigma_i^{-1} \left( \bU_i^T (I - \gamma P^\pi) \bU_i \right)^{-1} \Sigma_i y_i\big|\big|_2^2.
+\end{equation*}
+Thus, the resulting $\bar{\Phi}$ satisfies: $\mathrm{srank}\left(\bar{\Phi}^\top (\bar{\Phi} - \gamma P^\pi \bar{\Phi}) \right) \leq \mathrm{srank}\left(\Phi_i^\top (\Phi_i - \gamma P^\pi \Phi_i) \right)~ \forall i$, which quantifies the existence of aliasing between representations at consecutive states in TD-learning.
+\end{theorem}
+%%SL.5.13: It's not clear what this last sentence means ("which quantifies the existence of aliasing between representations at consecutive states in TD-learning") -- can we state the implication of this theorem more precisely. As written, it's also not clear what this theorem has to do with SGD (I guess it's the min-norm part?).
+
+%%SL.5.13: It might also help with clarity to explain why this problem *doesn't* happen in the supervised learning case
+
+A proof of Theorem~\ref{thm:aliasing_exists} can be found in the Appendix ??. The main consequence of this result is a characterization of the learned features at optimal TD solutions in our abstract model in terms of the effective rank~\citep{kumar2021implicit} of the matrix $\bM(\Phi) := \Phi^\top (\Phi - \gamma P^\pi \Phi)$. A low rank of $\bM(\Phi)$ for a given rank of $\Phi$ intuitively indicates that the basis of the difference in features at consecutive states, $\Phi - \gamma P^\pi \Phi$, heavily lies
+%%SL.5.13: try to avoid hand-wavy language ("heavily lies") and state what you mean more precisely
+in the null space of the feature matrix $\Phi$, as a result of which the weight vector $\bw$ will be updated only in a few directions allowed by both $\Phi$ and $\Phi-\gamma P^\pi \Phi$.indicating that only a partial set of features will actually be used for learning.
+%%SL.5.13: something is malformed above ("indicating that")
+To empirically verify the existence of such an aliasing phenomenon, following the procedure outlined in \citep{kumar2021implicit}, we measure the effective rank of $\bM(\Phi)$ and observe in Figure ?? that this matrix indeed has extremely low rank when training with TD backups, as compared to supervised regression.
+%% AK: this supervised regression is BC. Should we also do this for something else?
+
+%%AK: maybe write the stuff below as a theorem?
+Another interesting consequence of Theorem~\ref{thm:aliasing_exists} is the effect of the ``simplicity'' of the reward function on feature aliasing. We define simplicity by the number of non-zero components in the vector $y_i$.
+%%SL.5.13: maybe we should avoid ad hoc definitions like this, and try to just state this more plainly and directly?
+As an extreme case, note that if the vector $y_i$ has all zeros, except a single 1 entry, the optimal $\bar{\Phi}$ is expected to induce $\bM(\Phi)$ with a much lower rank compared to when a significantly more number of values of $y_i$ are non-zero (as shown in Appendix ??).
+%%SL.5.13: this seems imprecise ("much lower")
+This means that when the reward function $R$ actually non-trivially combines the singular vectors of $\Phi$ -- which we refer to as a ``complex'' reward function -- the effective aliasing
+%%SL.5.13: I think if you're going to use the term "aliasing" like this, it needs to be formally defined. Aliasing means that two things are indistinguishable (not similar, but indistinguishable). The word is being used in a different way here.
+is little less than when it does not. We indeed observe this behavior in practice, as shown in Figure ?? in Section~\ref{sec:empirical_analysis}, and our abstract model sheds light on how this implicit regularization effect in TD-learning is exacerbated in scenarios where reward functions can be expressed using very few components of the feature matrix $\Phi$.
+%%SL.5.13: how do you know if it can be expressed using very few components?
+%%SL.5.13: I think I understand what you are trying to say in the above paragraph, but we need to find a cleaner and more concise way of saying it. Maybe what we can say is something like -- consider the projection of the reward function onto the column-space [?] of Phi, with coefficients ??. If these coefficients are sparse, we would expect [??] (try to be precise!)...
+
+To conclude our analysis for question \textbf{(1)}, we finally note that an analogous result in supervised learning would indicate no existence of any implicit bias that preferentially aliases feature representations at consecutive states. While prior work \citep{kumar2021implicit} has also generally shown the compounding effect of implicit regularization towards low-rank $\Phi$ in TD-learning, our analysis explicitly identifies the structure of aliasing induced by this implicit regularization: the rank of the matrix $\bM(\phi)$ drops, leading to aliasing at consecutive states.
+%%SL.5.13: It's good to have a paragraph like the one above, but it addresses two things simultaneously, and doesn't do either very well: the supervised learning bit seems to have no punchline (so... is this a contradiction? if not, why not?); the bit about IUP doesn't clearly state how what you are showing is different from IUP.
+
+%%SL.5.13: Given how long-winded the above is, maybe consider a subsection heading for (2) or something (or at least paragraph heading)
+Next, we answer question \textbf{(2)} regarding the detrimental impacts of aliasing. 
+\textcolor{red}{Need to finish this bit -- there are some options we can go: (1) We can show that there exist MDPs with simple reward functions and complex Q-functions, where such an implicit regularizer will cause the MDP to learn overly smooth Q-functions. (2) We can show that even when initialized close to a good solution, this implicit regularizer will drive the model towards picking features that are the most aliased, in which case we do not even stabilize near a good solution even if we reach it. (3) We could show that distributional shift correction on top of aliased features will not work, similar to what we had before the ICML deadline. Which of these option(s) should we prefer?}
+
+\fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% old stuff below %%%%%%%%%%%%%%%%%%
+
+\iffalse
+\section{\AliasingProblemName\ in Offline RL}
+\label{sec:problem}
+%%SL.2.3: Kind of a nitpick, but "Bootstrapping Aliasing" kind of makes it sound like we are bootstrapping the aliasing (rather than that we have aliasing that stems from bootstrapping). But why do you want "bootstrapping" in the name? It doesn't really have anything to do with bootstrapping, at least not moreso than anything else that relates to RL. It's kind of more like Policy Aliasing (or something like that...)
+
+Empirically, we find that the combination of neural network function approximators, bootstrapping, and minimizing TD error 
+% with gradient descent 
+leads to aliasing
+%%SL.2.3: Aliasing between what and what?
+of the state-action pairs appearing in a Bellman update. Minimizing TD error against bootstrapped targets uses a tuple $(\bs, \ba, \bs')$ from the dataset, draws an additional action sample from $\pi(\cdot | \bs')$, which may not be observed in the dataset, and evaluates $Q_\theta(\bs, \ba)$ and $Q_\theta(\bs', \ba')$. We find that the features $\phi(\bs, \ba)$ and features $\phi(\bs', \ba')$ become aliased over the course of learning,
+%In this section, we will see how offline training of Q-functions by minimizing TD error against a bootstrapped target value estimate \emph{aliases} feature representations on actions drawn from the dataset $\phi(\bs, \ba)$ and the feature representations on actions from the learned policy that will be used for bootstrapping, but are not observed in the dataset, which we denote as $\phi(\bs', \ba')$. Since features $\phi(\bs', \ba')$ directly influence the features at dataset state-action tuples $\phi(\bs, \ba)$ via the bootstrapping update, a similarity between features at these specific state-action tuples is likely to affect optimization dynamics of the algorithm as we will more formally discuss in Proposition~\ref{thm:separability}.  
+%%AK.2.3: I don't know how to motivate this, I wrote something up but this isnt convincing 
+%%SL.2.1: which we denote as
+and we refer to this phenomenon as \emph{\aliasingproblemname}.
+%%SL.2.3: As stated, this sounds a little bit silly, because \bs and \bs' are very similar, so of course they are likely to be aliased! I think it would help to explain the *policy* aliasing part first, and then explain that a particularly prominent instance of this has to do with \ba and \ba' (but FWIW, I still think we are making too big of a deal out of the fact that these are sequential actions, and things would be much clearer and less likely to be misunderstood if we did not do this, and instead focused on policy aliasing and brought in the s/a/s'/a' stuff as late as possible)
+To measure this aliasing, we use the normalized and unnormalized dot product similarities %To begin, we formally define two metrics to quantify \aliasingproblemname, and then demonstrate the existence of this issue in offline Q-learning methods.
+\begin{align*}
+    \simnorm(\bs, \ba, \bs'; \phi) &:= \frac{|\phi(\bs, \ba)^T \E_{\pi(\ba'|\bs')}[\phi(\bs', \ba')]|}{||\phi(\bs, \ba)||_2 ||\E_{\pi(\ba'|\bs')}[\phi(\bs', \ba')]||_2},\\
+    \simunnorm(\bs, \ba, \bs'; \phi) &:= |\phi(\bs, \ba)^T \E_{\pi(\ba'|\bs')}[\phi(\bs', \ba')]|.
+\end{align*}
+%\begin{definition}
+%\emph{\Aliasingproblemname} is said to happen when features $\phi(\bs, \ba)$ on $(\bs, \ba, \bs') \in \data$ and the expected feature vector on actions drawn from the learned policy $\pi(\cdot |\bs')$ at the next state $\bs'$, $\E_{\ba' \sim \pi(\cdot|s')}[\phi(\bs', \ba')]$, exhibit a high normalized or unnormalized dot product similarity on an average over the dataset $\mathcal{D}$. The normalized ($\simnorm$) and unnormalized ($\simunnorm$) similarities are given by:
+%%%SL.2.1: It's unclear why you are using a/a' on successive timesteps. Since this is a definition, it might come across as weirdly arbitrary. Beyond this, there is the question of whether this is referring to this quantity in expectation over s, on average, etc.
+%%%AK.2.3: I don't know how best to do that. I want to write this section as policy indistinguishability, where we measure (s, a), (s, a') similarity, but that doesn't seem to be the case we can make in time
+%\begin{align*}
+%    \simnorm(\bs, \ba, \bs'; \phi) &:= \frac{|\phi(\bs, \ba)^T \E_{\pi}[\phi(\bs', \cdot)]|}{||\phi(\bs, \ba)||_2 ||\E_{\pi}[\phi(\bs', \cdot)]||_2},\\
+%    \simunnorm(\bs, \ba, \bs'; \phi) &:= |\phi(\bs, \ba)^T \E_{\pi}[\phi(\bs', \cdot)]|.
+%\end{align*}
+%\end{definition}
+We omit $\phi$ when it is clear from context. %A high $\simnorm$ indicates state-action tuples $(\bs, \ba) \sim \mathcal{D}$ and the next state-action tuple, $(\bs', \ba')$ where $\ba' \sim \pi(\cdot|\bs')$ are directionally aligned,
+%%SL.2.1: Above sentence appears to (intentionally?) omit saying what the state is, just saying the action. Especially combined with the s/s'/a/s' confusion in the previous definition, this might be not so great
+%%AK.2.3: added this 
+%whereas the feature magnitude captured in $\simunnorm$ indicates the extent to which directional similarity affects optimization~(Section~\ref{sec:analysis}). As a result, by tracking average similarities over the dataset, $\E_{\bs,\ba, \bs' \sim \data}[\simnorm(\bs, \ba, \bs')]$ and $\E_{\bs, \ba, \bs' \sim \data}[\simunnorm(\bs, \ba, \bs')]$,
+%%SL.2.1: This average thing seems a bit hacky.
+%%AK.2.3: introduced the average bit in the definition above
+%we can verify the existence of \aliasingproblemname.
+Intuitively, this could be problematic in the offline RL setting where carefully controlling generalization is critical to performance~\citep{levine2020offline}
+%%SL.2.3: I don't really understand what claim this reference is supposed to be supporting
+because it couples the $Q$ values of $(\bs, \ba)$ and a potentially out-of-distribution tuple $(\bs', \ba')$.
+%%SL.2.3: should clarify that it's the action that's OOD, not the state (lest someone misunderstand)
+% For example, assume that the features $\phi(\bs, \ba) \in \mathbb{R}^d$ are positive (as is the case with ReLU activations) and unit norm, then $\simnorm(\bs, \ba, \bs') \geq 1 - \varepsilon$ immediately implies that $(Q_\bw(\bs, \ba) - \E_{\pi(\ba'|\bs')}\left[Q_\bw(\bs', \ba')\right])^2 \leq 2\varepsilon||\bw||_2^2$.
+%%SL.2.3: This early in the paper, the significance of this inequality is not clear (indeed, it's not clear to me even, and I've read the whole paper many times!)
+In the next subsections, we present empirical evidence demonstrating that bootstrapping induces \aliasingproblemname\ and then discuss its consequences, before using these insights to develop \methodname\ in Section~\ref{sec:method}.  
+
+%%SL.2.1: Overall, I'm concerned that there are a number of details in this section that make what would otherwise be a fairly clean exposition kind of confusing. Namely, the fact that there are two similarity measures, and the s/a/s'/a' thing. Perhaps in the interest of clarity we can simplify this? Not sure how well that would still fit with what follows later, but it seems like something we can do better. Beyond this, it's not clear why high "indistinguishability" is actually "indistinguishable" -- if the features are perfectly aligned, of course they are indistinguishable, but I do think that many readers will have the same criticism here that I had -- if the similarity is high but not perfect, then the features really are distinguishable, just the differences are smaller. We probably don't have room to do this concept justice in this section, but at least providing a little bit of intuition and/or a forward reference about it here would I think help.
+%%AK.2.3: I edited this, does it seem better?
+
+
+%%AK.1.31: discuss IUP in the related work section, TODO!
+\subsection{High \AliasingProblemName\ During Training}
+\label{sec:bootstrapping_evidence}
+To study how $\simunnorm$ and $\simnorm$ evolve over the course of training with offline RL, we measure both quantities during training on three Atari games in \Figref{fig:atari_3_games}.
+On each game, we run standard DQN~\citep{Mnih2015} on an offline dataset that consists of partially subsampled experience from an online Atari agent~\citep{agarwal2019optimistic}. For comparison, we visualize the corresponding metrics for supervised learning behavioral cloning and offline SARSA~\citep{rummery1994line} that uses the actions from the dataset at the next state for bootstrapping updates. First, note that both $\simnorm$ and $\simunnorm$ are an order of magnitude higher for DQN, as compared to supervised BC, \emph{despite the fact that BC is trying to directly match the behavior policy}, whereas DQN is trying to improve upon the behavior policy and intuitively representing the behavior policy from the learned policy is crucial for improvement. Furthermore, since there are no out-of-distribution actions used in SARSA, the \aliasingproblemname\ is more severe in DQN compared to SARSA.
+%%SL.2.1: \emph{despite the fact that BC is directly trying to match the behavior policy}, while DQN is trying to improve on it
+%%RA.2.2: I didn't understand why "despite" the fact -- do we expect BC's similarities to be higher?
+%%AK.2.3: added the intuition
+As compared to DQN, $\simunnorm(\bs, \ba, \bs')$ increases much slower for BC and SARSA while $\simunnorm(\bs, \ba, \bs')$ decays significantly faster for BC and SARSA.
+%Note that these values also generally exhibit an increasing trend with DQN, but a relatively stable trend over more training for BC.
+Furthermore, we observe a similar trend of large $\simunnorm$ and $\simnorm$~(\Figref{fig:atari_3_cosine}) during training for offline RL algorithms that address distributional shift, such as CQL~\citep{kumar2020conservative} and REM~\citep{agarwal2019optimistic}. Based on this evidence, we ask: 
+%RA.2.3: Does the \aliasingproblemname\ issue happen consistently, or is this merely an accident? 
+what are the consequences of \aliasingproblemname\ on algorithm performance? 
+%RA.2.3: We will show in Section~\ref{sec:analysis} that bootstrapping combined with gradient descent indeed amplifies these similarity metrics, particularly $\simunnorm$.
+
+%%AK.1.31: reword/remove the para below, if we actually arent able to show something from the min-norm problem.
+
+% Can we improve performance by addressing this issue? 
+%We investigate this question in the next section, and then propose \methodname\ that mitigates \aliasingproblemname\ and leads to more effective offline RL in practice.
+
+%%SL.2.3: When we shuffles things around in the paper, I think we might have removed something from this section, because as written, it doesn't actually motivate anything significant: it just says this mysterious quantity we defined (and that we decided to call "aliasing") is higher for some methods than others. But right now, as far as I could tell, this section doesn't actually say anything about how this is *bad*. That seems like a problem, because the reader will probably think that we're just saying random stuff in this section, and might simply stop reading.
+
+
+
+\subsection{Consequences of High \AliasingProblemName}
+\label{sec:consequences_of_feature_sim}
+%In this section, %we discuss the consequence of high feature similarity on the performance of offline RL algorithms. 
+%we analyze the behavior of offline Q-learning when \aliasingproblemname ~is high.
+%%%SL.2.1: I don't get this last part -- why does it correct for it "when $\simnorm$ and $\simunnorm$ are high"?
+%%%RA.2.1: The previous sentence was confusing, what we mean is that the analysis is done when feature similarities are high.
+%Our intuition is that with high similarities, the Q-function is unable to distinguish between dataset and out-of-distribution actions or it needs to learn high magnitude values in order to meaningfully distinguish between them, in which case it can no more a valid Q-function for the MDP (that takes on possible values for expected return in the MDP). 
+%As a theoretical abstraction, we show in Theorem~\ref{thm:separability} that for a given offline dataset $\data$, %of size $|\data| = n$, 
+%the probability of a large margin between the Q-values at  $(s, a) \sim \data$ and $(s, a) \sim \data, \pi$
+%%%SL.2.1: As before, it seems like here there is a bit of cleverness in omitting which state this depends on -- but that detail is important. Of course actions at different states will have different representations...
+%%%AK.2.3: addressed
+%computed via a linear transformation on the features decreases with normalized similarities $\simnorm$.
+%This implies that a valid Q-function  learned by any offline RL algorithm, even when it corrects for distributional shift, will not be able to push down the values of out-of-distribution actions by a large margin.
+%%%SL.2.1: I'm not really sold on this statement. Is there a reason to believe that a numerically smaller margin implies that it is harder to distinguish things? Just scaling down the features by a constant factor as I had mentioned before would also have this property, but of course we wouldn't argue that this makes it any harder...
+%%%AK.2.1: I edited this above to make it clear we are talking about the Q-function and not the margins of the representations independently. In a setting when I can drive the linear weights to infinity, the margin will be high, but here we can't as we will not have a valid Q-function at that point, and we will have ignored the reward maximization part. 
+%% This induces brittleness~\citep{bellemare2016increasing}
+%% %%SL.2.1: brittleness?
+%% in the learning procedure, and stochasticity and randomness in optimization can lead to issues such as excessive overestimation~\citep{kumar2020conservative} and policy unlearning~\citep{levine2020offline}.
+%%%SL.2.1: I would make the second clause (, and...) be a separate sentence, and explain it more explicitly -- are you trying to say that when \simnorm is high, stochasticity in optimization can lead to issues? or something else? it's just a pretty complex phrase to parse
+%%%AK.2.3: removed this
+%% We first state the result and then empirically validate it.
+%\begin{proposition}
+%\label{thm:separability}
+%Assume that features $\phi(\bs, \ba) \in \mathbb{R}^d$ of the Q-function are uniform random vectors satisfying $\forall~ \bs, \ba, \bs' \in \data,~ ||\phi(\bs, \ba)||_2 = 1,\ \mathrm{and}\ \simunnorm(\bs, \ba, \bs') = \simnorm(\bs, \ba, \bs') \geq \sqrt{1 - \varepsilon^2}$. Let $f_{\bw_c}(\bs, \ba) = \bw_c^T \phi(\bs, \ba)$ be any linear classifier that separates $\data_{\mathrm{in}} = \{(\bs, \ba)\}$ and $\data_{\mathrm{OOD}} = \{(\bs', \ba')\}$, where $\ba' \sim \pi(\cdot|\bs')$. Let $\zeta$ denote the margin obtained by $f_{\bw_c}$ in classifying $\data_{\mathrm{in}}, \data_{\mathrm{OOD}}$, and  assume that classifier weights are bounded, $||\bw_c||_2 \leq \tau$.
+%Then, 
+%\begin{equation*}
+%    \text{Pr} \left(\zeta \geq \alpha \right) \leq \left[ 1 - \left( C_1 \frac{\alpha^2}{\varepsilon^2}\right)^{\frac{d-1}{2}} \right]^{|\mathcal{D}|},
+%\end{equation*}
+%for some universal constant $C_1 > 0$ that depends on $\tau$.  
+%\end{proposition}
+%%%SL.2.1: What is the logic for why a small margin makes things bad? We can get a small margin just by making the features small (e.g., dividing them by 1000000), but this clearly wouldn't make the learning problem harder. More generally, I don't think we've really provided the setup that the reader needs to understand why separation between OOD and dataset actions is actually important. Maybe it's more important to establish that?
+%%%AK.2.1: I edited this above to make it clear we are talking about the Q-function and not the margins of the representations independently. In a setting when I can drive the linear weights to infinity, the margin will be high, but here we can't as we will not have a valid Q-function at that point, and we will have ignored the reward maximization part. 
+%Proposition~\ref{thm:separability} shows that when features are highly similar, \ie small $\varepsilon$, obtaining a Q-function that guarantees a large margin is exponentially smaller than when $\varepsilon$ is large. The proof for Proposition~\ref{thm:separability} can be found in Appendix ??. 
+%%%SL.2.1: Why does it show that? I guess your intuition is that if in-distribution and OOD actions are close together, this is hard, but this is not at all obvious
+%%AK.2.3: TODO (aviral): put a probability of divergence or something like that
+
+To explore the consequences of \aliasingproblemname, we show that recent methods developed to mitigate the impact of \emph{distributional shift}, such as CQL~\citep{kumar2020conservative}, are ineffective when using features with high \aliasingproblemname. In particular, we evaluate a modified version of CQL, CQL($\phi$), that learns on features $\phi(\bs, \ba)$ trained solely via bootstrapping,
+%%SL.2.3: Can you just show basic results first before modifying the method? and can you show things for methods other than cql? eg that regular DQN has high aliasing?
+where the CQL regularizer only updates the last linear weight layer of the Q-network~(\Figref{fig:atari_3_games_cql_bootstrap}). As shown in \Figref{fig:atari_3_games_cql_bootstrap}, no strength of the conservative regularization is able to minimize out-of-distribution Q-values resulting in higher values of the CQL loss, and both notions of feature similarity rise to large values during training. Finally, the performance of CQL($\phi$) is significantly worse compared to standard CQL. This provides evidence that \aliasingproblemname negatively impacts performance and suggests that reducing \aliasingproblemname may improve performance.
+%%SL.2.3: I think we need more than preliminary evidence, but if more convincing evidence is later, then you can forward reference it
+%RA.2.3: while standard CQL on this data can attain a normalized return of 1.0 (gridworld) and ?? (Atari), running CQL on these features attains only 0.6 and ?? respectively.
+%%AK.1.31: will there be an issue that why did you have to cripple an algorithm to get this behavior, and why can't this happen by default?
+
+To formalize the intuition from the experiment above, we formally show that with high similarities, the Q-function is either unable to distinguish between dataset and out-of-distribution actions at a given state or it needs to learn high magnitude values in order to meaningfully distinguish between them, in which case it no longer is a valid Q-function estimator for the MDP and suffers from overestimation or underestimation. 
+As a theoretical abstraction, we show in Proposition~\ref{thm:separability} that for a given offline dataset $\data$, %of size $|\data| = n$, 
+the probability of a large margin between the values at  $(\bs, \ba) \sim \data$ and $(\bs, \ba) \sim \data, \pi$
+computed via \emph{any} linear transformation on the features decreases with increases normalized similarities $\simnorm$. Then, the only way available to increase the margins of spearation between values unseen and seen actions is to then scale up either the features magnitudes oe the magnitude of the linear weight vector transforming these features into the -function, both of which lead to overestimation, as is evident in Figure ??. 
+%% This induces brittleness~\citep{bellemare2016increasing}
+%% %%SL.2.1: brittleness?
+%% in the learning procedure, and stochasticity and randomness in optimization can lead to issues such as excessive overestimation~\citep{kumar2020conservative} and policy unlearning~\citep{levine2020offline}.
+%%%SL.2.1: I would make the second clause (, and...) be a separate sentence, and explain it more explicitly -- are you trying to say that when \simnorm is high, stochasticity in optimization can lead to issues? or something else? it's just a pretty complex phrase to parse
+%%%AK.2.3: removed this
+%% We first state the result and then empirically validate it.
+\begin{proposition}
+\label{thm:separability}
+Assume that features $\phi(\bs, \ba) \in \mathbb{R}^d$ of the Q-function are uniform random vectors satisfying $\forall~ \bs, \ba, \bs' \in \data,~ ||\phi(\bs, \ba)||_2 = 1,\ \mathrm{and}\ \simunnorm(\bs, \ba, \bs') = \simnorm(\bs, \ba, \bs') \geq \sqrt{1 - \varepsilon^2}$. Let $f_{\bw_c}(\bs, \ba) = \bw_c^T \phi(\bs, \ba)$ be any linear classifier that separates $\data_{\mathrm{in}} = \{(\bs, \ba)\}$ and $\data_{\mathrm{OOD}} = \{(\bs', \ba')\}$, where $\ba' \sim \pi(\cdot|\bs')$. Let $\zeta$ denote the margin obtained by $f_{\bw_c}$ in classifying $\data_{\mathrm{in}}, \data_{\mathrm{OOD}}$, and  assume that classifier weights are bounded, $||\bw_c||_2 \leq \tau$.
+Then, 
+\begin{equation*}
+    \text{Pr} \left(\zeta \geq \alpha \right) \leq \left[ 1 - \left( C_1 \frac{\alpha^2}{\varepsilon^2}\right)^{\frac{d-1}{2}} \right]^{|\mathcal{D}|},
+\end{equation*}
+for some universal constant $C_1 > 0$ that depends on $\tau$.  
+\end{proposition}
+
+Next, we introduce our approach to fix this \aliasingproblemname\ and demonstrate that reducing \aliasingproblemname leads to significant gains in multiple offline Q-learning methods. %We first present the practical method and then analyze it theoretically. We will then analyze \emph{why} bootstrapping with deep neural networks amplifies the increase in the values of $\simnorm$ and $\simunnorm$.
+
+%%AK.2.3: the stuff below is going to form its new section
+\begin{remark}[Connection to offline RL lower-bounds]
+Recently, \citet{zanette2020exponential} constructed an OPE problem with linear function approximation that requires exponentially-sized $|\data|$ to meaningfully estimate the value of certain policies. The key idea behind their construction is that the feature vectors $\phi(\bs, \ba)$ and $\phi(\bs', \ba')$ appearing in a Bellman constraint are such that they align with each other and Bellman residual minimization then prevents learning the structure of the reward function crucial for policy evaluation since feature aliasing causes Bellman constraints to form an under-determined system. Our result in Theorem~\ref{thm:bootstrapping} shows that this does not just happen in specific hand-crafted ``worst-case'' MDPs, but is also likely to happen under scenarios~\ref{assumption:magnitude} and \ref{assumption:ood} in several ``average-case'' MDPs when deep neural network value function approximators are used.
+\end{remark}
+%%SL.1.26: I think making this a "Remark" like this is excessive, maybe this would be easier to explain in paragraph form. It's an important thing to note, and perhaps the relationship to Zanette '20 ought to be brought up earlier, because it in some sense could make the reader more comfortable with our statements about feature collinearity makes RL hard, which otherwise might come across as too vague and informal (simply being *close* does not necessarily make features indistinguishable)
+
+%%SL.2.1: Overall, my sense is that this subsection is not very convincing. I think it's very very heavily dependent on CQL, and it's really trying to say something specific about CQL rather than more general about offline RL. I'm also pretty skeptical that the theorem actually indicates that features with high similarity make learning harder -- nothing about the theorem currently appears to indicate this.
+
+%%%%%%%%%%%%OLD COMMENTS%%%%%%%%%%%
+
+%%SL.1.26: Is the word "aliasing" just used to mean "collinear"? I'm just worried that we are being very loose and vague with terminology...
+
+%%SL.1.26: My suggestion would be to make all the "experiment details" self-contained in an empirical section (e.g., 3.1), so that the reader doesn't mistakenly think that this section is primarily about experiments
+
+%%%AK.1.24: Outline of this section
+%%%%PART 1: Problem exists
+%% -- Define feature aliasing, show how we can measure it.
+%% -- Put out gridworld aliasing plots and show that FQI does suffer from aliasing issues (maybe a film strp of how it evolved would be better), also define an aggregate metric to compare (e.g. entropy of cosine^2 histogram?)
+%% -- Put out the same plot for supervised learning, and show a side-by-side comparison that bootstrapping is very different
+%% -- Discuss how CQL (and something like BRAC-v) also suffers from this issue and demonstrate plots.
+
+%%% PART 2: Problem Causes Issues
+%% -- maybe reuse same figures from before, but show that indeed the issue causes poor performance (especially performance that goes up and drops)
+%% -- show some 1 or 2 atari and d4rl plots (and point to appendix)
+%% -- theorem 1: when operating in the effective "aligned" regime, it is exponentially harder to fit a meaningful Q-function that both satisfies the conservative constraints and Bellman constraints: and depending upon $\alpha$ and init, divergence is bound to occur either ways -- conservatism or overestimation. Show examples of them (or list some sufficient conditions)
+
+%%% PART 3: Theory behind why the problem exists
+%% -- theorem 2: min norm problem for 2 layer relu networks have the affinity of either: 1. overestimation 2. bootstrap off of bad/unseen inputs -- either of them will lead to this issue (i.e. this happens when there is a bad OOD (next state, policy action) tuple used for bootstrapping or even when the Q-values are overestimated)
+%% -- remark: bring in the zanette et al 2020 paper, and argue that their lower bound holds due to precisely such featues, and hence even problems which are solvable also suffer from some inabilities to learn due to this aliasing effect.
+
+%%AK.1.24: Any major changes we need to do to the outline?
+
+% \begin{definition}
+% \emph{Feature aliasing} refers to increasing value of similarity of features $\phi(\bs, \cdot)$ on state-action pairs present and absent in $\data$ as training progresses. Formally, $\forall~ (\bs, \ba, \bs') \in \mathcal{D}$, the following quantity increases over the course of training training:
+% %%AK.1.24: forall s, a might too strict: check on gridworlds, since it seems like this happens on D4RL, but if not on gridworld, change to expectation
+% %%SL.1.26: Well, whatever definition you pick here should probably agree with the result of the theorems you will prove later. I am a little worried that this definition might come across as a little fuzzy right now, especially the forall, and the somewhat informal statement that this quantity "increases"
+% \begin{equation*}
+%     \cos^2(\phi(\bs, \ba), \E_{\pi}[\phi(\bs', \cdot)]) := \phi(\bs, \ba)^T \E_{\pi}[\phi(\bs', \cdot)]
+%     %\frac{\phi(\bs, \ba)^T \E_{\pi}[\phi(\bs', \cdot)]}{||\phi(\bs, \ba)||_2 ||\E_{\pi}[\phi(\bs', \cdot)]||_2}
+% \end{equation*}
+% \end{definition}
+%%SL.1.26: Is the word "aliasing" just used to mean "collinear"? I'm just worried that we are being very loose and vague with terminology...
+%%AK.1.31: Agreed about being loose, therefore I think we should call it policy indistinguishability
+
+%%SL.1.26: My suggestion would be to make all the "experiment details" self-contained in an empirical section (e.g., 3.1), so that the reader doesn't mistakenly think that this section is primarily about experiments
+%%AK.1.31: removed thia altogether to make it easier to understand and not break the flow.
+
+% %%AK.1.24: handle the awkwardness of using cosine below, but defining cosine^2 above
+% \subsection{Features are Aligned in Offline Q-Learning}
+% We first present the results on the gridworld domain. As shown in Figure ??, while the feature outputs of the network are fairly orthogonal
+% %%SL.1.26: orthogonal is a binary concept, let's not use "fairly orthogonal" to mean "not collinear"
+% (i.e., histogram of $\cos$
+% %%SL.1.26: maybe if you are referring to this quantity as feature aliasing, then refer to it that way
+% is nearly Gaussian) at initialization, training a Q-network by minimizing TD error skews the histogram of $\cos$ towards a Dirac-delta distribution at $-1.0$ or $1.0$.
+% %%SL.1.26: Can we make the above statement a bit more precise, e.g., something like while the features are broadly distributed at initialization, over the course of training we see that the histogram of feature aliasings concentrates around -1.0 and 1.0, indicating that the features become increasingly collinear.
+% %%SL.1.26: It's also worth pointing out that our initial claims deal with collinearity between in-distribution and out-of-distribution actions, whereas as I understand this statement, it has nothing to do with which action it is. I'm concerned reviewers will perceive this negatively, or at least be confused
+% This indicates that features become more aligned with more training. In contrast, a run that projects
+% %%SL.1.26: it's not clear what "a run that projects" means
+% the optimal tabular value function $Q^*$ onto the Q-network via supervised regression, without bootstrapping, demonstrates a fairly wide histogram centered close to $0.0$ as shown in Figure ??.
+% %%SL.1.26: I think it will be a bit hard to understand what precisely this procedure is, or what the conclusion from this should be
+% The performance of this DQN run is only XX\% of that of $Q^*$.
+% %%SL.1.26: I'm also concerned that many reviewers will raise the same concern that I did: just because the features are almost collinear doesn't mean they are indistinguishable
+
+% %%AK.1.24: do we want to do brac too??
+% A similar trend is observed with CQL, which corrects for distributional shift. In this case, we find that while the algorithm performs near optimally when evaluated at 100 epochs (Figure ??), it still exhibits a $\cos$ histogram similar to that of DQN (Figure ??), and more training ($\sim$ 250 epochs) 
+% %%AK:1.24: edit numbers, right now they are from memory
+% eventually leads to CQL unlearning the learned policy. A similar trend is observed on the harder D4RL tasks (Figure ??, Appendix ??) and more training also hurts performance.
+% %%AK.1.24: do we need to remark something about IUP here?
+% %%SL.1.26: I don't think you need anything about IUP here, but it could be good to discuss it in the related work at the end
+
+% We will further confirm these observations empirically in more complex and realistic benchmark domains including Atari~\citep{bellemare2013ale, agarwal2019optimistic} and D4RL~\citep{fu2020d4rl}.
+% %%SL.1.26: Maybe just mention a sentence at the *end* of sec 3.1 saying something like: in Sec ??, we will further confirm these observations empirically in more complex and realistic domains.
+
+
+% %%AK.1.24: need to do this experiment -- but fairly confident we will see something like this
+% \textbf{Optimal regularization can prevent collapse.} Finally, in Figure ??, we show that a regularization scheme that manually adjusts the coefficient $\alpha$ of the regularizer for controlling distributional shift in CQL by selecting an oracle, ``optimal'' value of $\alpha$ via a look-ahead procedure that aims to mitigate feature-aliasing by maximizing the entropy of the $\cos$ histogram for the \emph{resulting} Q-function, is substantially more stable (Figure ??) on the gridworld domain.   
+% %%SL.1.26: I think this paragraph is a bit hard to appreciate because the role that \alpha plays is unclear to readers that are not intimately familiar with CQL, and the implications/takeaways from this paragraph are not clear. Maybe it could make more sense to have one CQL paragraph, merging this paragraph and the previous one, and make it clear that the point we are trying to make is that CQL does prevent the problem, but the choice of alpha is delicate. As a nitpick, I'm really not that enthusiastic about referring to *everything* as regularization, regularization combats overfitting by restricting representation, which is not what this term is doing. Lastly, I think it's not quite clear what the reader's takeaway from this experiment should be -- are we trying to convince them that adjusting alpha carefully is important? But that's not what our algorithm actually does?
+
+%%SL.1.26: It might also be more dramatic to end this section with some transition sentences like: Does the feature aliasing [feature collinearity] issue happen consistently, or is this merely an accident? And what are the theoretical consequences of this issue on algorithm performance? We will analyze these questions in the following sections, and then propose a practical and tractable solution that mitigates collinearity and leads to significantly better performance in practice.
+
+% \subsection{Consequences of Feature aliasing}
+% Having observed the existence of feature aliasing empirically, as well as its correlation with a lack of stable performance in offline RL methods, we now theoretically and empirically show that once features are aligned, the chances of either excessive conservatism
+% %%SL.1.26: I'm concerned we have too much jargon (e.g., conservatism) that the reader will not understand
+% or divergence increases with both DQN and CQL, even though it corrects for distributional shift. 
+% %%SL.1.26: Maybe can more concisely say as something like: In this section, we will show, both empirically and theoretically, that feature collinearity leads to offline RL either diverging due to large out-of-distribution values, or staying too close to the behavior policy by assigning low values to all actions that differ from the actions in the data.
+% %%AK.1.26: maybe flip this to say "increases for algorithms that do and do not correct for distributional shift such as DQN and CQL", so that it doesnt come across as CQL-centric, but rather CQL is an example.
+% Our result in Theorem~\ref{thm:separability}
+% %%SL.1.26: before explaining what the result is based on, should say what the result is
+% is based on a simple application of the observation that a set of points are exponentially less likely to be linearly separable in a lower-dimensional space as compared to a high-dimensional space~\citep{wainwright_book}.
+% %%SL.1.26: true statement, and clever, but hard to appreciate before telling the reader what you're doing and why -- the how should come after the what which should come after the why
+% %%AK.1.24: is the citation Wainwright book?
+% \begin{theorem}
+% \label{thm:separability}
+% Assume that features $\phi(\bs, \ba)$ learned by the Q-function are completely aligned.
+% %%SL.1.26: what does "completely aligned" mean? does it mean collinear? keep in mind that terms like collinear and orthogonal refer to absolutes (i.e., perfectly collinear or perfectly orthogonal), so we should be a bit careful with language to be precise
+% Then, in almost all 
+% %%AK.1.24: "almost all" has a statistical interpretation here: the set of MDPs where this doesnt happen is of measure 0 is what I mean.
+% MDPs $\mdp$ with $|\actions|=2$,
+% %%SL.1.26: that seems like a somewhat arbitrary restriction...
+% with any choice of offline dataset $\mathcal{D}$ such that $|\mathcal{D}| := N > 2^{|\actions|} - 1$, running CQL with $\alpha \geq f(N, \mathcal{D})$ produces a Q-function that diverges to $-\infty$ and CQL with $\alpha < g(N, \mathcal{D})$ produces a Q-function that diverges to $+\infty$. Moreover, the return of the resulting policy is at least $\zeta$ worse than the behavior $\pi_\beta$, where $f, g$ and $\zeta$ are: \ak{TODO}
+% %%SL.1.26: This theorem on its surface comes across as a bit strange. If the features are perfectly collinear, that means that every s-a tuple is represented in exactly the same way, differing only by a scalar multiplier. Of course, if there is only one feature and the last layer multiplier is a constant, then the preceding layer must be computing Q-values, which makes this theorem statement really weird. The statement that alphas too low and too high diverge is also not surprising -- this seems like it would be true for more or less any regularizer (unless you assume that alpha is positive?). Overall, I'm kind of suspicious about what's going on here. Is the proof for this written out? Maybe we should discuss, because I worry that this theorem might not end up communicating the message that we want.
+% \end{theorem}
+% %%AK.1.24: Does this theorem statement make sense (from a point of view of what we want to prove)
+% Theorem~\ref{thm:separability} signifies how an offline RL procedure can either positively or negatively diverge
+% %%SL.1.26: Too much jargon (positively or negatively diverge) -- maybe there is something we can say prior to this that gives the reader more intuition for what we mean by this?
+% for different choices of the coefficient $\alpha$, once features are aligned. In practice, we find a similar trend: for values of $\alpha$ less than a certain threshold, CQL diverges positively if the features are aligned (Figure ??) and diverges negatively otherwise (Figure ??).
+% %%SL.1.26: I'm a bit worried that the response from readers here will be "who cares," because this doesn't come across as general analysis of RL methods, but somewhat narrow analysis of CQL in particular.
+% %%AK.1.24: Is it clear that the above sentence is referring to the scenario where features are aligned is given: i.e. I will use the experiment where CQL only trains the last linear layer and Bellman error trains features too... (or does it need to be more explicitly defined)
+
+\fi

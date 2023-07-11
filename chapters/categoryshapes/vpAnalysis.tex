@@ -1,0 +1,42 @@
+ \begin{table}[htb!]
+        \centering
+        \begin{tabular}{lcc}
+\toprule
+\textbf{\footnotesize{}Setting} & \textbf{\footnotesize{}Mean Error} & \textbf{\footnotesize{}Mean Accuracy}\tabularnewline
+\midrule
+{\footnotesize{}Default} & {\footnotesize{}13.5} & {\footnotesize{}0.81}\tabularnewline
+{\footnotesize{}Small Objects} & {\footnotesize{}15.1} & {\footnotesize{}0.75}\tabularnewline
+{\footnotesize{}Large Objects} & {\footnotesize{}12.7} & {\footnotesize{}0.87}\tabularnewline
+{\footnotesize{}Occluded Objects} & {\footnotesize{}19.9} & {\footnotesize{}0.65}\tabularnewline
+\bottomrule
+\end{tabular}
+        \caption{Object characteristics vs viewpoint prediction error}
+        \label{table:vpObjectModes}
+    \end{table}
+
+ \begin{table}[htb!]
+ \centering
+\begin{tabular}{cc}
+\toprule
+\textbf{\footnotesize{}Setting} & \textbf{\footnotesize{}Accuracy}\tabularnewline
+\midrule
+{\footnotesize{}Error$<\frac{\pi}{9}$} & {\footnotesize{}83.7}\tabularnewline
+{\footnotesize{}$\frac{\pi}{9}<$Error $<\frac{2\pi}{9}$} & {\footnotesize{}5.7}\tabularnewline
+{\footnotesize{}Error$>\frac{\pi}{9}$ \& Error($\pi-flip$)$<\frac{\pi}{9}$} & {\footnotesize{}5.8}\tabularnewline
+{\footnotesize{}Error$>\frac{\pi}{9}$ \& Error($z-ref$)$<\frac{\pi}{9}$} & {\footnotesize{}6.5}\tabularnewline
+{\footnotesize{}Other} & {\footnotesize{}2.9}\tabularnewline
+\bottomrule
+\end{tabular}
+		\caption{Analysis of error modes for viewpoint prediction}
+		\label{table:vpErrorModes}        
+ \end{table}
+
+
+An understanding of failure cases and effect of object characteristics on performance can often suggest insights for future directions. Hoeim \etal \cite{hoiem2012diagnosing} suggested some excellent diagnostics for object detection systems and we adapt those  for the task of pose estimation. We evaluate our system's output for both the task of viewpoint prediction as well as keypoint prediction but restrict our analysis to the setting with known bounding boxes - this enables us to analyze our pose estimation method independent of the detection system. We denote as 'large objects' the top third of instances and by 'small objects' the bottom third of instances. The label 'occluded' describes all the objects marked as truncated or occluded according to the PASCAL VOC annotations. We summarize our observations below.
+
+\paragraph{Object Characteristics : } Table \ref{table:vpObjectModes} shows the effect of object characteristics by reporting the mean across the classes of the median viewpoint error and accuracy. We can see that the method performs worse for occluded objects. There is also a significant difference between the performance for small and large objects - while such error trends are acceptable in the robotic setting where ambiguity for the farther objects is tolerable, one may need to capture more context to perform well without higher resolution input.
+
+\paragraph{Error Modes: }
+Since it is difficult to characterize error modes for generic rotations, we restrict the analysis to only the predicted azimuth. Assuming the image plane to be XY, we denote by $Z-ref$ the pose for the instance reflected along the XY plane and by $\pi-flip$ a rotation of $\pi$ along the $Z$ axis. Table \ref{table:vpErrorModes} reports the percentage of instances whose predicted pose corresponds to various modes. We observe that these error modes are equally common  and that only about $3\%$ of the errors are not explained by these.
+
+Note that we exclude 'diningtable' and 'bottle' categories from the above analysis due to small number of unoccluded instances and insignificant variations respectively.

@@ -1,0 +1,186 @@
+% last updated in April 2002 by Antje Endemann
+% Based on CVPR 07 and LNCS, with modifications by DAF, AZ and elle, 2008 and AA, 2010, and CC, 2011; TT, 2014
+
+\documentclass[runningheads]{llncs}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb} % define this before the line numbering.
+\usepackage{ruler}
+\usepackage{color}
+\usepackage{caption}
+%\usepackage[caption=false]{subfig}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage[width=122mm,left=12mm,paperwidth=146mm,height=193mm,top=12mm,paperheight=217mm]{geometry}
+
+% Helper commands
+\newcommand{\BLUE}[1]{{\textcolor{blue}{#1}}}
+\newcommand{\RED}[1]{{\textcolor{red}{#1}}}
+\newcommand{\rgbd}[0]{RGB-D }
+\newcommand{\etal}[0]{\textit{et al. }}
+\newcommand{\nrsfm}[0]{NRSfM}
+\begin{document}
+% \renewcommand\thelinenumber{\color[rgb]{0.2,0.5,0.8}\normalfont\sffamily\scriptsize\arabic{linenumber}\color[rgb]{0,0,0}}
+% \renewcommand\makeLineNumber {\hss\thelinenumber\ \hspace{6mm} \rlap{\hskip\textwidth\ \hspace{6.5mm}\thelinenumber}}
+% \linenumbers
+\pagestyle{headings}
+\mainmatter
+\def\ECCV14SubNumber{612}  % Insert your submission number here
+
+%\title{}
+%\title{Combining Top-Down and Bottom-up Reconstruction}
+%\title{Morphing PASCAL VOC}
+%\title{Unleashing Rich 3D Shape Models}
+%\title{Object Reconstruction Unleashed}
+%\title{Morphable Models Unleashed}
+%\title{Learning 3D Shape Priors from 2D Annotations}
+\title{Category-Specific 3D Shape Reconstruction from a Single Image : \\ Supplementary Material}
+
+\titlerunning{ECCV-14 submission ID \ECCV14SubNumber}
+
+\authorrunning{ECCV-14 submission ID \ECCV14SubNumber}
+
+\author{Anonymous ECCV submission}
+\institute{Paper ID \ECCV14SubNumber}
+
+\maketitle
+
+%\section{Organization}
+%We describe in detail the dense shape models proposed in our work in sections \ref{OPTIMIZ} and \ref{VH}. We aim for these sections to be self-sufficient and therefore there is some overlap with the summarized descriptions given in our submission. In section \ref{Experiements} we extensively report the  results obtained using different levels of curation for the test set. Section \ref{Reconstructions} shows the final shapes obtained using our approach for a number of instances.
+
+%\section{Basis Shape Models}
+%\label{OPTIMIZ}
+%\input{PointCloudModelsSupplementary}
+
+%\section{Prototype-Shape Models}
+%\label{VH}
+%\input{VisualHullModelsSupplementary}
+
+\section{Experimental Results}
+\label{Experiements}
+
+We used as ground truth the 3D meshes from PASCAL3D+ \cite{pascal3d}, that are manually aligned to all the objects in the 12 rigid categories of VOC. PASCAL3D+ provides between 4 different meshes for "tvmonitor" and "train" and 10 meshes for ``car" and ``chair" but they do not always align perfectly with the objects pictured in the images. In order to get more meaningful ground truth data we curated the annotations and kept those that were more accurate with respect to a 2D proxy for 3D alignment: the intersection-over-union (IoU) overlap between each projected silhouette and the corresponding ground-truth object segmentation which we have. The obtained errors for the reconstructed meshes for different IoU thresholds used for curation of the test set are shown in fig.~\ref{fig:meshScore}. We compare the dense shape inference methods presented in our work with \cite{carvi14} and Puffball \cite{twarog2012playing}.
+In fig.~\ref{fig:depthScore}, we report the mean correlation between the ground truth depth and the depth maps obtained using various methods for different IoU thresholds for curation. We compare our results with \cite{carvi14} and SIRFS \cite{barronPAMI13}. Note that we use the performances corresponding to IoU 0.5 in our submission as not all classes have enough examples at higher thresholds.
+
+\begin{figure}[htb!]
+\includegraphics[width=0.44\linewidth]{figures/plots/aeroplaneMeshScores} \hfill
+ \includegraphics[width=0.44\linewidth]
+  {figures/plots/bicycleMeshScores}
+
+\includegraphics[width=0.44\linewidth]{figures/plots/boatMeshScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/busMeshScores}
+
+\includegraphics[width=0.44\linewidth]{figures/plots/carMeshScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/chairMeshScores}
+ 
+ \includegraphics[width=0.44\linewidth]{figures/plots/motorbikeMeshScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/sofaMeshScores}
+ 
+ \includegraphics[width=0.44\linewidth]{figures/plots/trainMeshScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/tvmonitorMeshScores}
+\caption{\label{fig:meshScore} Mean error for obtained meshes}
+ 
+\end{figure}
+
+\begin{figure}[htb!]
+\includegraphics[width=0.44\linewidth]{figures/plots/aeroplaneDepthScores} \hfill
+ \includegraphics[width=0.44\linewidth]
+  {figures/plots/bicycleDepthScores}
+
+\includegraphics[width=0.44\linewidth]{figures/plots/boatDepthScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/busDepthScores}
+
+\includegraphics[width=0.44\linewidth]{figures/plots/carDepthScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/chairDepthScores}
+ 
+ \includegraphics[width=0.44\linewidth]{figures/plots/motorbikeDepthScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/sofaDepthScores}
+ 
+ \includegraphics[width=0.44\linewidth]{figures/plots/trainDepthScores} \hfill
+ \includegraphics[width=0.44\linewidth]{figures/plots/tvmonitorDepthScores}
+\caption{\label{fig:depthScore} Measure of correlation of obtained depth maps with groundtruth}
+ 
+\end{figure}
+
+\section{Obtained Reconstructions}
+\label{Reconstructions}
+
+In fig. \ref{fig:recons1}, \ref{fig:recons2} and \ref{fig:recons3} we visualize the reconstructions and depth maps obtained for objects of various classes.
+
+\begin{figure}[htb!]
+  \includegraphics[width = \textwidth]{figures/reconstructions/1}
+  
+ \includegraphics[width = \textwidth]{figures/reconstructions/2}
+ 
+ \includegraphics[width = \textwidth]{figures/reconstructions/3}
+
+  \includegraphics[width = \textwidth]{figures/reconstructions/4} 
+ 
+ \includegraphics[width = \textwidth]{figures/reconstructions/5}    
+ 
+\includegraphics[width = \textwidth]{figures/reconstructions/6} 
+ 
+ \includegraphics[width = \textwidth]{figures/reconstructions/28}
+ 
+\includegraphics[width = \textwidth]{figures/reconstructions/29}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/30}
+
+ \includegraphics[width = \textwidth]{figures/reconstructions/7}
+  
+   \includegraphics[width = \textwidth]{figures/reconstructions/8}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/9}
+       
+\caption{\label{fig:recons1}Example reconstructions of objects shown on the left column. Columns 3 and 6  show the image-aligned 3D reconstruction obtained using our basis shape model and prototype shape model respectively. Columns 4 and 7 show the shape obtained in  columns 3 and 6 respectively from a different view. Columns 2 and 5 show the corresponding final depth maps combining both top-down and bottom-up cues. Blue is closer to the camera, red is farther away.}
+ 
+\end{figure}
+
+\begin{figure}[htb!]
+  \includegraphics[width = \textwidth]{figures/reconstructions/10}
+  
+\includegraphics[width = \textwidth]{figures/reconstructions/11}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/12}
+
+ \includegraphics[width = \textwidth]{figures/reconstructions/13}
+  
+ \includegraphics[width = \textwidth]{figures/reconstructions/14}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/15}
+
+ \includegraphics[width = \textwidth]{figures/reconstructions/16}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/17}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/18}
+
+\caption{\label{fig:recons2}Example reconstructions of objects shown on the left column. Columns 3 and 6  show the image-aligned 3D reconstruction obtained using our basis shape model and prototype shape model respectively. Columns 4 and 7 show the shape obtained in  columns 3 and 6 respectively from a different view. Columns 2 and 5 show the corresponding final depth maps combining both top-down and bottom-up cues. Blue is closer to the camera, red is farther away.}
+
+\end{figure}
+
+\begin{figure}[htb!]
+
+\includegraphics[width = \textwidth]{figures/reconstructions/19}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/20}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/21}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/22}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/23}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/24}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/25}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/26}
+
+\includegraphics[width = \textwidth]{figures/reconstructions/27}
+
+\caption{\label{fig:recons3}Example reconstructions of objects shown on the left column. Columns 3 and 6  show the image-aligned 3D reconstruction obtained using our basis shape model and prototype shape model respectively. Columns 4 and 7 show the shape obtained in  columns 3 and 6 respectively from a different view. Columns 2 and 5 show the corresponding final depth maps combining both top-down and bottom-up cues. Blue is closer to the camera, red is farther away.}
+\end{figure}
+
+\bibliographystyle{splncs}
+\bibliography{references}
+\end{document}

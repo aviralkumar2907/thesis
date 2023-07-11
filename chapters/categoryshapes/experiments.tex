@@ -1,0 +1,56 @@
+% \input{chapters/categoryshapes/vpPredFig}
+\section{Experiments}
+\seclabel{experiments}
+
+We have presented several contributions towards the goal of object reconstruction from a single image -- \secref{modelLearning} proposed a method to learn deformable 3D models from an annotated image set and \secref{testing} put forward a framework for reconstructing objects from a single image. Our goal in the experiments was to empirically evaluate and qualitatively demonstrate the efficacy of each of these contributions.
+
+We first  examine the quality and expressiveness of our learned 3D models by evaluating how well they matched the underlying 3D shapes of the training data (\secref{modelEval}). We then study their sensitivity of obtained reconstructions when fit to images using noisy automatic segmentations and pose predictions (\secref{sensitivityAnalysis}) and finally present qualitative results for reconstructions from a single image (\secref{qualitativeRes}).
+
+
+\subsection{Quality of Learned 3D Models}
+\seclabel{modelEval}
+The first question we address is whether the category-specific shape models we learn for each object class (\secref{modelLearning}) using an annotated image collection correctly explain the underlying 3D object shape for these annotated instances. Note that while it is not our final goal, this is itself a very challenging task - we have to obtain a dense 3D reconstruction for annotated images using just silhouettes and sparse keypoint correspondences. Contemporary work by Vicente \etal \cite{carvi14} addressed this task of `lifting' an annotated image collection to 3D and we compare the performance of our model learning stage against their approach. We also incorporate category-agnostic shape inflation  \cite{twarog2012playing} and intrinsic image \cite{Barron2012B} methods as baselines. The evaluation metrics, dataset and results are described below.
+
+
+\paragraph{Dataset.} We consider images from the challenging PASCAL VOC 2012 dataset~\cite{pascal-voc-2012} which contain objects from the 10 rigid object categories (as listed in Table \ref{tab:carvi_compare}). We use the publicly available ground truth class-specific keypoints~\cite{bourdevECCV10} and object segmentations~\cite{BharathICCV2011} to learn category-specific shape models for each class. We learn and fit our 3D models on the whole dataset (no train/test split), following the setup of Vicente \etal \cite{carvi14}.
+
+Since ground truth 3D shapes are unavailable for PASCAL VOC and most other detection datasets, we evaluated the quality of our learned 3D models on the next best thing we managed to obtain: the PASCAL3D+ dataset~\cite{pascal3d} which has up to 10 3D CAD models for the rigid categories in PASCAL VOC. PASCAL3D+ provides between 4 different models for ``tvmonitor'' and ``train'' and 10 for ``car'' and ``chair''.
+The subset of PASCAL we considered after filtering occluded instances had between 70 images for ``sofa'' and 500 images for classes ``aeroplanes'' and ``cars''.
+
+
+\paragraph{Metrics.} We quantify the quality of our 3D models by comparing against the PASCAL 3D+ models using two metrics - 1) a mesh error metric computed as the Hausdorff distance between the ground truth and predicted mesh after translating both to the origin and normalizing by the diagonal of the tightest 3D bounding box of the ground truth mesh~\cite{aspert2002mesh} and 2) a depth map error to evaluate the quality of the reconstructed visible object surface, measured as the mean absolute distance between reconstructed and ground truth depth:
+
+\begin{gather}
+ Z\text{-MAE}(\hat{Z},Z^{*})=\frac{1}{n\cdot\gamma}\underset{\beta}{\text{min}}\underset{x,y}{\sum}|\hat{Z}_{x,y}-Z^*_{x,y}-\beta|
+\end{gather}
+where $\hat{Z}$ and $Z^*$ represent predicted and ground truth depth maps respectively. Analytically, $\beta$ can be computed as the median of $\hat{Z}-Z^*$ and $\gamma$ is a normalization factor to account for absolute object size for which we use the bounding box diagonal. Note that our depth map error is translation and scale invariant.
+
+\paragraph{Results.}
+We report the performance of our model learning approach in Table \ref{tab:carvi_compare}. Here, SIRFS denotes a state-of-the art intrinsic image decomposition method and Puffball~\cite{twarog2012playing} denotes a shape-inflation method for reconstruction.  Carvi denotes the method by Vicente \etal \cite{carvi14} which is specifically designed for the task of reconstructing an annotated image collection as their visual hull based reconstruction technique makes strong assumptions regarding the accuracy of the object mask and predicted viewpoint.
+
+We observe that category-agnostic methods -- Puffball\cite{twarog2012playing} and SIRFS\cite{barronPAMI13, Barron2012B} -- consistently perform worse on the benchmark by themselves as they use generic priors to reconstruct each image individually and cannot reason over the image collection jointly. Our model learning performs comparably to the specialized approach of Vicente \etal -- we demonstrate competitive, if not better, performance on both benchmarks with our models showing greater robustnes to perspective foreshortening effects on ``trains'' and ``buses''.  Certain classes like ``boat'' and ``sofa'' are especially hard because of large intra-class variance and data sparsity respectively.
+
+% \subsection{Accuracy of Viewpoint Estimation}
+% \input{chapters/categoryshapes/vpEvaluation}
+
+\subsection{Sensitivity Analysis for Recognition based Reconstruction} 
+\seclabel{sensitivityAnalysis}
+\input{chapters/categoryshapes/ablation_table}
+
+\input{chapters/categoryshapes/newresultsfig}
+Our primary goal is to reconstruct objects in an image automatically. Towards this goal, we study the performance of our system when relaxing the availability of various  expensive annotations of the form of keypoint correspondences or instance segmentations. 
+
+
+\paragraph{Dataset and Metrics.}
+The reconstruction error metrics for measuring mesh and depth error are the same as described previously (\secref{modelEval}). The segmentation, keypoint annotations for learning and the mesh annotations for evaluation are also similarly obtained. However, for the sensitivity analysis, we introduce a train/test split since the recognition components used for instance segmentation and viewpoint estimation are trained on the PASCAL VOC train set. We therefore train our category-shape models  on only the subset of the data corresponding to PASCAL VOC train set. We then reconstruct the held out objects in the PASCAL validation set and report performance for these test objects.
+
+
+\paragraph{Results.}
+In order to analyze sensitivity of our models to noisy inputs we reconstructed held-out test instances using our models given just ground truth bounding boxes. We compare various versions of our method using ground truth(Mask)/imperfect segmentations(SDS) and keypoints(KP)/our pose predictor(PP) for viewpoint estimation respectively. For pose prediction, we use the CNN-based system described in \cite{ShubhamPose}. To obtain an approximate segmentation from the bounding box, we use the refinement stage of the state-of-the-art joint detection and segmentation system proposed in \cite{BharathECCV2014}. 
+
+Table \ref{tab:ablation} shows that our results degrade gracefully from the fully annotated to the fully automatic setting. Our method is robust to some mis-segmentation owing to our shape model that prevents shapes from bending unnaturally to explain noisy silhouettes. Our reconstructions degrade slightly with imperfect pose initializations even though our projection parameter optimization deals with it to some extent. With predicted poses, we observe that sometimes even when our reconstructions look plausible, the errors can be high as the metrics are sensitive to bad alignment. The data sparsity issue is especially visible in the case of sofas where in a train/test setting in Table \ref{tab:ablation} the numbers drop significantly with less training data (only 34 instances). Note we do not evaluate our bottom-up component as the PASCAL 3D+ meshes provided do not share the same high frequency shape details as the instance.
+
+\subsection{Fully Automatic Reconstruction}
+\seclabel{qualitativeRes}
+We qualitatively demonstrate reconstructions on automatically detected and segmented instances with 0.5 IoU overlap with the ground truth in whole images in PASCAL VOC using \cite{BharathECCV2014} in Figure \ref{fig:recons}. We can see that our method is able to deal with some degree of mis-segmentation. Some of our major failure modes include not being able to capture the correct scale and pose of the object and thus badly fitting to the silhouette in some cases.
+

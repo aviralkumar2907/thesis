@@ -1,0 +1,13 @@
+\vspace{-0.1cm}
+\begin{equation}
+\scalebox{0.9}
+     V_{\phi}^{\textrm{CLIP}}(\textbf{s}_t) = V_{\phi_{old}}(\textbf{s}_t) + \textrm{clip}(V_{\phi}(\textbf{s}_t) - V_{\phi_{old}}(\textbf{s}_t), -\epsilon,  \;\;\epsilon)
+\label{eq:l_vf_clip}
+\end{equation}
+\vspace{-0.2cm}
+\begin{equation}
+\scalebox{0.9}{
+$L^{\textrm{VF}}(\phi) = \EX_{t}[\textrm{max}((V_{\phi}^{\textrm{CLIP}}(\textbf{s}_t) - V_{t}^{targ})^2,\;\;(V_{\phi}(\textbf{s}_t) - V_{t}^{targ})^2)]$
+\label{eq:l_vf}
+}
+\end{equation}
