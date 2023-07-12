@@ -311,3 +311,19 @@
 \newcommand{\review}[1]{#1}
 
 \newcommand{\niparagraph}[1]{\vspace{2pt}\noindent\textbf{#1}}
+
+
+\tcbset{
+  aibox/.style={
+    width=\textwidth,
+    top=0pt, bottom=0pt, left=5pt, right=5pt,
+    colback=black!6!white,
+    colframe=black,
+    colbacktitle=brown,
+    enhanced,
+    center,
+    attach boxed title to top left={yshift=-0.1in,xshift=0.15in},
+    boxed title style={boxrule=0pt,colframe=black,},
+  }
+}
+\newtcolorbox{AIbox}[2][]{aibox,title=#2,#1}

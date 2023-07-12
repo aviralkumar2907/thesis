@@ -1,4 +1,4 @@
-\section{Experimental Evaluation}
+\subsection{Experimental Evaluation of CQL}
 \label{sec:experiments}
 
 %%SL.5.24: For the sake of space, I think we can cut this and the subsection headings, and things are still mostly readable.
@@ -10,7 +10,7 @@
 
 %\subsection{Offline RL in Continuous Control Domains}
 We compare CQL to prior offline RL methods on a range of domains and dataset compositions, including continuous and discrete action spaces, state observations of varying dimensionality, and high-dimensional image inputs. We first evaluate actor-critic CQL, using CQL($\mathcal{H}$) from Algorithm~\ref{alg:practical_alg}, on continuous control datasets from the D4RL benchmark~\citep{d4rl}.
-We compare to: prior offline RL methods that use a policy constraint -- BEAR~\citep{kumar2019stabilizing} and BRAC~\citep{wu2019behavior}; SAC~\citep{haarnoja}, an off-policy actor-critic method that we adapt to offline setting; and behavioral cloning (BC). {The code and instructions for reproducing our latest results in jax can be found at: \url{https://github.com/young-geng/JaxCQL}. Please refer to this repository and the latest D4RL for future comparisons. D4RL-v0 is deprecated.}
+We compare to: prior offline RL methods that use a policy constraint -- BEAR~\citep{kumar2019stabilizing} and BRAC~\citep{wu2019behavior}; SAC~\citep{haarnoja}, an off-policy actor-critic method that we adapt to offline setting; and behavioral cloning (BC). {The code and instructions for reproducing our latest results can be found at: \url{https://github.com/young-geng/JaxCQL}. Please refer to this repository and the latest D4RL for future comparisons. D4RL-v0 is deprecated.}
 % We also ran AlgeaDICE~\citep{nachum2019algaedice}, a method that uses a state-marginal constraint, using code released by the authors, but were unable to get it to improve over a random initialization on any of the tasks, as learning was unstable and diverged quickly, and we provide these learning curves in Appendix~\ref{app:additional_results}.
 %%SL.5.24: For AlgeaDICE, I still think these sentences are damn awkward. If you really want to have this, maybe rephrase more briefly: We also attempted to run AlgeaDICE~\citep{} on these tasks, but were unable to obtain reasonable results with the authors' code (more details in Appendix~\ref{app:additional_results}). [I would also recommend omitting this sentence in the arxiv and only including it in the submission copy for the reviewers!]
 % done, removed
@@ -23,10 +23,10 @@ We compare to: prior offline RL methods that use a policy constraint -- BEAR~\ci
 \centering
 %\scriptsize
 \fontsize{9}{9}\selectfont
-
+\scalebox{0.85}{
 \begin{tabular}{l|r|r|r|r|r||r}
 \hline
-\textbf{Task Name} & \textbf{SAC} & \textbf{BC} & \textbf{BEAR} & \textbf{BRAC-p} & \textbf{BRAC-v} & \textbf{CQL($\mathcal{H}$)}\\ \hline
+\textbf{Task Name} & \textbf{SAC} & \textbf{BC} & \textbf{BEAR} & \textbf{BRAC-p} & \textbf{BRAC-v} & \textbf{CQL}\\ \hline
 % halfcheetah-random &  30.5 & 2.1 & 25.5 & 23.5 & 28.1 & \textbf{35.4} \\
 % hopper-random & \textbf{11.3} & 9.8 & 9.5 & \textbf{11.1} & \textbf{12.0} & \textbf{10.8}\\
 % walker2d-random & 4.1 & 1.6 & \textbf{6.7} & 0.8 & 0.5 & \textbf{7.0}\\ \hline
@@ -45,11 +45,10 @@ walker2d-medium-replay-v2 & 1.9 & 26.0 & 10.8 & -0.3 & {85.0} & {86.2 $\pm$ 0.2}
 \hline
 \textbf{Total} & 5.7 & 466.7 & - & - & 680.0 & \textbf{731.8}\\
 \hline
-\end{tabular}
+\end{tabular}}
 \vspace{0.05cm}
-\caption{\label{table:mujoco}{\small Performance of CQL($\mathcal{H}$) and prior methods on gym domains from D4RL, on the normalized return metric, averaged over 3 seeds. Note that CQL performs similarly or better than the best prior method with simple datasets, and outperforms prior methods with complex distributions (``--medium-replay'', ``--medium-expert'').}}
+\caption{\label{table:mujoco}{\small Performance of CQL and prior methods on gym domains from D4RL, on the normalized return metric, averaged over 3 seeds. Note that CQL performs similarly or better than the best prior method with simple datasets, and outperforms prior methods with complex distributions (``--medium-replay'', ``--medium-expert'').}}
 \normalsize
-\vspace{-10pt}
 \end{table*}
 
 
@@ -119,7 +118,7 @@ walker2d-medium-replay-v2 & 1.9 & 26.0 & 10.8 & -0.3 & {85.0} & {86.2 $\pm$ 0.2}
 %   \end{center}
 %   \vspace{-21pt}
 % \end{wrapfigure}
-\textbf{Gym domains\footnote{An earlier version of the paper had results corresponding to \texttt{v0} versions of the D4RL benchmark from May 2020. Since then, D4RL has performed several modifications with respect to terminal/timeout handling and the latest release of D4RL is the v2 release. To facilitate comparisons on the latest version of the D4RL benchmark, we provide results with the \texttt{-v2} domains now.}} Results for the gym domains are shown in Table~\ref{table:mujoco}. The results for BEAR, BRAC, SAC, and BC are based on numbers reported by \citet{d4rl}. We find that across the board, on both the datasets generated by a single mediocre policy, marked as ``-medium'' and the datasets generated by mixing together experience from multiple policies (``-medium-replay'' and ``-medium-expert''), that are more likely to be encountered in practical problems, CQL outperforms prior methods.
+\textbf{Gym domains.} Results for the gym domains are shown in Table~\ref{table:mujoco}. The results for BEAR, BRAC, SAC, and BC are based on numbers reported by \citet{d4rl}. We find that across the board, on both the datasets generated by a single mediocre policy, marked as ``-medium'' and the datasets generated by mixing together experience from multiple policies (``-medium-replay'' and ``-medium-expert''), that are more likely to be encountered in practical problems, CQL outperforms prior methods.
 
 % While CQL performs similarly to the best performing prior method when the offline dataset is constructed from a single RL policy, it significantly outperforms prior methods with complex data distributions, which are more indicative of real-world offline datasets~\citep{d4rl}.
 %%SL.5.11: Well, if we're not going to show any of the AlgeaDICE results, maybe we shouldn't mention it before like this? We could add a sentence to the end of the first paragraph that describes all the prior methods and say something like: We also ran AlgeaDICE~\citep{} using code released by the authors, but were unable to get this method to improve over a random initialization on any of the tasks, as learning was unstable and diverged quickly.
@@ -198,6 +197,7 @@ these tasks, and the strongest baseline is BC. As shown in Table~\ref{table:adro
 \centering
 %\scriptsize
 \fontsize{8}{8}\selectfont
+\scalebox{0.82}{
 \begin{tabular}{l|l|r|r|r|r|r||r|r}
 \hline
 \textbf{Domain} & \textbf{Task Name} & \textbf{BC} & \textbf{SAC} & \textbf{BEAR} & \textbf{BRAC-p} & \textbf{BRAC-v} & \textbf{CQL($\mathcal{H}$)} & \textbf{CQL($\rho$)}\\ \hline
@@ -231,21 +231,21 @@ these tasks, and the strongest baseline is BC. As shown in Table~\ref{table:adro
 & kitchen-partial & 33.8 & 0.0 & 13.1 & 0.0 & 0.0 & \textbf{49.8} & \textbf{50.1} \\
 & kitchen-undirected & 47.5 & 2.5 & 47.2 & 0.0 & 0.0 & \textbf{51.0} & \textbf{52.4} \\ \hline
 \end{tabular}
+}
 \vspace{0.1cm}
 \caption{\label{table:adroit_antmaze}{Normalized scores of all methods on AntMaze, Adroit, and kitchen domains from D4RL, averaged across 4 seeds. On the harder mazes, CQL is the \textit{only} method that attains non-zero returns, and is the only method to outperform simple behavioral cloning on Adroit tasks with human demonstrations.
 We observed that the CQL($\rho$) variant, which avoids importance weights, trains more stably, with no sudden fluctuations in policy performance over the course of training, on the higher-dimensional Adroit tasks.}}
 \normalsize
-\vspace{-22pt}
 \end{table}
 
-\textbf{AntMaze.\footnote{The results here use \texttt{antmaze-*-v2}. The original results from the 2020 version are shown in Appendix~\ref{sec:old_results}.}} 
+\textbf{AntMaze.} 
 These D4RL tasks require composing parts of suboptimal trajectories to form more optimal policies for reaching goals on a MuJoco Ant robot. 
 Prior methods make some progress on the simpler U-maze, but only CQL is able to make meaningful progress  
 %% adroit tasks
 on the much harder medium and large mazes, outperforming prior methods by a wide margin.
 %, achieving nearly \textbf{2-5x} higher return as compared to prior methods.
 
-\begin{wrapfigure}{r}{0.15\textwidth}
+\begin{wrapfigure}{r}{0.3\textwidth}
   \vspace{-25pt}
   \begin{center}
   \includegraphics[width=0.99\linewidth]{chapters/cql/images/adept_franka_kitchen.png}
@@ -336,12 +336,13 @@ The goal is to control a 9-DoF robot to manipulate multiple objects (microwave, 
 \end{figure*}
 Following the evaluation protocol of \citet{agarwal2019optimistic}, we evaluated on two types of datasets, both of which were generated from the DQN-replay dataset, released by~\citep{agarwal2019optimistic}:
 \textbf{(1)} a dataset consisting of the first 20\% of the samples observed by an online DQN agent and 
-\textbf{(2)} datasets consisting of only 1\%  and 10\% of all samples observed by an online DQN agent (Figures 6 and 7 in \citep{agarwal2019optimistic}). In setting \textbf{(1)}, shown in Figure~\ref{fig:cql_20m_atari}, CQL generally achieves similar or better performance throughout as QR-DQN and REM. When only using only 1\% or 10\% of the data, in setting \textbf{(2)} (Table~\ref{table:atari_reduced_size}),  CQL 
+\textbf{(2)} datasets consisting of only 1\%  and 10\% of all samples observed by an online DQN agent (Figures 6 and 7 in \citep{agarwal2019optimistic}). In setting \textbf{(1)}, shown in Figure~\ref{fig:cql_20m_atari}, CQL generally achieves similar or better performance throughout as QR-DQN and REM. When only using only 1\% or 10\% of the data, in setting \textbf{(2)} (Table~\ref{table:atari_reduced_size}),  CQL substantially outperforms REM and QR-DQN, especially in the harder 1\% condition, achieving \textbf{36x} and \textbf{6x} times the return of the best prior method on Q*bert and Breakout, respectively.
+
 %AK: TODO (aviral): revisit this if we can't get seaquest to work -- Seaquest is almost maxed out, need to decide on what to say here?
-\begin{wraptable}{r}{6.0cm}
+\begin{table}
 \captionsetup{font=small}
     \centering
-    \vspace{-7pt}
+    % \vspace{-7pt}
     \fontsize{8}{8}\selectfont
     \begin{tabular}{l|r|r||r}
     \hline
@@ -361,13 +362,11 @@ Following the evaluation protocol of \citet{agarwal2019optimistic}, we evaluated
          Asterix & \textbf{189.2} & 75.1 & 156.3 \\
          \hline
     \end{tabular}
-    \vspace{-4pt}
+    % \vspace{-4pt}
     \caption{{CQL, REM and QR-DQN in setting \textbf{(1)} with 1\% data (top), and 10\% data (bottom). CQL drastically outperforms prior methods with 1\% data, and usually attains better performance with 10\% data.}}
     \normalsize
     \label{table:atari_reduced_size}
-    \vspace{-17pt}
-\end{wraptable}
-substantially outperforms REM and QR-DQN, especially in the harder 1\% condition, achieving \textbf{36x} and \textbf{6x} times the return of the best prior method on Q*bert and Breakout, respectively.
+\end{table}
 % \let\thefootnote\relax\footnote{{\small *Neither CQL nor any prior method, including REM, attains non-trivial performance on Asterix. When using exactly the same dataset and implementation provided by \citet{agarwal2019optimistic}, we were unable to reproduce the numbers reported in~\citep{agarwal2019optimistic} for QR-DQN and REM. }}
 
 % \begin{table}[h]
@@ -400,9 +399,8 @@ of Q-functions with varying ensemble sizes, which is a standard technique to pre
 \begin{table}[h]
 \captionsetup{font=small}
 \centering
-\vspace{-5pt}
     \fontsize{8}{8}\selectfont
-    \begin{tabular}{l|r|r||r|r|r|r|r}
+    \scalebox{0.8}{\begin{tabular}{l|r|r||r|r|r|r|r}
     \hline
         \textbf{Task Name} & \textbf{CQL($\mathcal{H})$} & \textbf{CQL (Eqn.~\ref{eqn:objective_1})} & \textbf{Ensemble(2)}  & \textbf{Ens.(4)} & \textbf{Ens.(10)} & \textbf{Ens.(20)} & \textbf{BEAR} \\
         \hline
@@ -412,12 +410,13 @@ of Q-functions with varying ensemble sizes, which is a standard technique to pre
         hopper-medium & \textbf{-7.48} & -156.70 & 26.03e12 & 437.57e6 & 1.12e12 & 885e3 & 4.32 \\
         %%SL.5.30: I would recommend using scientific notation (e.g., e6 or $\times 10^6$) instead of "M" or "T"
         \hline
-    \end{tabular}
+    \end{tabular}}
     \caption{{Difference between predicted policy values and the true policy value for CQL, a variant of CQL that uses Equation~\ref{eqn:objective_1}, the minimum of an ensemble of varying sizes, and BEAR~\citep{kumar2019stabilizing} on three D4RL datasets. CQL is the only method that lower-bounds the actual return (i.e., has negative differences), and CQL($\mathcal{H})$ is much less conservative than CQL (Eqn.~\ref{eqn:objective_1}).}}
     \normalsize
     \vspace{-10pt}
     \label{table:cql_lower_bound}
 \end{table}
+
 
 
 %%AK.5.23: Commenting out this for now, discussion in the email. Basically we are not doing great here especially with the right way of using the Q-values for computing policy return. It is conservative, but it is too conservative in 4/8 cases (like the method outputs 153.4 as the return, but the actual return is 276). I think that if we believe that the other story is storng enough, we should probably not have it.

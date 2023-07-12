@@ -32,18 +32,61 @@
 \begin{document}
 
 
-\blfootnote{This chapter is based on \cite{kumar2020conservative}, published at NeurIPS 2020, which is joint work with Aurick Zhou, George Tucker, and Sergey Levine.}
+% \blfootnote{This chapter is based on \cite{kumar2020conservative}, published at NeurIPS 2020, which is joint work with Aurick Zhou, George Tucker, and Sergey Levine.}
 
-% In the previous chapter, we discussed how policy constraints can provide for a first approach to prevent distribution  
+\vspace{-0.4cm}
+\begin{AIbox}{\large{\textbf{Abstract}}}
+\vspace{4mm}
+In the previous chapter, we discussed how standard off-policy RL methods can fail due to over-estimation of values in the offline setting and how policy constraints can provide for a first approach to tackle distributional shift in offline RL: by simply restricting the support of the learned policy within the support of the behavioral policy, which collected the data. While this approach does lead to promising performance, these methods tend to be restrictive: policy constraints still restrict the learned policy to the behavioral policy even when the Q-function on out-of-distribution actions is not overestimated.                 
+% Effectively leveraging large, previously collected datasets in reinforcement learning (RL) is a key challenge for large-scale real-world applications. Offline RL algorithms promise to learn effective policies from previously-collected, static datasets without further interaction. However, in practice, offline RL presents a major challenge, and standard off-policy RL methods can fail due to overestimation of values induced by the distributional shift between the dataset and the learned policy, especially when training on complex and multi-modal data distributions. 
+In this chapter, we will present a paradigm called \emph{conservative value function estimation}, which aims to address these limitations by learning a value-function such that the expected value of a policy under this value-function lower-bounds its true value. We discuss two concrete variants of this paradigm: a model-free variant, called conservative Q-learning (CQL)~\citep{kumar2020conservative}, and a model-based variant, called conservative offline model-based policy optimization (COMBO)~\citep{yu2021conservative}. Both of these variants can be implemented by augmenting the standard temporal-difference error objective with a Q-value regularizer, on top of model-based and model-free Q-learning and actor-critic algorithms. We will also theoretically show that this paradigm produces conservative value functions, that lower bound the ground-truth value of the current policy, and policies, that enjoy robust policy improvement.
+\vspace{2mm}
+% CQL produces a lower bound on the value of the current policy and that it can be incorporated into a policy learning procedure with safe improvement guarantees. In practice, CQL augments the standard Bellman error objective with a simple Q-value regularizer which is straightforward to implement on top of standard Q-learning and actor-critic implementations. 
+% On both discrete and continuous control domains, we show that CQL substantially outperforms existing offline RL methods, often learning policies that attain 2-5 times higher final return, especially when learning from complex and multi-modal data distributions.
+\end{AIbox}
 
-Effectively leveraging large, previously collected datasets in reinforcement learning (RL) is a key challenge for large-scale real-world applications. Offline RL algorithms promise to learn effective policies from previously-collected, static datasets without further interaction. However, in practice, offline RL presents a major challenge, and standard off-policy RL methods can fail due to overestimation of values induced by the distributional shift between the dataset and the learned policy, especially when training on complex and multi-modal data distributions. In this paper, we propose \emph{conservative Q-learning (CQL)}, which aims to address these limitations by learning a conservative Q-function such that the expected value of a policy under this Q-function lower-bounds its true value. We theoretically show that CQL produces a lower bound on the value of the current policy and that it can be incorporated into a policy learning procedure with theoretical improvement guarantees. In practice, CQL augments the standard Bellman error objective with a simple Q-value regularizer which is straightforward to implement on top of existing deep Q-learning and actor-critic implementations. On both discrete and continuous control domains, we show that CQL substantially outperforms existing offline RL methods, often learning policies that attain 2-5 times higher final return, especially when learning from complex and multi-modal data distributions\footnote{Our follow-up on CQL for vision-based robotic manipulation can be found here: \url{https://arxiv.org/abs/2010.14500}.}.
+% \blfootnote{Our follow-up on CQL for vision-based robotic manipulation can be found here: \url{https://arxiv.org/abs/2010.14500}.}
+
+\section{Model-Free Conservative Value Function Estimation}
 
 \input{chapters/cql/introduction.tex}
-\input{chapters/cql/background.tex}
+% \input{chapters/cql/background.tex}
 \input{chapters/cql/method_new.tex}
 \input{chapters/cql/method_part2}
 \input{chapters/cql/related.tex}
 \input{chapters/cql/experiments_shortened}
+
+\section{Model-Based Conservative Value Function Estimation}
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{chapters/combo/teaser_combo.png}
+    \vspace*{-0.5cm}
+    \caption{COMBO learns a conservative value function by utilizing both the offline dataset as well as simulated data from the model. Crucially, COMBO does not require uncertainty quantification, and the value function learned by COMBO is a tighter lower-bound of the true value compared to CQL. This enables COMBO to steer the agent towards higher value states compared to CQL, which may steer towards sub-optimal states as illustrated in the figure.}
+    \vspace*{-0.6cm}
+    \label{fig:combo_teaser}
+\end{figure}
+
+So far we have discussed conservative Q-learning, a model-free algorithm that learns conservative or pessimistic value functions on offline data buffers. A natural next question to ask is how can this approach be extended to use dynamics models. By generating data, model-based reinforcement learning algorithms can achieve better generalization~\citep{sutton1991dyna,janner2019mbpo} and have demonstrated the ability to solve new tasks using the offline dataset~\cite{yu2020mopo}. Most existing model-based algorithms~\cite{kidambi2020morel, yu2020mopo} learn a pessimistic dynamics model, which in turn induces a conservative estimate of the value function. 
+% By generating data, model-based algorithms can achieve better generalization and e.g. have demonstrated the ability to solve new tasks using the offline dataset~\cite{yu2020mopo}.
+However, such algorithms rely crucially on uncertainty quantification of the learned dynamics model to incorporate conservatism, which can be difficult or unreliable for complex datasets or deep network models.
+Furthermore, these methods do not adapt the uncertainty estimates as the policy and value function change over the course of learning.
+%%SL.1.31: The significance of this is not entirely clear (but I agree this is a true statement, and it's a nice observation, just that most readers won't get why this is important without more explanation)
+In this section, our goal is to develop a new algorithm, inspired from the conservative value estimation paradigm, that retains the benefits of model-based algorithms while removing the reliance on uncertainty estimation, which we argue is not necessary for offline RL.
+
+Our approach, conservative offline model-based policy optimization (COMBO) learns a dynamics model using the offline dataset. Subsequently, it employs an actor-critic method where the value function is learned using both the offline dataset as well as synthetically generated data from the model. Crucially, this value function is trained via conservative optimization, by penalizing the value function in state-action tuples that are not in the support of the offline dataset, obtained by simulating the learned model. 
+%
+Building on the theoretical analysis from the previous section, we can theoretically show that for any policy, the Q-function learned with COMBO is a lower bound of the true Q-function, making it a good surrogate for policy optimization.
+% While the approach of optimizing a performance lower-bound is similar in spirit to prior model-based algorithms~\cite{kidambi2020morel, yu2020mopo},
+% COMBO crucially does not require uncertainty quantification. 
+In addition, we show theoretically that the Q-function learned by COMBO represents a tighter lower bound of the true Q-function when the model bias is low compared to prior model-free algorithms like CQL~\cite{kumar2020conservative}.
+Thus, as a consequence of optimizing a tighter lower bound, COMBO has the potential to learn higher rewarding policies compared to prior model-free algorithms. This is illustrated through an example in Figure~\ref{fig:combo_teaser}.
+%%Ak.1.30: we say "overly conservative" at a bunch of places, but no where we mention the reason for that. Atleast we should make it clear that it is an empirical phenomenon and it intuitively happens because of controlling for state-distribution shift oonly via action distribution shift.
+%%SL.1.31: definitely agreed, we need to better explain what this "overly conservative" thing actually means
+%%AR: Addressed by rephrasing the claim.
+Finally, in our experiments, we find that COMBO matches or exceeds the state-of-the-art results in commonly studied benchmark tasks for offline RL. Specifically, COMBO achieves the highest score in $9$ out of $12$ continuous control domains we consider from the D4RL~\cite{fu2020d4rl} benchmark suite, while the next best algorithm achieves the highest score in only $3$ out of the $12$ domains. We also show that COMBO achieves the best performance in tasks that require out-of-distribution generalization and outperforms previous latent-space offline model-based RL methods in the image-based robotic manipulation task.%%CF: Need to also mention the generalization results and the vision results!
+%%TY.2.3: added a sentence on the generalization and vision results. Rafael, feel free to also add the vision-based locomotion task to the sentence if we are going to include the walker results. 
+
 
 %% Now adding material from COMBO paper
 \input{chapters/combo/method}
@@ -51,13 +94,14 @@ Effectively leveraging large, previously collected datasets in reinforcement lea
 
 
 
-\section{Discussion}
+\section{Perspectives, Conclusion, and Open Problems}
 % summary
 We proposed conservative Q-learning (CQL), an algorithmic framework for offline RL that learns a lower bound on the policy value.
 Empirically, we demonstrate that CQL outperforms prior offline RL methods on a wide range of offline RL benchmark tasks, including complex control tasks and tasks with raw image observations. In many cases, the performance of CQL is substantially better than the best-performing prior methods, exceeding their final returns by 2-5x.
 
 The simplicity and efficacy of CQL make it a promising choice for a wide range of real-world offline RL problems. However, a number of challenges remain. While we prove that CQL learns lower bounds on the Q-function in the tabular, linear, and a subset of non-linear function approximation cases, a rigorous theoretical analysis of CQL with deep neural nets, is left for future work. Additionally, offline RL methods are liable to suffer from overfitting in the same way as standard supervised methods, so another important challenge for future work is to devise simple and effective early stopping methods, analogous to validation error in supervised learning.
 
+%%AK: fix this to include both CQL and COMBO paper people
 \section*{Acknowledgements and Funding}
 We thank Mohammad Norouzi, Oleh Rybkin, Anton Raichuk, Avi Singh, Vitchyr Pong and anonymous reviewers from the Robotic AI and Learning Lab at UC Berkeley and NeurIPS for their feedback on an earlier version of this paper. We thank Rishabh Agarwal for help with the Atari QR-DQN/REM codebase and for sharing baseline results. This research was funded by the DARPA Assured Autonomy program, and compute support from Google and Amazon.
 
