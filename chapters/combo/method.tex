@@ -1,9 +1,29 @@
-\subsection{Conservative Offline Model-Based Policy Optimization}
+\subsection{Analysis: Uncertainty Calibration in Offline Model-Based RL}
+\label{sec:uq}
+
+\begin{figure}[t]
+    \vspace{-0.5cm}
+        \centering
+        % \includegraphics[width=0.47\linewidth]{halfcheetah_medium_corr_var_ood.png}
+        % \includegraphics[width=0.47\linewidth]{halfcheetah_medium_corr_lip_ens_ood.png}
+        % \includegraphics[width=0.47\linewidth]{hopper_medium_corr_var_ood.png}
+        % \includegraphics[width=0.47\linewidth]{hopper_medium_corr_lip_ens_ood.png}
+        \includegraphics[width=0.45\textwidth]{chapters/combo/halfcheetah_jump_linear_regression_lip_ens_ood.png}
+        \includegraphics[width=0.41\textwidth]{chapters/combo/ant_angle_linear_regression_lip_ens_ood.png}
+        \vspace{-0.2cm}
+        \caption{\footnotesize {We visualize the fitted linear regression line between the model error and two uncertainty quantification methods maximum learned variance over the ensemble (denoted as \textbf{Max Var}) on two tasks that test the generalization abilities of offline RL algorithms (\texttt{halfcheetah-jump} and \texttt{ant-angle}). We show that \textbf{Max Var} struggles to predict the true model error. Such visualizations indicates that uncertainty quantification is challenging with deep neural networks and could lead to poor performance in model-based offline RL in settings where out-of-distribution generalization is needed. In the meantime, COMBO addresses this issue by removing the burden of performing uncertainty quantification.}}
+        \label{fig:uq}
+        \vspace{-0.4cm}
+\end{figure}
+
+In this section, we first analyze the efficacy of uncertainty estimation in existing model-based offline RL approaches. Specifically, we perform empirical evaluations to study whether uncertainty quantification with deep neural networks, especially in the setting of dynamics model learning, is challenging and could cause problems with uncertainty-based model-based offline RL methods such as MOReL~\citep{kidambi2020morel} and MOPO~\citep{yu2020mopo}. We pick tasks where the underlying model-based offline RL method is required to produce policies that need to go further away from the data distribution to obtain good performance. In our evaluations, we consider maximum learned variance over the ensemble (denoted as \textbf{Max Var}) $\max_{i=1,\dots,N}\|\Sigma^i_\theta(\bs, \mathbf{a})\|_\text{F}$ (used in MOPO).
+
+We consider two tasks \texttt{halfcheetah-jump} and \texttt{ant-angle} (more details about the task in Appendix ??). We normalize both the model prediction error and the uncertainty estimates to be within scale $[0, 1]$ and performs linear regression that learns the mapping between the uncertainty estimates and the true model error. As shown in Figure~\ref{fig:uq}, on both tasks, \textbf{Max Var} is unable to accurately predict the true model error, suggesting that uncertainty estimation used by offline model-based methods is not accurate and might be the major factor that results in its poor performance. On the other hand, our approach, COMBO, alleviates the need for accurate uncertainty quantification by viewing model-based offline RL from the lens of conservative value function learning.
+
+\subsection{Approach: Conservative Offline Model-Based Policy Optimization}
 \label{sec:combo}
-
-The principal challenge in practice with prior offline model-based algorithms (discussed in Section~\ref{sec:prelim}) is the strong reliance on uncertainty quantification, which can be challenging for complex datasets or deep neural network models~\cite{ovadia2019can}. We also empirically verify this in the offline dynamics model learning setting in Appendix~\ref{app:uq}.
-Our goal is to develop a model-based offline RL algorithm that enables optimizing a lower bound on the policy performance, but without requiring uncertainty quantification. We achieve this by extending conservative Q-learning~\cite{kumar2020conservative}, which does not require explicit uncertainty quantification, into the model-based setting. Our algorithm, summarized in Algorithm~\ref{alg:combo}, alternates between a conservative policy evaluation step and a policy improvement step, which we outline below.
-
+ 
+Our goal in this section is to develop a model-based offline RL algorithm that enables optimizing a lower bound on the policy performance, but without requiring uncertainty quantification. We achieve this by extending conservative Q-learning, from the previous section, into the model-based setting. Our algorithm, summarized in Algorithm~\ref{alg:combo}, alternates between a conservative policy evaluation step and a policy improvement step, which we outline below.
 
 {\bf Conservative Policy Evaluation:} Given a policy $\policy$, an offline dataset $\data$, and a learned model of the MDP $\mhat$, the goal in this step is to obtain a conservative estimate of $Q^\policy$. To achieve this, we penalize the Q-values evaluated on data drawn from a particular state-action distribution that is more likely to be out-of-support while pushing up the Q-values on state-action pairs that are trustworthy, which is implemented by repeating the following recursion:
 
@@ -19,13 +39,13 @@ Here, $\rho(\bs, \mathbf{a})$ and $d_f$ are sampling distributions that we can c
 \rho(\bs, \mathbf{a}) =  d^\policy_{\mdphat} (\bs) \pi(\mathbf{a} | \bs),
 \]
 where $d^\policy_{\mdphat} (\bs)$ is the discounted marginal state distribution when executing $\policy$ in the learned model $\mdphat$. Samples from $d^\policy_{\mdphat} (\bs)$ can be obtained by rolling out $\policy$ in $\mdphat$.
-Similarly, $d_f$ is an $f-$interpolation between the offline dataset and synthetic rollouts from the model:
+Similarly, $d_f$ is an $f-$interpolation between the offline dataset and rollouts from the model:
 \[
 d_f^\mu (\bs, \mathbf{a}) := f \ d(\bs, \mathbf{a}) + (1-f) \ d^\mu_{\mdphat} (\bs, \mathbf{a}),
 \]
 where $f \in [0,1]$ is the ratio of the datapoints drawn from the offline dataset as defined in Section~\ref{sec:prelim_offline_mbrl} and $\mu(\cdot | \bs)$ is the rollout distribution used with the model, which can be modeled as $\policy$ or a uniform distribution. To avoid notation clutter, we also denote $d_f := d_f^\mu$.
 
-Under such choices of $\rho$ and $d_f$, we push down (or conservatively estimate) Q-values on state-action tuples from model rollouts and push up Q-values on the real state-action pairs from the offline dataset. When updating Q-values with the Bellman backup, we use a mixture of both the model-generated data and the real data, similar to Dyna~\cite{sutton1991dyna}. 
+Under such choices of $\rho$ and $d_f$, we push down Q-values on state-action tuples from model rollouts and push up Q-values on the real state-action pairs from the offline dataset. When updating Q-values with the Bellman backup, we use a mixture of both the model-generated data and the real data, similar to Dyna~\cite{sutton1991dyna}. 
 Note that in comparison to CQL and other model-free algorithms, COMBO learns the Q-function over a richer set of states beyond the states in the offline dataset. 
 This is made possible by performing rollouts under the learned dynamics model, denoted by $d^\mu_{\mdphat} (\bs, \mathbf{a})$.
 We will show in Section~\ref{sec:theory} that the Q function learned by repeating the recursion in Equation~\ref{eq:implicit_update} provides a lower bound on the true Q function, without the need for explicit uncertainty estimation. Furthermore, we will theoretically study the advantages of using synthetic data from the learned model, and characterize the impacts of model bias.
@@ -58,7 +78,7 @@ where $\rho(\bs)$ is the state marginal of $\rho(\bs,\mathbf{a})$. When policies
 
 \subsection{Theoretical Analysis of COMBO}
 \label{sec:theory}
-In this section, we theoretically analyze our method and show that it optimizes a lower-bound on the expected return of the learned policy. This lower bound is close to the actual policy performance (modulo sampling error) when the policy's state-action marginal distribution is in support of the state-action marginal of the behavior policy and conservatively estimates the performance of a policy otherwise. By optimizing the policy against this lower bound, COMBO guarantees policy improvement beyond the behavior policy. \neurips{Furthermore, we use these insights to discuss cases when COMBO is less conservative compared to model-free counterparts}.
+In this section, we theoretically analyze COMBO and show that, like CQL, it continues to optimize a lower-bound on the expected return of the learned policy. This lower bound is close to the actual policy performance (modulo sampling error) when the policy's state-action marginal distribution is in support of the state-action marginal of the behavior policy and conservatively estimates the performance of a policy otherwise. By optimizing the policy against this lower bound, COMBO guarantees policy improvement beyond the behavior policy. {Furthermore, we use these insights to discuss cases when COMBO is less conservative compared to model-free CQL}.
 
 \begin{subsubsection}{COMBO Optimizes a Lower Bound}
 \label{sec:combo_lower_bound}
@@ -134,7 +154,7 @@ The proof for Proposition~\ref{thm:lower_bound} can be found in Appendix~\ref{ap
 % Proposition~\ref{thm:Q_bound} further implies that for large $\beta$,
 %%CF: I think you mean "for large beta" or "for non-zero beta" here?
 % deviating away from the behavior policy is expected to lead to smaller values.
-Finally, while \citet{kumar2020conservative} also analyze how regularized value function training can provide lower bounds on the value function at each state in the dataset~\citep{kumar2020conservative} (Proposition 3.1-3.2), \neurips{our result shows that COMBO is less conservative in that it does not underestimate the value function at every state in the dataset like CQL (Remark~\ref{remak:tighter_lower_bound}) and might even overestimate these values. Instead COMBO penalizes Q-values at states generated via model rollouts from $\rho(\bs, \mathbf{a})$. While it is challenging to argue that that either COMBO or CQL attains the tightest possible lower-bound on return, in our final result of this section, we discuss a sufficient condition for the COMBO lower-bound to be tighter than CQL. 
+Finally, while \citet{kumar2020conservative} also analyze how regularized value function training can provide lower bounds on the value function at each state in the dataset~\citep{kumar2020conservative} (Proposition 3.1-3.2), \textit{our result shows that COMBO is less conservative in that it does not underestimate the value function at every state in the dataset like CQL (Remark~\ref{remak:tighter_lower_bound})} and might even overestimate these values. Instead COMBO penalizes Q-values at states generated via model rollouts from $\rho(\bs, \mathbf{a})$. While it is challenging to argue that that either COMBO or CQL attains the tightest possible lower-bound on return, in our final result of this section, we discuss a sufficient condition for the COMBO lower-bound to be tighter than CQL. 
 
 \begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=3pt,bottom=5pt]
 \begin{theorem}[CQL vs COMBO]
@@ -153,7 +173,7 @@ Proposition~\ref{prop:less_conservative} indicates that COMBO will be less conse
 %%SL.5.24: The above sentences are easy to misunderstand. Can we rephrase like this: when the action probabilities under learned policy $\pi(\mathbf{a}|\bs)$ and the probabilities under the behavior policy $\pi_\beta(\mathbf{a}|\bs)$ are closer together on state-action tuples drawn from $\rho(\bs, \mathbf{a})$ (i.e., sampled from the model using the policy $\pi(\mathbf{a}|\bs)$), than they are on states from the dataset and actions from the policy, $d_{\mdpbar}(\bs)\pi(\mathbf{a}|\bs)$. [that said, I'm not sure this intuition is quite right...]
 COMBO's objective (Equation~\ref{eq:implicit_update}) only penalizes Q-values under $\rho(\bs, \mathbf{a})$, which, in practice, are expected to primarily consist of out-of-distribution states generated from model rollouts, and does not penalize the Q-value at states drawn from $d_{\mdpbar}(\bs)$. As a result, the expression $(*)$ is likely to be negative, making COMBO less conservative than CQL.
 %%CF.5.25:  It would be really good to talk about what this means in combination with prop 4.1. In isolation, this result is of course not meaningful on its own. (i.e. lower-bound plus often less conservative means often closer to the actual Q-value. (unless I am misunderstanding something here)
-} 
+
 %%SL.5.24: I'm not sure I follow this logic -- why should we expect it to be negative?
 % COMBO does not underestimate the value function at every state in the dataset like \citet{kumar2020conservative}, but only lower-bounds the expected value function under the initial state distribution as discussed in Corollary~\ref{thm:lower_bound}. We elaborate on how COMBO is less conservative as it attains tighter lower bounds in Remark~\ref{remak:tighter_lower_bound} (Appendix~\ref{app:proof_lower_bound}).
 

@@ -15,7 +15,7 @@
 \usepackage{color}
 \usepackage{bm}
 \usepackage{graphicx}
-\usepackage{subfig}
+% \usepackage{subfig}
 \usepackage{lib/libtex}
 \usepackage{textcomp}
 \usepackage[labelfont=bf,font=footnotesize]{caption}
@@ -28,6 +28,7 @@
 \usepackage{balance}
 \usepackage{epigraph}
 \usepackage[skins,theorems]{tcolorbox}
+\usepackage{subcaption}
 \usepackage{wrapfig}
 % \usepackage[parfill]{parskip}
 \renewcommand{\epigraphsize}{\small}
@@ -186,12 +187,12 @@
 % \vspace*{\fill}
 % \newpage
 
-\chapter{Challenges in RL From Static Data}~\label{chapter:diagnosing}
+\chapter{Challenges in Offline Reinforcement Learning}~\label{chapter:diagnosing}
 	\subfile{chapters/diagnosing}
 
 \part{Algorithmic Approaches to Offline RL}
 
-\chapter{Policy Constraints to Tackle Distributional Shift}~\label{chapter:bear}
+\chapter{Restricting Action Selection in Policy Learning}~\label{chapter:bear}
 	\subfile{chapters/bear}
 
 \chapter{Conservative Value Function Estimation}~\label{chapter:cql}
@@ -200,8 +201,8 @@
 \chapter{Offline Reinforcement Learning via Supervised Learning}~\label{chapter:rcp}
 	\subfile{chapters/rcp}
 
-\chapter{Analysis: Why Offline Reinforcement Learning over Supervised Learning?}~\label{chapter:rl_vs_bc}
-	\subfile{chapters/rl_vs_bc}
+% \chapter{Analysis: Why Offline Reinforcement Learning over Supervised Learning?}~\label{chapter:rl_vs_bc}
+% 	\subfile{chapters/rl_vs_bc}
 
 \part{Extensions of Offline RL}
 

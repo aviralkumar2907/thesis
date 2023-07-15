@@ -3,20 +3,32 @@ Q-learning algorithms, which are based on approximating state-action value funct
 In this paper, we aim to investigate the degree to which potential issues with Q-learning manifest in practice. 
 We empirically analyze aspects of the Q-learning method in a \emph{unit testing} framework, where we can employ oracle solvers to obtain ground truth Q-functions and distributions for exact analysis. We investigate the following questions:
 
-\textbf{1) What is the effect of function approximation on convergence?}
-Many practical RL problems require function approximation to handle large or continuous state spaces. However, the behavior of Q-learning methods under function approximation is not well understood -- there are simple counterexamples where the method diverges~\citep{Baird1995}. 
-To investigate these problems, we study the convergence behavior of Q-learning methods with function approximation by varying the function approximator power and analyzing the quality of the solution found. 
-We find, somewhat surprisingly, that divergence rarely occurs, and that function approximation error is not a major problem in Q-learning algorithms when the function approximator is powerful. This makes sense in light of the theory: a high-capacity approximator can perform an accurate projection of the bellman Backup, thus mitigating potential convergence issues due to function approximation. (Section~\ref{sec:function_approx})
+% \textbf{1) What is the effect of function approximation on convergence?}
+% Many practical RL problems require function approximation to handle large or continuous state spaces. However, the behavior of Q-learning methods under function approximation is not well understood -- there are simple counterexamples where the method diverges~\citep{Baird1995}. 
+% To investigate these problems, we study the convergence behavior of Q-learning methods with function approximation by varying the function approximator power and analyzing the quality of the solution found. 
+% We find, somewhat surprisingly, that divergence rarely occurs, and that function approximation error is not a major problem in Q-learning algorithms when the function approximator is powerful. This makes sense in light of the theory: a high-capacity approximator can perform an accurate projection of the bellman Backup, thus mitigating potential convergence issues due to function approximation. (Section~\ref{sec:function_approx})
 
-\textbf{2) What is the effect of sampling error and overfitting?}
+~
+
+\niparagraph{\large{(1) What is the effect of sampling error?}}
+
+~
+
 RL is used to solve problems where we do not have access to the transition function of the MDP. Thus, Q-learning methods need to learn by collecting samples in the environment, and minimizing errors on samples potentially leads to overfitting. We experimentally show that overfitting exists in practice by performing ablation studies on the number of gradient steps, and by demonstrating that oracle based early stopping techniques can be used to improve performance of Q-learning algorithms. (Section~\ref{sec:overfitting}).
 %Thus, in our experiments we quantify the amount of overfitting which happens in practice, incorporating a variety of metrics, and performing a number of ablations and investigate methods to mitigate its effects.
 
-\textbf{3) What is the effect of distribution shift and a moving target?}
+~
+
+\niparagraph{\large{(2) What is the effect of distribution shift?}}
+
+~
+
 The standard formulation of Q-learning prescribes an update rule, with no corresponding objective function~\citep{Sutton09b}. This results in a process which optimizes an objective that is non-stationary in two ways: the target values are updated during training (the \emph{moving target} problem), and the distribution under which the Bellman error is optimized changes, as samples are drawn from different policies (the \emph{distribution shift} problem). These properties can make convergence behavior difficult to understand, and prior works have hypothesized that nonstationarity is a source of instability~\citep{Mnih2015, Lillicrap2015}. {We develop metrics to quantify the amount of distribution shift and performance change due to non-stationary targets. Surprisingly, we find that in a controlled experiment, distributional shift and non-stationary targets do not correlate with a reduction in performance, and some well-performing methods incur high distribution shift.}
 
-\textbf{4) What is the best sampling or weighting distribution?}
-Deeply tied to the distribution shift problem is the choice of which distribution to sample from. Do moving distributions cause instability, as Q-values trained on one distribution are evaluated under another in subsequent iterations?
-Researchers have often noted that on-policy samples are typically superior to off-policy samples~\citep{suttonrlbook}, and there are several theoretical results that highlight favorable convergence properties under on-policy samples. However, there is little theoretical guidance on how to pick distributions so as to maximize learning. To this end, we investigate several choices for the sampling distribution. {Surprisingly, we find that on-policy training distributions are not always preferable, and that broader, higher-entropy distributions often perform better, regardless of distributional shift. Motivated by our findings, we propose a novel weighting distribution, adversarial feature matching (AFM), which is explicitly compensates for function approximator error, while still producing high-entropy sampling distributions.}
+% \textbf{4) What is the best sampling or weighting distribution?}
+% Deeply tied to the distribution shift problem is the choice of which distribution to sample from. Do moving distributions cause instability, as Q-values trained on one distribution are evaluated under another in subsequent iterations?
+% Researchers have often noted that on-policy samples are typically superior to off-policy samples~\citep{suttonrlbook}, and there are several theoretical results that highlight favorable convergence properties under on-policy samples. However, there is little theoretical guidance on how to pick distributions so as to maximize learning. To this end, we investigate several choices for the sampling distribution. {Surprisingly, we find that on-policy training distributions are not always preferable, and that broader, higher-entropy distributions often perform better, regardless of distributional shift. Motivated by our findings, we propose a novel weighting distribution, adversarial feature matching (AFM), which is explicitly compensates for function approximator error, while still producing high-entropy sampling distributions.}
 
-In summary, we introduce a unit testing framework for Q-learning to disentangle potential bottlenecks where approximate components are replaced by oracles. This allows for controlled analysis of different sources of error. We study various sources of instability and error in Q-learning algorithms on tabular domains, and show that many of these trends hold true in high dimensional domains. We then propose a novel sampling distribution that improve performance even on high-dimensional tasks. %Our overall aim is to offer practical guidance for designing RL algorithms, as well as to identify important issues to solve in future research.
+
+%%AK: say this para in some different way
+% In summary, we introduce a unit testing framework for Q-learning to disentangle potential bottlenecks where approximate components are replaced by oracles. This allows for controlled analysis of different sources of error. We study various sources of instability and error in Q-learning algorithms on tabular domains, and show that many of these trends hold true in high dimensional domains. We then propose a novel sampling distribution that improve performance even on high-dimensional tasks. %Our overall aim is to offer practical guidance for designing RL algorithms, as well as to identify important issues to solve in future research.
