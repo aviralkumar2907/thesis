@@ -1,7 +1,10 @@
 \section{Introduction}
-Q-learning algorithms, which are based on approximating state-action value functions, are an efficient and commonly used class of RL methods. Q-learning methods have several very appealing properties: they are relatively sample-efficient when compared to policy gradient methods, and they allow for off-policy learning. This makes them an appealing choice for a wide range of tasks, from robotic control~\citep{kalashnikov18} and video game AI~\citep{Mnih2015} to off-policy learning from historical data for recommender systems~\citep{shani2005recommender}. However, although the basic tabular Q-learning algorithm is convergent and admits theoretical analysis~\cite{suttonrlbook}, its counterpart with function approximation is poorly understood. 
-In this paper, we aim to investigate the degree to which potential issues with Q-learning manifest in practice. 
-We empirically analyze aspects of the Q-learning method in a \emph{unit testing} framework, where we can employ oracle solvers to obtain ground truth Q-functions and distributions for exact analysis. We investigate the following questions:
+
+In principle, off-policy reinforcement learning (RL) methods provide an effective way to learn optimal policies from static data: by learning value-functions, Q-learning and actor-critic algorithms, can learn optimal policies from even sub-optimal offline data. Via an empirical investigation, in this section, we aim to understand if this promise continues to hold in practice, in an attempt to isolate practical problems that must be solved to realize the usability of off-policy RL methods for learning from entirely static data. We will focus on answering the following questions: 
+
+% Q-learning algorithms, which are based on approximating state-action value functions, are an efficient and commonly used class of RL methods. Q-learning methods have several very appealing properties: they are relatively sample-efficient when compared to policy gradient methods, and they allow for off-policy learning. This makes them an appealing choice for a wide range of tasks, from robotic control~\citep{kalashnikov18} and video game AI~\citep{Mnih2015} to off-policy learning from historical data for recommender systems~\citep{shani2005recommender}. However, although the basic tabular Q-learning algorithm is convergent and admits theoretical analysis~\cite{suttonrlbook}, its counterpart with function approximation is poorly understood. 
+% In this paper, we aim to investigate the degree to which potential issues with Q-learning manifest in practice. 
+% We empirically analyze aspects of the Q-learning method in a \emph{unit testing} framework, where we can employ oracle solvers to obtain ground truth Q-functions and distributions for exact analysis. We investigate the following questions:
 
 % \textbf{1) What is the effect of function approximation on convergence?}
 % Many practical RL problems require function approximation to handle large or continuous state spaces. However, the behavior of Q-learning methods under function approximation is not well understood -- there are simple counterexamples where the method diverges~\citep{Baird1995}. 
@@ -10,20 +13,21 @@ We empirically analyze aspects of the Q-learning method in a \emph{unit testing}
 
 ~
 
-\niparagraph{\large{(1) What is the effect of sampling error?}}
+\niparagraph{\large{(1) What is the effect of distributional shift?}}
 
 ~
 
-RL is used to solve problems where we do not have access to the transition function of the MDP. Thus, Q-learning methods need to learn by collecting samples in the environment, and minimizing errors on samples potentially leads to overfitting. We experimentally show that overfitting exists in practice by performing ablation studies on the number of gradient steps, and by demonstrating that oracle based early stopping techniques can be used to improve performance of Q-learning algorithms. (Section~\ref{sec:overfitting}).
+The standard formulation of off-policy Q-learning and actor-critic prescribes an update rule, with no corresponding objective function~\citep{Sutton09b}. This results in a learning process which optimizes an objective that suffers from distributional shift: the target values computed by the Bellman backup query actions from the learned policy, which is not necessarily identical to the data collection policy (and in general, we would expect that the learned policy would differ greatly from the data collection policy since it is supposed to improve over the behaviors in the offline dataset). We perform controlled experiments to investigate the amount of distributional shift and its impact on performance, observing that deviating away from the distributions of states and actions in the offline dataset can lead to significant instability over the course of learning.
+
+~
+
+\niparagraph{\large{(2) What is the effect of sampling error?}}
+
+~
+
+In general, it is impossible to infer the true dynamics of the underlying MDP using just a finite amount of static, offline data provided in the problem. Like any standard supervised learning setting, by reusing samples in the offline data multiple times for learning, we would also expect off-policy RL methods to overfit to the training data. To what extent, does this overfitting hurt performance? We experimentally show that overfitting exists in practice by performing ablation studies on the number of gradient steps utilized for learning, and by demonstrating that oracle based early stopping techniques can be used to improve performance of Q-learning algorithms.
 %Thus, in our experiments we quantify the amount of overfitting which happens in practice, incorporating a variety of metrics, and performing a number of ablations and investigate methods to mitigate its effects.
 
-~
-
-\niparagraph{\large{(2) What is the effect of distribution shift?}}
-
-~
-
-The standard formulation of Q-learning prescribes an update rule, with no corresponding objective function~\citep{Sutton09b}. This results in a process which optimizes an objective that is non-stationary in two ways: the target values are updated during training (the \emph{moving target} problem), and the distribution under which the Bellman error is optimized changes, as samples are drawn from different policies (the \emph{distribution shift} problem). These properties can make convergence behavior difficult to understand, and prior works have hypothesized that nonstationarity is a source of instability~\citep{Mnih2015, Lillicrap2015}. {We develop metrics to quantify the amount of distribution shift and performance change due to non-stationary targets. Surprisingly, we find that in a controlled experiment, distributional shift and non-stationary targets do not correlate with a reduction in performance, and some well-performing methods incur high distribution shift.}
 
 % \textbf{4) What is the best sampling or weighting distribution?}
 % Deeply tied to the distribution shift problem is the choice of which distribution to sample from. Do moving distributions cause instability, as Q-values trained on one distribution are evaluated under another in subsequent iterations?

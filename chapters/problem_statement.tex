@@ -1,0 +1,204 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\usepackage{wrapfig}
+\usepackage{cite}
+% \usepackage{natbib}
+% \usepackage[round]{natbib}
+
+\begin{document}
+
+% \blfootnote{This chapter is based on \cite{fu2019diagnosing}, published at ICML 2019, which is joint work with Justin Fu, Matthew Soh, and Sergey Levine.}
+
+% \input{chapters/bear/text/abstract.tex}
+
+% \input{chapters/bear/text/introduction.tex}
+% \input{chapters/bear/text/related.tex}
+% \input{chapters/bear/text/background.tex}
+% \input{chapters/bear/text/method.tex}
+% \input{chapters/bear/text/experiments.tex}
+% \input{chapters/bear/text/conclusions.tex}
+
+% Q-learning methods are a common class of algorithms used in reinforcement learning (RL). However, their behavior with function approximation, especially with neural networks, is poorly understood theoretically and empirically. In this work, we aim to experimentally investigate potential issues in Q-learning, by means of a "unit testing" framework where we can utilize oracles to disentangle sources of error. 
+% Specifically, we investigate questions related to function approximation, sampling error and nonstationarity, and where available, verify if trends found in oracle settings hold true with deep RL methods.
+% We find that large neural network architectures have many benefits with regards to learning stability; offer several practical compensations for overfitting; and develop a novel sampling method based on explicitly compensating for function approximation error that yields fair improvement on high-dimensional continuous control domains. 
+
+\vspace{-0.4cm}
+\begin{AIbox}{\large{\textbf{Abstract}}}
+\vspace{4mm}
+In this chapter, we will discuss our notion and background definition, followed by a discussion of the problem statement of offline reinforcement learning (RL).   
+\vspace{2mm}
+\end{AIbox}
+
+
+\section{Reinforcement Learning Preliminaries}
+\label{sec:rl_prelims}
+
+In this section, we will define basic reinforcement learning (RL) concepts, following standard textbook definitions~\citep{suttonrlbook}. RL addresses the problem of learning to control a dynamical system, in a general sense. The dynamical system is fully defined by a fully-observed or partially-observed Markov decision process (MDP). We only consider problems where the dnynamical system is defined by a fully-observed MDP in this dissertation. 
+
+\begin{definition}[Markov decision process]
+A Markov decision process is defined as a tuple \mbox{$\mdp = (\states,\actions,\transitions,\initstate,\reward,\discount)$}, where $\states$ is a set of states $\bs \in \states$, which may be either discrete or continuous (i.e., multi-dimensional vectors), $\actions$ is a set of actions $\mathbf{a} \in \actions$, which similarly can be discrete or continuous, $\transitions$ defines a conditional probability distribution of the form $\transitions(\bs_{t+1} | \bs_t, \mathbf{a}_t)$ that describes the dynamics of the system,\footnote{We will sometimes use time subscripts (i.e., $\bs_{t+1}$ follows $\bs_t$), and sometimes ``prime'' notation (i.e., $\bs'$ is the state that follows $\bs$). Explicit time subscripts can help clarify the notation in finite-horizon settings, while ``prime'' notation is simpler in infinite-horizon settings where absolute time step indices are less meaningful.} $\initstate$ defines the initial state distribution $\initstate(\bs_0)$, $\reward : \states \times \actions \rightarrow \real$ defines a reward function, and $\gamma \in (0, 1]$ is a scalar discount factor.
+\end{definition}
+
+% We will use the fully-observed formalism in most of this article, though the definition for the partially observed Markov decision process (POMDP) is also provided for completeness. The MDP definition can be extended to the partially observed setting as follows:
+
+% \begin{definition}[Partially observed Markov decision process]
+% The partially observed Markov decision process is defined as a tuple \mbox{$\mdp = (\states,\actions,\observations,\transitions,\initstate,\obsfunc,\reward,\discount)$}, where $\states$, $\actions$, $\transitions$, $\initstate$, $\reward$, and $\discount$ are defined as before, $\observations$ is a set of observations, where each observation is given by $\bo \in \observations$, and $\obsfunc$ is an emission function, which defines the distribution $\obsfunc(\bo_t | \bs_t)$.
+% \end{definition}
+
+The final goal in a reinforcement learning problem is to learn a policy, which defines a distribution over actions conditioned on states, $\policy(\mathbf{a}_t | \bs_t)$. From these definitions, we can derive the \emph{trajectory distribution}. The trajectory is a sequence of states and actions of length $H$, given by $\tau = (\bs_0, \mathbf{a}_0, \dots, \bs_H, \mathbf{a}_H)$, where $H$ may be infinite. The trajectory distribution $p_\policy$ for a given MDP $\mdp$ and policy $\policy$ is given by
+\[
+p_\policy(\traj) = \initstate(\bs_0) \prod_{t=0}^H \policy(\mathbf{a}_t | \bs_t) \transitions(\bs_{t+1} | \bs_t, \mathbf{a}_t).
+\]
+% This definition can easily be extended into the partially observed setting by including the observations $\bo_t$ and emission function $\obsfunc(\bo_t | \bs_t)$. 
+The reinforcement learning objective, $J(\policy)$, can then be written as an expectation under this trajectory distribution:
+\begin{equation}
+J(\policy) = \E_{\traj \sim p_\policy(\traj)}\left[
+\sum_{t=0}^H \discount^t \reward(\bs_t, \mathbf{a}_t)
+\right]. \label{eq:rl_objective}
+\end{equation}
+When $H$ is infinite, it is typical to consider the expected reward under the $\gamma$-discounted stationary distribution of the learned policy. Formally, we can refer to the marginals of the trajectory distribution $p_\policy(\traj)$. We will use $\freq^\policy(\bs)$ to refer to the overall state visitation frequency, averaged over the time steps, and $\freq^\policy_t(\bs_t)$ to refer to the state visitation frequency at time step $t$. Alternatively, we can consider the undiscounted expected reward under the stationary distribution of the Markov chain $(\bs_t, \mathbf{a}_t)$ defined by $\policy(\mathbf{a}_t | \bs_t) \transitions(\bs_{t+1} | \bs_t, \mathbf{a}_t)$, under ergodicity assumptions. For discussions in this dissertation, we will consider the discounted marginal setting for simplicity.  
+
+% In many cases, 
+
+Next, we will briefly summarize some types reinforcement learning algorithms and present definitions. At a high level, all standard reinforcement learning algorithms follow the same basic learning loop: the agent \emph{interacts} with the MDP $\mdp$ by using some sort of \emph{behavior policy}, which may or may not match $\policy(\mathbf{a}|\bs)$, by observing the current state $\bs_t$, selecting an action $\mathbf{a}_t$, and then observing the resulting next state $\bs_{t+1}$ and reward value $\reward_t = \reward(\bs_t,\mathbf{a}_t)$. This may repeat for multiple steps, and the agent then uses the observed transitions $(\bs_t,\mathbf{a}_t,\bs_{t+1},\reward_t)$ to update its policy. This update might also utilize previously observed transitions. We will use $\data = \{ (\bs^i_t,\mathbf{a}^i_t,\bs^i_{t+1},\reward^i_t) \}$ to denote the set of transitions that are available for the agent to use for updating the policy (``learning''), which may consist of either all transitions seen so far, or some subset thereof.
+
+~
+
+\niparagraph{\large{Dynamic Programming with Function Approximators}} 
+
+~
+
+One way to optimize the reinforcmeent learning objective relies on the following observation: if we can accurately estimate a state or state-action \emph{value function}, then it is easy to then recover a near-optimal policy. A value function provides an estimate of the expected cumulative reward that will be obtained by following some policy $\policy(\mathbf{a}_t|\bs_t)$ when starting from a given state $\bs_t$, in the case of the state-value function $V^\policy(\bs_t)$, or when starting from a state-action tuple $(\bs_t,\mathbf{a}_t)$, in the case of the state-action value function $Q^\policy(\bs_t,\mathbf{a}_t)$. We can define these value functions as:
+\begin{align*}
+V^\policy(\bs_t) &= \E_{\traj \sim p_\policy(\traj | \bs_t)} \left[
+\sum_{t' = t}^H \gamma^{t' - t} \reward(\bs_t, \mathbf{a}_t)
+\right] \\
+Q^\policy(\bs_t,\mathbf{a}_t) &= \E_{\traj \sim p_\policy(\traj | \bs_t, \mathbf{a}_t)} \left[
+\sum_{t' = t}^H \gamma^{t' - t} \reward(\bs_t, \mathbf{a}_t)
+\right].
+\end{align*}
+From this, we can derive recursive definitions for value functions:
+\begin{align*}
+V^\policy(\bs_t) &= \E_{\mathbf{a}_t \sim \policy(\mathbf{a}_t | \bs_t)}\left[
+Q^\policy(\bs_t,\mathbf{a}_t)
+\right] \\
+Q^\policy(\bs_t, \mathbf{a}_t) &= \reward(\bs_t,\mathbf{a}_t) + \discount \E_{\bs_{t+1} \sim \transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)}\left[
+V^\policy(\bs_{t+1})
+\right].
+\end{align*}
+We can combine these two equations to express the $Q^\policy(\bs_t,\mathbf{a}_t)$ in terms of $Q^\policy(\bs_{t+1},\mathbf{a}_{t+1})$:
+\begin{align}
+Q^\policy(\bs_t, \mathbf{a}_t) &= \reward(\bs_t,\mathbf{a}_t) + \discount \E_{\bs_{t+1} \sim \transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t), \mathbf{a}_{t+1} \sim \policy(\mathbf{a}_{t+1} | \bs_{t+1})}\left[
+Q^\policy(\bs_{t+1},\mathbf{a}_{t+1})
+\right]. \label{eq:qeq}
+\end{align}
+We can also express these in terms of the \emph{Bellman operator} for the policy $\policy$, which we denote $\bellman^\policy$. For example, Equation~(\ref{eq:qeq}) can be written as ${Q}^\policy = \bellman^\policy {Q}^\policy$, where ${Q}^\policy$ (with abuse of notation) now denotes the Q-function $Q^\policy$ represented as a vector of length $|\states|\times |\actions|$. Before moving on to deriving learning algorithms based on these definitions, we briefly discuss some properties of the Bellman operator. This Bellman operator has a unique fixed point that corresponds to the true Q-function for the policy $\policy(\mathbf{a}|\bs)$, which can be obtained by repeating the iteration ${Q}^\policy_{k+1} = \bellman^\policy {Q}^\policy_k$, and it can be shown that $\lim_{k \rightarrow \infty} {Q}^\policy_k = {Q}^\policy$, which obeys Equation~(\ref{eq:qeq})~\citep{suttonrlbook}. The proof for this follows from the observation that $\bellman^\policy$ is a contraction in the $\ell_\infty$ norm~\citep{lagoudakis2003least}.
+
+Based on these definitions, we can derive two commonly used algorithms based on dynamic programming: Q-learning and actor-critic methods. To derive Q-learning, we express the policy implicitly in terms of the Q-function, as \mbox{$\policy(\mathbf{a}_t | \bs_t) = \delta(\mathbf{a}_t = \arg\max Q(\bs_t,\mathbf{a}_t))$}, and only learn the Q-function $Q(\bs_t,\mathbf{a}_t)$. By substituting this (implicit) policy into the above dynamic programming equation, we obtain the following condition on the optimal Q-function:
+\begin{equation}
+Q^\star(\bs_t, \mathbf{a}_t) = \reward(\bs_t,\mathbf{a}_t) + \discount \E_{\bs_{t+1} \sim \transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)}\left[
+\max_{\mathbf{a}_{t+1}} Q^\star(\bs_{t+1},\mathbf{a}_{t+1})
+\right]. \label{eq:q_learning_equation}
+\end{equation}
+We can again express this as ${Q} = \bellman^\star {Q}$ in vector notation, where $\bellman^\star$ now refers to the Bellman optimality operator. Note however that this operator is not linear, due to the maximization on the right-hand side in Equation~(\ref{eq:q_learning_equation}). To turn this equation into a learning algorithm, we can minimize the difference between the left-hand side and right-hand side of this equation with respect to the parameters of a parametric Q-function estimator with parameters $\phi$, $Q_\phi(\bs_t,\mathbf{a}_t)$. There are a number of variants of this Q-learning procedure, including variants that fully minimize the difference between the left-hand side and right-hand side of the above equation at each iteration, commonly referred to as fitted Q-iteration~\citep{ernst2005tree,riedmiller2005neural}, and variants that take a single gradient step, such as the original Q-learning method~\citep{watkins1992q}. The commonly used variant in deep reinforcement learning is a kind of hybrid of these two methods, employing a replay buffer~\citep{lin1992self} and taking gradient steps on the Bellman error objective concurrently with data collection~\citep{mnih2013playing}. We write out a general recipe for Q-learning methods in Algorithm~\ref{alg:qlearning}.
+
+\begin{algorithm}[ht]
+\caption{Generic Q-learning (includes FQI and DQN as special cases) \label{alg:qlearning}}
+\begin{algorithmic}[1]
+\State initialize $\phi_0$
+\State initialize $\policy_0(\mathbf{a}|\bs) = \epsilon \mathcal{U}(\mathbf{a}) + (1-\epsilon)\delta(\mathbf{a} = \arg\max_{\mathbf{a}} Q_{\phi_0}(\bs,\mathbf{a}))$ \Comment{Use $\epsilon$-greedy exploration}
+\State initialize replay buffer $\data = \emptyset$ as a ring buffer of fixed size
+\State initialize $\bs \sim \initstate(\bs)$
+\For{iteration $k \in [0, \dots, K]$}
+\For{step $s \in [0, \dots, S-1]$}
+\State $\mathbf{a} \sim \policy_k(\mathbf{a}|\bs)$ \Comment{sample action from exploration policy}
+\State $\bs' \sim p(\bs' | \bs, \mathbf{a})$ \Comment{sample next state from MDP}
+\State $\data \leftarrow \data \cup \{(\bs,\mathbf{a},\bs',\reward(\bs,\mathbf{a}))\}$ \Comment{append to buffer, purging old data if buffer too big}
+\EndFor
+\State $\phi_{k,0} \leftarrow \phi_k$
+\For{gradient step $g \in [0, \dots, G-1]$}
+\State sample batch $batch \subset \data$ \Comment{$B = \{ (\bs_i, \mathbf{a}_i, \bs'_i, r_t ) \}$}
+\State estimate error $\en(B,\phi_{k,g}) = \sum_i \left( Q_{\phi_{k,g}} - (r_i + \discount \max_{\mathbf{a}'} Q_{\phi_k}(\bs',\mathbf{a}')) \right)^2$
+\State update parameters: $\phi_{k,g+1} \leftarrow \phi_{k,g} - \alpha \nabla_{\phi_{k,g}} \en(B,\phi_{k,g})$
+\EndFor
+\State $\phi_{k+1} \leftarrow \phi_{k,G}$ \Comment{update parameters}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Classic Q-learning can be derived as the limiting case where the buffer size is 1, and we take $G=1$ gradient steps and collect $S=1$ transition samples per iteration, while classic fitted Q-iteration runs the inner gradient descent phase to convergence (i.e., $G=\infty$), and uses a buffer size equal to the number of sampling steps $S$. Note that many modern implementations also employ a \emph{target network}, where the target value $r_i + \discount \max_{\mathbf{a}'} Q_{\phi_k}(\bs',\mathbf{a}')$ actually uses $\phi_{L}$, where $L$ is a lagged iteration (e.g., the last $k$ that is a multiple of 1000). Note that these approximations violate the assumptions under which Q-learning algorithms can be proven to converge. However, recent work suggests that high-capacity function approximators, which correspond to a very large set $\qset$, generally do tend to make this method convergent in practice, yielding a Q-function that is close to ${Q}^\policy$~\citep{fu2019diagnosing,van2018deep}.
+
+~
+
+\niparagraph{\large{Actor-Critic Algorithms}} 
+
+~
+
+Actor-critic algorithms employ \emph{both} a parameterized policy and a parameterized value function, and use the value function to provide training signal for the policy. Typically, the learned value function is used to provide a better estimate of policy performance (or advantage $\hat{A}(\bs,\mathbf{a})$) in a policy gradient objective. There are a number of different variants of actor-critic methods, including on-policy variants that directly estimate $V^\policy(\bs)$~\citep{konda2000actor}, and off-policy variants that estimate $Q^\policy(\bs,\mathbf{a})$ via a parameterized state-action value function $Q^\policy_\phi(\bs,\mathbf{a})$~\citep{sac,haarnoja2017reinforcement,heess2015learning}. 
+
+\begin{algorithm}[H]
+    \caption{Generic off-policy actor-critic \label{alg:actorcritic}}
+    \begin{algorithmic}[1]
+    \State initialize $\phi_0$
+    \State initialize $\theta_0$
+    \State initialize replay buffer $\data = \emptyset$ as a ring buffer of fixed size
+    \State initialize $\bs \sim \initstate(\bs)$
+    \For{iteration $k \in [0, \dots, K]$}
+    \For{step $s \in [0, \dots, S-1]$}
+    \State $\mathbf{a} \sim \policy_{\theta_k}(\mathbf{a}|\bs)$ \Comment{sample action from current policy}
+    \State $\bs' \sim p(\bs' | \bs, \mathbf{a})$ \Comment{sample next state from MDP}
+    \State $\data \leftarrow \data \cup \{(\bs,\mathbf{a},\bs',\reward(\bs,\mathbf{a}))\}$ \Comment{append to buffer, purging old data if buffer too big}
+    \EndFor
+    \State $\phi_{k,0} \leftarrow \phi_k$
+    \For{gradient step $g \in [0, \dots, G_Q-1]$}
+    \State sample batch $batch \subset \data$ \Comment{$B = \{ (\bs_i, \mathbf{a}_i, \bs'_i, r_t ) \}$}
+    \State estimate error $\en(B,\phi_{k,g}) = \sum_i \left( Q_{\phi_{k,g}} - (r_i + \discount \E_{\mathbf{a}'\sim \policy_k(\mathbf{a}'|\bs')} Q_{\phi_k}(\bs',\mathbf{a}')) \right)^2$
+    \State update parameters: $\phi_{k,g+1} \leftarrow \phi_{k,g} - \alpha_Q \nabla_{\phi_{k,g}} \en(B,\phi_{k,g})$
+    \EndFor
+    \State $\phi_{k+1} \leftarrow \phi_{k,G_Q}$ \Comment{update Q-function parameters}
+    \State $\theta_{k,0} \leftarrow \theta_k$
+    \For{gradient step $g \in [0,\dots G_\policy-1]$}
+    \State sample batch of states $\{\bs_i\}$ from $\data$
+    \State for each $\bs_i$, sample $\mathbf{a}_i \sim \policy_{\theta_{k,g}}(\mathbf{a}|\bs_i)$ \Comment{do not use actions in the buffer!}
+    \State for each $(\bs_i,\mathbf{a}_i)$, compute $\hat{A}(\bs_i, \mathbf{a}_i) = Q_{\phi_{k+1}}(\bs_i,\mathbf{a}_i) - \E_{\mathbf{a}\sim\policy_{k,g}(\mathbf{a}|\bs_i)}[Q_{\phi_{k+1}}(\bs_i,\mathbf{a})]$
+    \State $\nabla_{\theta_{k,g}} J(\policy_{\theta_{k,g}}) \approx \frac{1}{N} \nabla_{\theta_{k,g}} \log \policy_{\theta_{k,g}}(\bs_i, \mathbf{a}_i) \hat{A}(\bs_i, \mathbf{a}_i)$
+    \State $\theta_{k,g+1} \leftarrow \theta_{k,g} + \alpha_\policy \nabla_{\theta_{k,g}} J(\policy_{\theta_{k,g}})$
+    \EndFor
+    \State $\theta{k+1} \leftarrow \theta_{k,G_\policy}$ \Comment{update policy parameters}
+    \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+We will focus on the latter class of algorithms, since they can be easily extended to the offline setting. The basic design of such an algorithm is a straightforward combination of the ideas in dynamic programming and policy gradients. Unlike Q-learning, which directly attempts to learn the optimal Q-function, actor-critic methods aim to learn the Q-function corresponding to the current parameterized policy $\policy_\theta(\mathbf{a} | \bs)$, which must obey the equation
+\[
+Q^\policy(\bs_t, \mathbf{a}_t) = \reward(\bs_t,\mathbf{a}_t) + \discount \E_{\bs_{t+1} \sim \transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t), \mathbf{a}_{t+1} \sim \policy_\theta(\mathbf{a}_{t+1} | \bs_{t+1})}\left[
+Q^\policy(\bs_{t+1},\mathbf{a}_{t+1})
+\right].
+\]
+As before, this equation can be expressed in vector form in terms of the Bellman operator for the policy, ${Q}^\policy = \bellman^\policy {Q}^\policy$, where ${Q}^\policy$ denotes the Q-function $Q^\policy$ represented as a vector of length $|\states|\times |\actions|$. We can now instantiate a complete algorithm based on this idea, shown in Algorithm~\ref{alg:actorcritic}.
+
+For more details, we refer the reader to standard textbooks and prior works~\citep{sb-irl-98,konda2000actor}.
+Actor-critic algorithms are closely related with another class of methods that frequently arises in dynamic programming, called policy iteration (PI)~\citep{lagoudakis2003least}. Policy iteration consists of two phases: policy evaluation and policy improvement. The policy evaluation phase computes the Q-function for the current policy $\policy$, $Q^\policy$, by solving for the fixed point such that $Q^\policy = \bellman^\policy Q^\policy$. This can be done via gradient updates, analogously to line 15 in Algorithm~\ref{alg:actorcritic}. The next policy iterate is then computed in the policy improvement phase, by choosing the action that greedily maximizes the Q-value at each state, such that $\policy_{k+1}(\mathbf{a}|\bs) = \delta(\mathbf{a} = \arg\max_{\mathbf{a}} Q^{\policy_k}(\bs,\mathbf{a}))$, or by using a gradient based update procedure as is employed in Algorithm~\ref{alg:actorcritic} on line 24. In the absence of function approximation (e.g., with tabular representations) policy iteration produces a monotonically improving sequence of policies, and converges to the optimal policy. Policy iteration can be obtained as a special case of the generic actor-critic algorithm in Algorithm~\ref{alg:actorcritic} when we set $G_Q = \infty$ and $G_\pi = \infty$, when the buffer $\mathcal{D}$ consists of each and every transition of the MDP.
+
+%Besides the model-free reinforcement learning algorithms discussed in this section, a wide range of model-based reinforcement learning algorithms have also been proposed in the literature. Such methods utilize explicit estimates of the transition or dynamics function $\transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, and then use this estimated dynamics function in a variety of ways~\citep{sutton1991dyna,deisenroth2011pilco,nagabandi2018neural,pets,pipps,simpl,mbpo}. A discussion of model-based reinforcement learning methods is outside the scope of this tutorial, though we will briefly discuss the potential of model-based offline reinforcement learning methods in Section~\ref{sec:discussion}.
+
+~
+
+\niparagraph{\large{Model-Based Reinforcement Learning}} 
+
+~
+
+Model-based reinforcement learning is a general term that refers to a broad class of methods that utilize explicit estimates of the transition or dynamics function $\transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, parameterized by a parameter vector $\psi$, which we will denote $\transitions_\psi(\bs_{t+1}|\bs_t,\mathbf{a}_t)$. There is no single recipe for a model-based reinforcement learning method. Some commonly used model-based reinforcement learning algorithms learn only the dynamics model $\transitions_\psi(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, and then utilize it for planning at test time, often by means of model-predictive control (MPC)~\citep{tassa2012synthesis} with various trajectory optimization methods~\citep{nagabandi2018neural,pets}. Other model-based reinforcement learning methods utilize a learned policy $\policy_\theta(\mathbf{a}_t|\bs_t)$ in addition to the dynamics model, and employ backpropagation through time to optimize the policy with respect to the expected reward objective~\citep{deisenroth2011pilco}. Yet another set of algorithms employ the model to generate ``synthetic'' samples to augment the sample set available to model-free reinforcement learning methods. The classic Dyna algorithm uses this recipe in combination with Q-learning and one-step predictions via the model from previously seen states~\citep{sutton1991dyna}, while a variety of recently proposed algorithms employ synthetic model-based rollouts with policy gradients~\citep{pipps,simpl} and actor-critic algorithms~\citep{mbpo}. 
+% Since there are so many variants of model-based reinforcement learning algorithms, we will not go into detail on each of them in this section, but we will discuss some considerations for offline model-based reinforcement learning in Section~\ref{sec:model_based}.
+
+\section{Problem Statement: Offline Reinforcement Learning}
+
+The offline reinforcement learning problem can be defined as a \emph{dataset-driven} formulation of the RL problem. The end goal is still to optimize the objective in Equation~(\ref{eq:rl_objective}). However, the agent no longer has the ability to interact with the environment and collect additional transitions using the behavior policy. Instead, the learning algorithm is provided with a \emph{static} dataset of transitions, $\data = \{ (\bs^i_t,\mathbf{a}^i_t,\bs^i_{t+1},\reward^i_t) \}$, and must learn the best policy it can using this dataset. This formulation more closely resembles the standard supervised learning problem statement, and we can regard $\data$ as the \emph{training set} for the policy. In essence, offline reinforcement learning requires the learning algorithm to derive a sufficient understanding of the dynamical system underlying the MDP $\mdp$ entirely from a fixed dataset, and then construct a policy $\policy(\mathbf{a}|\bs)$ that attains the largest possible cumulative reward \emph{when it is actually used to interact with the MDP}. We will use $\behavior$ to denote the distribution over states and actions in $\data$, such that we assume that the state-action tuples $(\bs,\mathbf{a}) \in \data$ are sampled according to $\bs \sim \freq^{\behavior}(\bs)$, and the actions are sampled according to the behavior policy, such that $\mathbf{a} \sim \behavior(\mathbf{a}|\bs)$.
+
+%%AK: Change this para
+% This problem statement has been presented under a number of different names. The term ``off-policy reinforcement learning'' is typically used as an umbrella term to denote all reinforcement learning algorithms that can employ datasets of transitions $\data$ where the corresponding actions in each transition were collected with any policy \emph{other} than the current policy $\policy(\mathbf{a}|\bs)$. Q-learning algorithms, actor-critic algorithms that utilize Q-functions, and many model-based reinforcement learning algorithm are off-policy algorithms. However, off-policy algorithms still often employ additional interaction (i.e., online data collection) during the learning process. Therefore, the term ``fully off-policy'' is sometimes used to indicate that no additional online data collection is performed. Another commonly used term is ``batch reinforcement learning''~\citep{ernst2005tree,riedmiller2005neural,lange2012batch}. While this term has been used widely in the literature, it can also cause some amount of confusion, since the use of a ``batch'' in an iterative learning algorithm can also refer to a method that consumes a batch of data, updates a model, and then obtains a different batch, as opposed to a traditional online learning algorithm, which consumes one sample at a time. In fact, \citet{lange2012batch} further introduces qualifiers  ``pure'' and ``growing'' batch reinforcement learning to clarify this. %The ``batch'' in ``batch reinforcement learning'' remains fixed throughout training. 
+% To avoid this confusion, we will instead use the term ``offline reinforcement learning'' in this tutorial.
+
+The offline reinforcement learning problem can be approached using algorithms from many categories of examples discussed above, and in principle any off-policy RL algorithm \emph{could} be used as an offline RL algorithm. For example, a simple offline RL method can be obtained simply by using Q-learning without additional online exploration, using $\data$ to pre-populate the data buffer. This corresponds to changing the initialization of $\data$ in Algorithm~\ref{alg:qlearning}, and setting $S=0$. However, as we will discuss in subsequent chapters, not all such methods are effective in the offline setting.  
+
+\end{document}
