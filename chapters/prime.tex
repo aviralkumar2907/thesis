@@ -30,7 +30,7 @@
 
 \begin{document}
 
-\blfootnote{This chapter is based on \cite{fu2019diagnosing}, published at ICML 2019, which is joint work with Justin Fu, Matthew Soh, and Sergey Levine.}
+% \blfootnote{This chapter is based on \cite{fu2019diagnosing}, published at ICML 2019, which is joint work with Justin Fu, Matthew Soh, and Sergey Levine.}
 
 % \input{chapters/bear/text/abstract.tex}
 
@@ -41,25 +41,16 @@
 % \input{chapters/bear/text/experiments.tex}
 % \input{chapters/bear/text/conclusions.tex}
 
-%
-To attain higher efficiency, the industry has gradually reformed towards application-specific hardware accelerators.
-%
-While such a paradigm shift is already starting to show promising results, designers need to spend considerable manual effort and perform large number of time-consuming simulations to find accelerators that can accelerate multiple target applications while obeying design constraints.
-%
-Moreover, such a ``simulation-driven'' approach must be re-run from scratch every time the set of target applications or design constraints change. 
-%
-An alternative paradigm is to use a ``data-driven'', offline approach that utilizes logged simulation data, to architect hardware accelerators, without needing any form of simulations.
-%
-Such an approach not only alleviates the need to run time-consuming simulation, but also enables data reuse and applies even when set of target applications changes.
-%
-In this paper, we develop such a data-driven offline optimization method for designing hardware accelerators, dubbed \primemethodname, that enjoys all of these properties.
-%
-Our approach learns a conservative, robust estimate of the desired cost function, utilizes infeasible points and optimizes the design against this estimate without any additional simulator queries during optimization.
-%
-\primemethodname\ architects accelerators---tailored towards both single- and multi-applications---improving performance upon stat-of-the-art simulation-driven methods by about 1.54$\times$ and 1.20$\times$, while considerably reducing the required total simulation time by 93\% and 99\%, respectively.
-%
-In addition, \primemethodname\ also architects effective accelerators for unseen applications in a zero-shot setting, outperforming simulation-based methods by 1.26$\times$\footnote{A more accessible blog post summarizing this paper is available on the Google AI blog at: \url{https://ai.googleblog.com/2022/03/offline-optimization-for-architecting.html}}.
-%
+\vspace{-0.4cm}
+\begin{AIbox}{\large{\textbf{Abstract}}}
+\vspace{4mm}
+In this chapter, we present an application of offline RL to the problem of designing hardware accelerators, i.e., designing hardware with the goal of improving the performance of specific applications. To attain higher efficiency, the industry has gradually reformed towards application-specific hardware accelerators. For instance, TPU accelerators aim to optimize the performance of machine learning models. While such a paradigm shift is already starting to show promising results, designers need to spend considerable manual effort and perform large number of time-consuming simulations to find accelerators that can accelerate multiple target applications while obeying design constraints. Moreover, such a ``simulation-driven'' approach must be re-run from scratch every time the set of target applications or design constraints change. An alternative paradigm is to use a an offline approach that utilizes logged simulation data, to architect hardware accelerators, without needing active simulations. In the context of this problem, this not only alleviates the need to run time-consuming simulation, but also enables data reuse and applies even when set of target applications changes. In this chapter, we develop an offline RL paradigm for designing hardware accelerators, dubbed \primemethodname, which utilizes conservative value estimation.
+% Our approach learns a conservative estimate of the desired reward function, utilizes infeasible points and optimizes the design against this estimate without any additional simulator queries during optimization.
+\primemethodname\ architects accelerators for both single and multiple applications, improving performance upon state-of-the-art simulation-driven methods by about 1.54$\times$ and 1.20$\times$, while reducing the required total simulation time by 93\% and 99\%, respectively.
+In addition, \primemethodname\ architects accelerators for unseen applications in a zero-shot setting, outperforming simulation-based methods by 1.26$\times$.
+\vspace{2mm}
+\end{AIbox}
+
 
 \input{chapters/prime/body/01_intro}
 \input{chapters/prime/body/02_background}

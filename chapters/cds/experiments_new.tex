@@ -1,15 +1,16 @@
-\section{Experimental Evaluation}
+\newcommand{\CC}{\cellcolor{Gray}}
+\definecolor{Gray}{gray}{0.9}
+
+\subsection{Experimental Evaluation of Conservative Data Sharing}
 \label{sec:exp}
 
 We conduct experiments to answer six main questions: \textbf{(1)} can \cdsmethodname\ prevent performance degradation when sharing data as observed in Section~\ref{sec:analysis}?, \textbf{(2)} how does \cdsmethodname\ compare to vanilla multi-task offline RL methods and prior data sharing methods?
 \textbf{(3)} can \cdsmethodname\ handle sparse reward settings, where data sharing is particularly important due to scarce supervision signal? \textbf{(4)} can \cdsmethodname\ handle goal-conditioned offline RL settings where the offline dataset is undirected and highly suboptimal? \textbf{(5)} Can \cdsmethodname\ scale to complex visual observations? \arxiv{\textbf{(6)} Can \cdsmethodname\ be combined with any offline RL algorithms? Besides these questions, we visualize CDS weights for better interpretation of the data sharing scheme learned by CDS in Figure~\ref{fig:antmaze_vis} in Appendix~\ref{app:cds_vis}}.
-%%CF.9.13: add or modify a question that includes how CDS combines with different algorithms?
 
-%%AK.09.12: Need to fix the weird spacing issue here
-\begin{wrapfigure}{r}{0.65\textwidth}
+\begin{wrapfigure}{r}{0.45\textwidth}
     \vspace{-0.65cm}
     \centering
-    \includegraphics[width=0.61\textwidth]{chapters/cds/env.png}
+    \includegraphics[width=0.95\linewidth]{chapters/cds/env.png}
     \vspace{-0.32cm}
     \caption{\footnotesize  Environments (from left to right): walker2d {run forward}, walker2d {run backward}, walker2d {jump},  Meta-World {door open/close} and {drawer open/close} and vision-based pick-place tasks in \citep{kalashnikov2021mt}.}
     \label{fig:env}
@@ -18,21 +19,12 @@ We conduct experiments to answer six main questions: \textbf{(1)} can \cdsmethod
 \textbf{Comparisons.} To answer these questions, we consider the following prior methods. On tasks with low dimensional state spaces, we compare with the online multi-task relabeling approach \textbf{HIPI}~\citep{eysenbach2020rewriting}, which uses inverse RL to infer for which tasks the datapoints are optimal and in practice routes a transition to task with the highest Q-value. We adapt HIPI to the offline setting by applying its data routing strategy to a conservative offline RL algorithm.
 We also compare to na\"ively sharing data across all tasks (denoted as \textbf{Sharing All}) and vanilla multi-task offline RL method without any data sharing (denoted as \textbf{No Sharing}). On image-based domains, we compare \cdsmethodname\ to the data sharing strategy based on human-defined skills~\citep{kalashnikov2021mt} (denoted as \textbf{Skill}), which manually groups tasks into different skills (e.g. skill ``pick'' and skill ``place'') and only routes an episode to target tasks that belongs to the same skill.
 In these domains, we also compare to \textbf{HIPI}, \textbf{Sharing All} and \textbf{No Sharing}. \arxiv{Beyond these multi-task RL approaches with data sharing, to assess the importance of data sharing in offline RL, we perform an additional comparison to other alternatives to data sharing in multi-task offline RL settings. One traditionally considered approach is to use data from other tasks for some form of ``pre-training'' before learning to solve the actual task. We instantiate this idea by considering a method from \citet{yang2021representation} that conducts contrastive representation learning on the multi-task datasets to extract shared representation between tasks and then runs multi-task RL on the learned representations. We discuss this comparison in detail in Table~\ref{tbl:pretrain_comparison} in Appendix~\ref{app:pretrain_comparison}.} 
-%%CF.9.13: It's not at all clear why the above comparison is informative/useful.
-%%KY.9.13: added such discussion.
-%%CF.9.13: I would combine the next two sentences. You do not use CQL for all methods because some experiments use BRAC.
-%%KY.9.13: done.
-To answer question (6), we use CQL~\citep{kumar2020conservative} (a Q-function regularization method) and BRAC~\citep{wu2019behavior} (a policy-constraint method) as the base offline RL algorithms for all methods. \arxiv{We discuss evaluations of CDS with CQL in the main text and include the results of CDS with BRAC in Table~\ref{tbl:brac_comparison} in Appendix~\ref{app:brac_results}.} 
-%%CF.9.13: the visualization of the weights is not a comparison (the paragraph header). I would put this sentence somewhere else more appropriate, maybe in one of the results sections or right after you list the questions.
-%%KY.9.13: moved it to the end of the first para of the section right after the list the questions.
-For more details on setup and hyperparameters, see Appendix~\ref{app:details}.
+To answer question (6), we use CQL~\citep{kumar2020conservative} (a Q-function regularization method) and BRAC~\citep{wu2019behavior} (a policy-constraint method) as the base offline RL algorithms for all methods. \arxiv{We discuss evaluations of CDS with CQL in the main text and include the results of CDS with BRAC in Table~\ref{tbl:brac_comparison} in Appendix~\ref{app:brac_results}.} For more details on setup and hyperparameters, see Appendix~\ref{app:details}.
 
-% \subsection{Results on domains with low-dimensional inputs}
-% \label{sec:gym_results}
 
 \textbf{Multi-task environments.} We consider a number of multi-task reinforcement learning problems on environments visualized in Figure~\ref{fig:env}. 
 % To answer questions (1) and (2), we consider three locomotion environments from OpenAI Gym~\citep{brockman2016openai} with dense rewards: halfcheetah, walker2d, and ant. Each environment has three tasks, \texttt{run forward}, \texttt{run backward} and \texttt{jump}, as used in prior offline RL work~\citep{yu2020mopo}.
-\arxiv{To answer questions (1) and (2), we consider the walker2d locomotion environment from OpenAI Gym~\citep{brockman2016openai} with dense rewards. We use three tasks, \texttt{run forward}, \texttt{run backward} and \texttt{jump}, as proposed in prior offline RL work~\citep{yu2020mopo}.}
+{To answer questions (1) and (2), we consider the walker2d locomotion environment from OpenAI Gym~\citep{brockman2016openai} with dense rewards. We use three tasks, \texttt{run forward}, \texttt{run backward} and \texttt{jump}, as proposed in prior offline RL work~\citep{yu2020mopo}.}
 To answer question (3), we also evaluate on robotic manipulation domains using environments from the Meta-World benchmark~\citep{yu2020metaworld}. We consider four tasks: \texttt{door open}, \texttt{door close}, \texttt{drawer open} and \texttt{drawer close}. Meaningful data sharing requires a consistent state representation across tasks, so we put both the door and the drawer on the same table, as shown in Figure~\ref{fig:env}. Each task has a sparse reward of 1 when the success condition is met and 0 otherwise. To answer question (4), we consider maze navigation tasks where the temporal ``stitching'' ability of an offline RL algorithm is crucial to obtain good performance. We create goal reaching tasks using the ant robot in the medium and hard mazes from D4RL~\citep{fu2020d4rl}. The set of goals is a fixed discrete set of size 7 and 3 for large and medium mazes, respectively. Following \citet{fu2020d4rl}, a reward of +1 is given and the episode terminates if the state is within a threshold radius of the goal. Finally, to explore how \cdsmethodname\ scales to image-based manipulation tasks (question (5)), we utilize a simulation environment similar to the real-world setup presented in~\citep{kalashnikov2021mt}. This environment, which was utilized by \citet{kalashnikov2021mt} as a representative and realistic simulation of a real-world robotic manipulation problem, consists of 10 image-based manipulation tasks that involve different combinations of picking specific objects (banana, bottle, sausage, milk box, food box, can and carrot) and placing them in one of the three fixtures (bowl, plate and divider plate) (see example task images in Fig.~\ref{fig:env}).
 More environment details are in the appendix. We report the average return for locomotion tasks and success rate for AntMaze and both manipluation environments, averaged over 6 and 3 random seeds for environments with low-dimensional inputs and image inputs respectively.
 
@@ -43,7 +35,7 @@ More environment details are in the appendix. We report the average return for l
   \def\arraystretch{0.9}
   \setlength{\tabcolsep}{0.42em}
   \vspace{-0.4cm}
-\begin{tabularx}{0.75\linewidth}{cc|cccc}
+\resizebox{0.95\linewidth}{!}{\begin{tabular}{cc|cccc}
   \toprule
  \multicolumn{1}{c}{\multirow{1.5}[2]{*}{Environment}} & \multicolumn{1}{c}{\multirow{1.5}[2]{*}{Dataset types / Tasks}}\vline &
  \multicolumn{3}{c}{$D_\text{KL}(\pi, \pi_\beta)$}\\
@@ -54,11 +46,11 @@ More environment details are in the appendix. We report the average return for l
   %\rowcolor{Gray}
   & \cellcolor{yellow} expert / jump & \cellcolor{yellow} 3.12 & \cellcolor{yellow} 27.5 & \cellcolor{yellow} 13.25  & \cellcolor{yellow} \textbf{2.91}\\
     \bottomrule
-    \end{tabularx}
+    \end{tabular}}
     \vspace{0.1cm}
          \caption{\footnotesize Measuring $D_\text{KL}(\pi, \pi_\beta)$ on the walker2d environment.  \textbf{Sharing All} degrades the performance on task \text{jump} with limited expert data as discussed in Table~\ref{tab:analysis}. \cdsmethodname\ manages to obtain a $\behavior$ after data sharing that is closer to the single-task optimal policy in terms of the KL divergence compared to \textbf{No Sharing} and \textbf{Sharing All} on task \texttt{jump} (highlighted in yellow). Since \cdsmethodname\ also achieves better performance, this analysis suggests that reducing distribution shift is important for effective offline data sharing.
      \label{tab:analysis_cds}
-     \vspace{-0.5cm}
+     \vspace{-0.3cm}
      }
 \end{table}
 
@@ -133,7 +125,7 @@ AntMaze~\citep{fu2020d4rl}  & large maze (7 tasks) / directed &  \textbf{24.6\%}
 \bottomrule
 \end{tabular}}
 \vspace{-0.1cm}
-\caption{\footnotesize Results for multi-task vision-based robotic manipulation domains in \citep{kalashnikov2021mt}. \arxiv{Numbers are averaged across 3 seeds, $\pm$ the 95$\%$ confidence interval.} We consider 7 tasks denoted as \texttt{lift-object} where the goal of each task is to lift a different object and 3 tasks denoted as \texttt{place-fixture} that aim to place a lifted object onto different fixtures. \cdsmethodname\ outperforms both a skill-based data sharing strategy~\citep{kalashnikov2021mt} (\textbf{Skill}) and other data sharing methods on the average task success rate (highlighted in gray) and 7 out of 10 per-task success rates.
+\caption{\footnotesize Results for multi-task vision-based robotic manipulation from \citep{kalashnikov2021mt}. \arxiv{Numbers are averaged across 3 seeds, $\pm$ the 95$\%$ confidence interval.} We consider 7 tasks denoted as \texttt{lift-object} where the goal of each task is to lift a different object and 3 tasks denoted as \texttt{place-fixture} that aim to place a lifted object onto different fixtures. \cdsmethodname\ outperforms both a skill-based data sharing strategy~\citep{kalashnikov2021mt} (\textbf{Skill}) and other data sharing methods on the average success rate (highlighted in gray) and 7 out of 10 per-task success rates.
 }
 \label{tbl:mtopt}
 }
@@ -155,7 +147,7 @@ On the Meta-World tasks, we find that the agent without data sharing completely 
 
 %\textbf{Goal-conditioned AntMazes~\citep{fu2020d4rl}.} 
 
-In the AntMaze tasks, we observe that \cdsmethodname\ performs better than \textbf{Sharing All} and significantly outperforms HIPI in all four settings. Perhaps surprisingly, \textbf{No Sharing} is a strong baseline, however, is outperformed by \cdsmethodname\ with the harder undirected data. Moreover, \cdsmethodname\ performs on-par or better in the undirected setting compared to the directed setting, indicating the effectiveness of \cdsmethodname\ in routing data in challenging settings. 
+On AntMaze, we observe that \cdsmethodname\ performs better than \textbf{Sharing All} and significantly outperforms HIPI in all four settings. Perhaps surprisingly, \textbf{No Sharing} is a strong baseline, however, is outperformed by \cdsmethodname\ with the harder undirected data. Moreover, \cdsmethodname\ performs on-par or better in the undirected setting compared to the directed setting, indicating the effectiveness of \cdsmethodname\ in routing data in challenging settings. 
 
 
 

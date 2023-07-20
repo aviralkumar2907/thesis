@@ -6,19 +6,20 @@ The goal of our experimental evaluation is to study how well \methodname\ can fa
 % to understand the efficacy of \methodname\ with different dataset compositions 
 % Finally, we perform several empirical studies to understand the efficacy of \methodname\ with different dataset compositions and to understand the impact of errors in reference function value estimation on \methodname.  
 
-\begin{wrapfigure}{r}{0.5\linewidth}
+~
+
+\begin{wrapfigure}{r}{0.48\linewidth}
 \centering
 \vspace{-0.45cm}
-\includegraphics[width=0.95\linewidth]{chapters/cal_ql/figs-sample/envs_final.pdf}
-\vspace{-0.25cm}
+\includegraphics[width=0.99\linewidth]{chapters/cal_ql/figs-sample/envs_final.pdf}
+\vspace{-0.45cm}
 \caption{
-\footnotesize{\textbf{Tasks:} We evaluate \methodname\ on a diverse set of benchmark problems: \texttt{AntMaze} and \texttt{Frankakitchen} domains from \cite{fu2020d4rl}, \texttt{Adroit} tasks from \cite{nair2020accelerating} and a vision-based robotic manipulation task from \cite{kumar2022pre}.}}
+\footnotesize{\textbf{Tasks:} We evaluate \methodname\ on a diverse set of benchmarks: \texttt{AntMaze} \& \texttt{Frankakitchen} domains from \cite{fu2020d4rl}, \texttt{Adroit} tasks from \cite{nair2020accelerating} and a vision-based robotic manipulation task from \cite{kumar2022pre}.}}
 \label{fig:envs}
-\vspace{-0.2cm}
+\vspace{-0.6cm}
 \end{wrapfigure}
 %%AK.5.6: Do we need this figure to be in the main paper given that we are tight on space?
-
-\textbf{Offline RL tasks and datasets.} We evaluate \methodname\ on a number of benchmark tasks and datasets used by prior works~\cite{kostrikov2021offlineb,nair2020accelerating} to evaluate fine-tuning performance: \textbf{(1)} The {\texttt{AntMaze}} tasks from D4RL~\cite{fu2020d4rl} that require controlling an ant quadruped robot to navigate from a starting point to a desired goal location in a maze. The reward is +1 if the agent reaches within a pre-specified small radius around the goal and 0 otherwise. 
+\niparagraph{\textbf{Offline RL tasks and datasets.}} We evaluate \methodname\ on a number of benchmark tasks and datasets used by prior works~\cite{kostrikov2021offlineb,nair2020accelerating} to evaluate fine-tuning performance: \textbf{(1)} The {\texttt{AntMaze}} tasks from D4RL~\cite{fu2020d4rl} that require controlling an ant quadruped robot to navigate from a starting point to a desired goal location in a maze. The reward is +1 if the agent reaches within a pre-specified small radius around the goal and 0 otherwise. 
 % We consider two kinds of maze layouts (medium and large mazes from \cite{fu2020d4rl}) and two data compositions: \textbf{play} and \textbf{diverse} that vary in coverage of actions at different regions of the state space and sub-optimality of the behavior policy. 
 \textbf{(2)} The \texttt{FrankaKitchen} tasks from D4RL require controlling a 9-DoF Franka robot to attain a desired configuration of a kitchen. To succeed, a policy 
 must complete four sub-tasks in the kitchen within a single rollout, and it receives a binary reward of +1/0 for every sub-task it completes. \textbf{(3)} Three \texttt{Adroit} dexterous manipulation tasks~\cite{rajeswaran2018dapg,kostrikov2021offlineb,nair2020accelerating} that require learning complex manipulation skills on a 28-DoF five-fingered hand to \textbf{(a)} manipulate a pen in-hand to a desired configuration (\texttt{pen-binary}), \textbf{(b)} open a door by unlatching the handle (\texttt{door-binary}), and \textbf{(c)} relocating a ball to a desired location (\texttt{relocate-binary}). The agent obtains a sparse binary +1/0 reward if it succeeds in solving the task. Each of these tasks only provides a narrow offline dataset consisting of 25 demonstrations collected via human teleoperation and additional trajectories collected by a BC policy.
@@ -40,13 +41,15 @@ Finally, to evaluate the efficacy of \methodname\ on more challenging tasks wher
 \end{center}
 \vspace{-0.45cm}
 \caption{\label{fig:all_tasks} \footnotesize{\textbf{Online fine-tuning after offline initialization on the benchmark tasks}. The plots show the online fine-tuning phase \emph{after} pre-training for each method (except SAC-based approaches which are not pre-trained). Observe that \methodname\ consistently matches or exceeds the speed and final performance of the best prior method and is the only algorithm to do so across all tasks. (6 seeds)}}
-\vspace{-0.6cm}
+\vspace{-0.5cm}
 \end{figure}
+
+~
 
 \noindent \textbf{Comparisons, prior methods, and evaluation protocol.} We compare \methodname\ to running online SAC~\cite{haarnoja2018soft} from scratch, as well as prior approaches that leverage offline data. This includes na\"ively fine-tuning offline RL methods such as CQL~\cite{kumar2020conservative} and IQL~\cite{kostrikov2021offlineb}, as well as fine-tuning with AWAC~\citep{nair2020accelerating}, O3F~\cite{mark2022fine} and online decision transformer (ODT)~\citep{zheng2022online}, methods specifically designed for offline RL followed by online fine-tuning. In addition, we also compare to a baseline that trains SAC~\cite{haarnoja2018soft} using both online data and offline data (denoted by ``SAC + offline data'') that mimics DDPGfD~\citep{vecerik2017leveraging} but utilizes SAC instead of DDPG. We also compare to Hybrid RL~\citep{song2023hybrid}, a recently proposed method that improves the sample efficiency of the ``SAC + offline data'' approach, and ``CQL+SAC'', which first pre-train with CQL and then run fine-tuning with SAC on a mixture of offline and online data without conservatism. More details of each method can be found in Appendix~\ref{app:hyperparam}.
 We present learning curves for online fine-tuning and also quantitatively evaluate each method on its ability to improve the initialization learned from offline data measured in terms of \textbf{(i)} final performance after a pre-defined number of steps per domain and \textbf{(ii)} the cumulative regret over the course of online fine-tuning. In Section~\ref{subsec:highutd}, we run \methodname\ with a higher update-to-data (UTD) ratio and compare it to RLPD~\cite{rlpd}, a more sample-efficient version of ``SAC + offline data''.
 
-\vspace{-0.3cm}
+\vspace{-0.2cm}
 \subsection{Empirical Results} 
 \vspace{-0.2cm}
 
@@ -64,7 +67,7 @@ Observe in Table~\ref{tab:results_regret} that \methodname\ achieves the smalles
 \begin{center}
 
 \vspace{-0.1cm}
-\!\!\!\!\scalebox{0.89}{
+\!\!\!\!\resizebox{1.0\textwidth}{!}{
 \begin{tabular}{l|c|c|c|c|c|c|c|c|c||c}
 Task & CQL & IQL & AWAC & O3F & ODT & CQL+SAC & Hybrid SRL & SAC+od & SAC & Cal-QL (Ours) \\ \hline \hline
 \texttt{large-diverse}  & 25 $\rightarrow$ 87 & 40 $\rightarrow$ 59 & 00 $\rightarrow$ 00 & 59 $\rightarrow$ 28 & 00 $\rightarrow$ 01 & 36 $\rightarrow$ 00 &  $\rightarrow$ 00 &  $\rightarrow$ 00 &  $\rightarrow$ 00 & 33 $\rightarrow$  \textbf{95} \\
@@ -95,7 +98,7 @@ a\caption{\footnotesize{\textbf{Normalized score before \& after online fine-tun
 \vspace{-0.4cm}
 \small{
 \begin{center}
-\scalebox{0.85}{
+\resizebox{1.0\textwidth}{!}{
 \begin{tabular}{l|c|c|c|c|c|c|c|c|c||c}
 Task & CQL & IQL & AWAC & O3F & ODT & CQL+SAC & Hybrid RL & SAC+od & SAC & Cal-QL (Ours)\\ \hline \hline 
 \texttt{large-diverse}  & 0.35 & 0.46 & 1.00 & 0.62 & 0.98 & 0.99 & 1.00 & 1.00 & 1.00 & \textbf{0.20}  \\
@@ -168,7 +171,7 @@ In Figure~\ref{fig:rlpd}, we compare \methodname\ ($\text{UTD}=20$) with RLPD~\c
 \vspace{-0.2cm}
 \subsection{Understanding the Behavior of \methodname}
 \label{subsec:diagonistic}
-\vspace{-0.2cm}
+\vspace{-0.3cm}
 
 In this section, we aim to understand the behavior of \methodname\ by performing controlled experiments that modify the dataset composition, and by investigating various metrics to understand the properties of scenarios where utilizing \methodname\ is especially important for online fine-tuning.         
 

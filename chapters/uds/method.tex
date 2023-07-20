@@ -1,16 +1,16 @@
-\section{How To Use Unlabeled Data in Offline RL}
+\subsection{How To Use Unlabeled Data in Offline RL}
 \vspace{-0.1cm}
 \label{sec:method}
-Arguably the easiest approach to utilize unlabeled data in offline RL is to simply assign the lowest possible reward to all the transitions in the unlabeled data, which we will assume to be $0$ without loss of generality, and use this data for training the underlying offline RL method. We will refer to this approach as UDS. We will show that, although this strategy might seem simplistic, in fact, it can work well both in theory and practice, when the dataset composition and the task satisfies certain criteria. Not all tasks and datasets satisfy these criteria, but we will argue that many realistic offline RL problems do satisfy them. For example, UDS can work well in a problem where the labeled data consists of high-quality, near-expert demonstrations, while the unlabeled data consists of mediocre or low-reward interactions in the environment, as is often the case in robotics~\citep{xie2019improvisation}. 
+Arguably the easiest approach to utilize unlabeled diverse data in offline RL is to simply assign the lowest possible reward to all the transitions in the unlabeled data, which we will assume to be $0$ without loss of generality, and use this data for training the underlying (multi-task) offline RL method. We will refer to this approach as \emph{unlabeled data sharing}, or UDS, in short. We will show that, although this strategy might seem simplistic, in fact, it can work well both in theory and practice, when the dataset composition and the task satisfies certain criteria. Not all tasks and datasets satisfy these criteria, but we will argue that many realistic offline RL problems do satisfy them. For example, UDS can work well in a problem where the labeled data consists of high-quality, near-expert demonstrations, while the unlabeled data consists of mediocre or low-reward interactions in the environment, as is often the case in robotics~\citep{xie2019improvisation}. 
 We will analyze the performance of this approach theoretically in Section~\ref{sec:uds_theory} and empirically in Section \ref{sec:empirical_analysis}.
 
 Although the simple UDS approach can perform well in some scenarios, relabeling with zero reward of course also biases the learning process. We therefore further show that reward bias can be mitigated if the unlabeled transitions are additionally reweighted, so as to change the unlabeled data distribution (while still using a label of zero for all unlabeled data). While such reweighting reduces the sample size, it can provide an overall benefit by reducing the reward bias \ak{and distributional shift}. We will derive the optimal scheme for reweighting the transitions in the unlabeled dataset that minimizes the impact of reward bias in Section~\ref{sec:rebalancing}. Surprisingly, our analysis reveals that a near-optimal solution to reducing reward bias is to combine \uds\ with an already existing reweighting scheme for multi-task offline RL with full reward information. For example, one can choose to reweight unlabeled data with the  {CDS} scheme of \citet{yu2021conservative}, which preferentially upweights transitions based on their conservative Q-values.
 
 \vspace{-0.1cm}
-\subsection{Theoretical Analysis of UDS in Offline RL}
+\subsubsection{Theoretical Analysis of UDS in Offline RL}
 \vspace{-0.1cm}
 \label{sec:uds_theory}
-In this section, we will derive a performance bounds for \uds\ that allow us to understand several cases when this simple baseline approach still works well. We will show that the increase in the effective dataset size can often outweigh the bias incurred from using the wrong reward in several practical situations. We will also discuss conditions on the data composition and the relative distributions of labeled and unlabeled data that enable UDS to be successful.
+In this section, we will derive a performance bounds for \uds\ that allow us to understand several cases when this simple approach still works well. These bounds are provided in the context of the single-task offline RL problem for compactness and ease of understanding, though these can be combined together with the analysis of CDS to provide guarantees for multi-task offline RL with unlabeled data. We will show that the increase in the effective dataset size can often outweigh the bias incurred from using the wrong reward in several practical situations. We will also discuss conditions on the data composition and the relative distributions of labeled and unlabeled data that enable UDS to be successful.
 Formally, UDS trains on an effective dataset given by:
 \begin{equation}
     \mathcal{D}^\mathrm{eff} = \mathcal{D}_\mathrm{L} \cup \{(\bs_j, \mathbf{a}_j, \bs'_j, 0) \in \mathcal{D}_{\mathrm{U}}\}. \label{eq:uds}
@@ -40,17 +40,19 @@ High-quality/medium-quality/low-quality refers to the actual performance of the 
 \normalsize
 \end{table*}
 
+\begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=-3pt,bottom=2pt]
+\vspace{2mm}
 \begin{theorem}[\textbf{Policy improvement guarantee for UDS}] 
 \label{prop:uds_ours}
 Let $\pi^*_\text{UDS}$ denote the policy learned by UDS, and let $\pi^\mathrm{eff}_\beta(\mathbf{a}|\bs)$ denote the behavior policy for the combined dataset $\mathcal{D}^\mathrm{eff}$. Then with high probability $\geq 1 - \delta$, $\pi^*_\text{UDS}$ is a safe policy improvement over $\pi_\beta^\mathrm{eff}$, i.e.,
 \begin{align*}
-& J(\pi^*_\text{UDS}) \geq J(\pi_\beta^\mathrm{eff}) - \zeta_\text{err} +  \underbrace{\frac{\alpha}{1 - \gamma} D(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)}_{\text{(c): policy improvement}},\\
- & \zeta_\text{err} = \underbrace{\mathrm{RewardBias}(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)}_{ \text{(a)}} \\
- &+\underbrace{\mathcal{O}\left(\frac{\gamma}{(1 - \gamma)^2}\right) \mathbb{E}_{\bs, \mathbf{a} \sim \widehat{d}^{\pi}}\left[\sqrt{\frac{D_{\text{CQL}}(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)(\bs)}{|\mathcal{D}^\mathrm{eff}(\bs)|}} \right]}_{\text{(b): sampling error}},\\
-\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!(a) &:= \frac{\sum_{\bs, \mathbf{a}}\Delta\left(\widehat{d}^{\behavior^\mathrm{eff}}, \widehat{d}^{\pi^*_\text{UDS}}\right)  \cdot (1 - f(\bs, \mathbf{a})) \cdot r(\bs, \mathbf{a})}{1 - \gamma},
+J(\pi^*_\text{UDS}) \geq J(\pi_\beta^\mathrm{eff}) & - \zeta_\text{err} +  \underbrace{\frac{\alpha}{1 - \gamma} D(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)}_{\text{(c): policy improvement}},\\
+ \zeta_\text{err} = \underbrace{\mathrm{RewardBias}(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)}_{ \text{(a)}} &+ \underbrace{\mathcal{O}\left(\frac{\gamma}{(1 - \gamma)^2}\right) \mathbb{E}_{\bs, \mathbf{a} \sim \widehat{d}^{\pi}}\left[\sqrt{\frac{D_{\text{CQL}}(\pi^*_\text{UDS}, \pi^\mathrm{eff}_\beta)(\bs)}{|\mathcal{D}^\mathrm{eff}(\bs)|}} \right]}_{\text{(b): sampling error}},\\
+\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!(a) := & \frac{\sum_{\bs, \mathbf{a}}\Delta\left(\widehat{d}^{\behavior^\mathrm{eff}}, \widehat{d}^{\pi^*_\text{UDS}}\right)  \cdot (1 - f(\bs, \mathbf{a})) \cdot r(\bs, \mathbf{a})}{1 - \gamma},
 \end{align*}
-where we use the notation $f(\bs, \mathbf{a}) := \frac{|\mathcal{D}_\mathrm{L}(\bs, \mathbf{a})|}{|\mathcal{D}^\mathrm{eff} (\bs, \mathbf{a})|}$ and $\Delta(\widehat{d}^{\behavior^\mathrm{eff}}, \widehat{d}^{\pi^*_\text{UDS}}) = \widehat{d}^{\behavior^\mathrm{eff}}(\bs, \mathbf{a}) - \widehat{d}^{\pi^*_\text{UDS}}(\bs, \mathbf{a})$. 
+where $f(\bs, \mathbf{a}) := \frac{|\mathcal{D}_\mathrm{L}(\bs, \mathbf{a})|}{|\mathcal{D}^\mathrm{eff} (\bs, \mathbf{a})|}$ and $\Delta(\widehat{d}^{\behavior^\mathrm{eff}}, \widehat{d}^{\pi^*_\text{UDS}}) = \widehat{d}^{\behavior^\mathrm{eff}}(\bs, \mathbf{a}) - \widehat{d}^{\pi^*_\text{UDS}}(\bs, \mathbf{a})$. 
 \end{theorem}
+\end{tcolorbox}
 A proof for Theorem~\ref{prop:uds_ours} is provided in Appendix~\ref{proof:uds_proof}. Intuitively, term (a) corresponds to the potential suboptimality incurred as a result of using the wrong reward, term (b) corresponds to the suboptimality induced due to sampling error. Finally, term (c) corresponds to the policy improvement in the empirical MDP induced by the transitions in $\mathcal{D}^\mathrm{eff}$ that occurs as a result of offline RL. Intuitively, we expect that including more unlabeled data will reduce the sampling error (b) and potentially increase how much we can improve the policy (c), while potentially increasing the reward bias term (a). The key question is under which conditions we would expect the increase in bias (a) to be lower than the decrease in term (b) obtained from using the unlabeled data. We examine this question below, presenting a few common cases where we expect this tradeoff to be favorable.
 
 \textbf{(\rom{1}) Unlabeled data is distributed identically as labeled data.} The first special case we consider is when the distribution of state-action pairs in $\mathcal{D}_\mathrm{L}$ is {identical} to the distribution of state-action pairs in the unlabeled dataset $\mathcal{D}_U$. This can arise in many application domains, such as in robotics~\citep{xie2019improvisation,dasari2020robonet}, where a large amount of offline data is available, but only a limited uniformly-selected fraction of it can be annotated with rewards. In this case, the fraction $f(\bs, \mathbf{a})$ takes on identical values for all state-action pairs, and term (a) simply reverts to be a difference between the performance of the effective behavior policy and the learned policy, in the empirical MDP. Since offline RL algorithms would improve over the effective behavior policy in the empirical MDP, this term is negative and hence, no additional suboptimality is incurred in the reward bias term. Moreover, the sampling error term \final{(b)} reduces when more data is utilized. Thus, in this case, \uds\ improves performance due to an increase in the dataset size $|\mathcal{D}^\mathrm{eff}(\bs)|$, without incurring a cost due to the wrong reward.   
@@ -63,13 +65,15 @@ We empirically verify that \uds\ indeed helps in the special cases discussed abo
 As an example of the latter, when the amount of unlabeled data, $\mathcal{D}_\mathrm{U}$ is not very large compared to the labeled dataset, such that a decrease in sampling error does not outweigh the suboptimality induced by reward bias, we should not expect \uds\ to attain very good performance, which we empirically show in Appendix~\ref{app:unlabeled_dataset_size_analysis}. To handle such cases, our key idea is to re-weight the unlabeled dataset before using it for offline RL training reduce the sampling error and reward bias.
 
 \vspace{-0.05cm}
-\subsection{Reducing Reward Bias by Reweighting Data}
+\subsubsection{Reducing Reward Bias by Reweighting Data}
 \label{sec:rebalancing}
 \vspace{-0.05cm}
 As discussed above, one way to reduce the suboptimality induced due to reward bias is by preferentially reweighting transitions in the unlabeled data. We would hope that such a scheme can provide a favorable bias-sampling error tradeoff, even though it reduces sample size. In this section, we will derive an optimized reweighting scheme that attains a favorable tradeoff. \ak{Intuitively, this optimized scheme suggests that reweighting must reduce distributional shift against the state-action marginal of the policy obtained by running offline RL on only the transitions in the labeled data.}
 This scheme intuitively matches the conservative data sharing method~\citet{yu2021conservative} previously proposed for (fully-labeled) multi-task offline RL. We will show that this conservative sharing approach reduces reward bias, controls distributional shift that appears in the numerator of sampling error, and increases the sample size.   
 
 Formally, we will derive this reweighting scheme from the perspective of optimizing the effective behavior policy, $\pi^\mathrm{eff}_\beta$ induced by the dataset $\mathcal{D}$ after preferentially sharing transitions from the unlabeled data, so as to minimize reward bias and sampling error, while improving the dataset quality. For understanding purposes, we begin by deriving the choice of $\pi^\mathrm{eff}_\beta$ that reduces only the reward bias component:
+\begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=-3pt,bottom=2pt]
+\vspace{2mm}
 \begin{theorem}[\textbf{Optimized reward bias reduction}] 
 \label{prop:reward_bias_theorem}
 The optimal effective behavior policy that minimizes the bias (a) in Theorem~\ref{prop:uds_ours}, $\mathrm{RewardBias}(\pi, \pi^\mathrm{eff}_\beta)$, satisfies
@@ -78,15 +82,19 @@ The optimal effective behavior policy that minimizes the bias (a) in Theorem~\re
 \end{align*}
 where $d^{\pi}$ denotes the state-action marginal of a policy $\pi$, and $d_\mathrm{L}(\bs, \mathbf{a})$ denotes the density of state-action pair $(\bs, \mathbf{a})$ under the labeled dataset.
 \end{theorem}
+\end{tcolorbox}
 A proof of Theorem~\ref{prop:reward_bias_theorem} is provided in Appendix~\ref{sec:small_reward_bias}. The expression implies that the state-action marginal of the effective behavior policy (i.e., the rebalanced dataset distribution) must place mass on state-action tuples that are both likely to under the learned policy $d^{\pi}$ and appear frequently in the distribution induced by the labeled dataset $\widehat{d}_\mathrm{L}$. However, note that Theorem~\ref{prop:reward_bias_theorem} only accounts for the reward bias and not the other terms pertaining to sampling error and the performance of the effective behavior policy that appear in Theorem~\ref{prop:uds_ours}. To address both of these issues, in our next theoretical result, Theorem~\ref{thm:with_all_sources}, we derive the reweighting distribution that controls all the terms.
+\begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=-3pt,bottom=2pt]
+\vspace{2mm}
 \begin{theorem}[\textbf{Optimized reweighting unlabeled data}; Informal]
 \label{thm:with_all_sources}
 The optimal effective behavior policy that maximizes a lower bound on $J(\pi_\beta^\mathrm{eff}) - \left[(a) + (b)\right]$ in Theorem~\ref{prop:uds_ours} satisfies $d^{\widehat{\pi}_\beta^\mathrm{eff}}(\bs, \mathbf{a}) = p^*(\bs, \mathbf{a})$, where:
 \begin{align*}
     p^* = \arg\min_{p \in \Delta^{|\mathcal{S}||\mathcal{A}|}}&~ \sum_{\bs, \mathbf{a}} C_1 \frac{\widehat{d}^\pi(\bs, \mathbf{a})}{\sqrt{p(\bs, \mathbf{a})}} + C_2 |\widehat{d}_\mathrm{L}(\bs, \mathbf{a})| \frac{\widehat{d}^\pi(\bs, \mathbf{a})}{p(\bs, \mathbf{a})}, 
 \end{align*}
-where $C_1$ and $C_2$ are universal positive constants that depend on the sizes of the labeled and unlabeled datasets.
+where $C_1$, $C_2$ are universal positive constants that depend on the sizes of the datasets.
 \end{theorem}
+\end{tcolorbox}
 A proof of Theorem~\ref{thm:with_all_sources} along with a more formal statement listing the constants $C_1$ and $C_2$ is provided in in {Appendix~\ref{proof:all_sources}}. The first term in the optimization objective of $p^*$ appearing above arises from the sampling error term, while the second term corresponds to the reward bias term in Theorem~\ref{prop:uds_ours}. The optimal solution for $p^*$ must place high density on $(\bs, \mathbf{a})$ pairs where $\widehat{d}^\pi(\bs, \mathbf{a})$ is high, because this would reduce the objective in the optimization problem above. This corroborates the analysis of \citet{yu2021conservative}, which shows that utilizing a reweighting scheme that reduces distributional shift (i.e., makes $\pi(\mathbf{a}|\bs)/\widehat{\pi}^\mathrm{eff}_\beta(\mathbf{a}|\bs)$ or \ak{equivalently}, as we find, making $\widehat{d}^\pi(\bs, \mathbf{a})/\widehat{d}^{\pi_\beta^\mathrm{eff}}(\bs, \mathbf{a})$ smaller) will control sampling error, and give rise to performance benefits. In addition, as also shown in Theorem~\ref{prop:reward_bias_theorem}, the reward bias term is also controlled when low distributional shift appears. This means that rebalancing the dataset to control distributional shift between the learned policy $\widehat{d}^\pi(\bs, \mathbf{a})$ and $\widehat{d}^{\pi^\mathrm{eff}_\beta}(\bs, \mathbf{a})$ is effective in unlabeled settings as well.
 
 
@@ -121,7 +129,7 @@ we instead can utilize a reweighting scheme that corrects for distributional shi
 where $\bs_j, \mathbf{a}_j, \bs'_j$ denote the transition from $\mathcal{D}_j$, $r_i$ denotes the reward of $\bs_j, \mathbf{a}_j, \bs'_j$ relabeled for task $i$, $\pi$ denotes the task-conditioned policy $\pi(\cdot|\cdot, i)$, $\Delta^\pi(\bs_j, \mathbf{a}_j)$ is the condition that shares data only if the expected conservative Q-value of the relabeled transition exceeds the top $k$-percentile of the conservative Q-values of the original data. In our experiments and analysis in Section \ref{sec:exp}, we find that utilizing CDS improves performance over simply training with \uds\ in a number of domains supporting the theoretical analysis. 
 
 
-\subsection{Why Can We Expect UDS to Outperform Reward Prediction Methods?}
+\subsubsection{Why Can We Expect UDS to Outperform Reward Prediction Methods?}
 \label{sec:reward_predictor_discussion}
 While we have discussed various conditions where we would expect UDS (with or without various reweighting methods) to improve final performance over an approach that does not utilize the unlabeled data, it is also instructive to consider how it comes to a method that instead trains an approximate reward function, $\widehat{r}_\phi(\bs, \mathbf{a})$ using the labeled data, and then uses this approximate reward to annotate the unlabeled data. In our experiments, we will show, perhaps surprisingly that UDS often outperforms prior reward learning methods. In this section, we provide some intuition for why. 
 First, we note the following generic expression for reward bias (term (a) in Theorem~\ref{prop:uds_ours}) for any approach:

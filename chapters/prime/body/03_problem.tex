@@ -3,28 +3,15 @@
 \label{sec:accel}
 \vspace{-0.1cm}
 %
-Our template-based parameterization maps the accelerator, denoted as $\rvx$, to a discrete design space, $\rvx = [\rvx_1, \rvx_2, \cdots, \rvx_K]$, and each $\rvx_i$ is a discrete-valued variable representing one component of the microarchitectural template, as shown in Table~\ref{tab:arch_params} (See Appendix~\ref{sec:dla_shi_fast} for the description of other accelerator search spaces studied in our work).
+Our template-based parameterization maps the accelerator, denoted as $\rvx$, to a discrete design space, $\rvx = [\rvx_1, \rvx_2, \cdots, \rvx_K]$, and each $\rvx_i$ is a discrete-valued variable representing one component of the microarchitectural template, as shown in Table~\ref{tab:arch_params} (See Appendix~\ref{sec:dla_shi_fast} for the description of other accelerator search spaces studied in our work). In our context, the accelerator $\rvx$ plays the same role as an action $\mathbf{a}$.
 
 %
-A design maybe be infeasible due to various reasons, such as a compilation failure or the limitations of physical implementation, and we denote the set of all such feasibility criterion as $\mathrm{Feasible}(\rvx)$.
-%
-The feasibility criterion depends on both the target software and the underlying hardware, and it is not easy to identify if a given $\rvx$ is infeasible without explicit simulation. 
-%
-We will require our optimization procedure to not only learn the value of the objective function but also to learn to navigate through a sea of infeasible solutions to high-performing feasible solutions $\rvx^*$ satisfying $\mathrm{Feasible}(\rvx^*) = 1$. 
+An accelerator design maybe be infeasible due to various reasons, such as a compilation failure or the limitations of physical implementation, and we denote the set of all such feasibility criterion as $\mathrm{Feasible}(\rvx)$. The feasibility criterion depends on both the target software and the underlying hardware, and it is not easy to identify if a given $\rvx$ is infeasible without running explicit simulation. We will require our design procedure to not only learn the value of the objective function but also to learn to navigate through a sea of infeasible solutions to high-performing feasible solutions $\rvx^*$ satisfying $\mathrm{Feasible}(\rvx^*) = 1$. 
 
-Our training dataset $\mathcal{D}$ consists of a modest set of accelerators $\rvx_i$ that are randomly sampled from the design space and evaluated by the hardware simulator.
-%
-We partition the dataset $\mathcal{D}$ into two subsets, $\mathcal{D}_\text{feasible}$ and $\mathcal{D}_\text{infeasible}$.
-%
-Let $f(\rvx)$ denote the desired objective (e.g., latency, power, etc.) we intend to optimize over the space of accelerators $\rvx$. We do not possess functional access to $f(\rvx)$, and the optimizer can only access $f(\rvx)$ values for accelerators $\rvx$ in the feasible partition of the data, $\mathcal{D}_\text{feasible}$.
+Our training dataset $\mathcal{D}$ consists of a modest set of accelerators $\rvx_i$ that are randomly sampled from the design space and evaluated by the hardware simulator. We partition the dataset $\mathcal{D}$ into two subsets, $\mathcal{D}_\text{feasible}$ and $\mathcal{D}_\text{infeasible}$. Let $f(\rvx)$ denote the desired objective (e.g., latency, power, etc.) we intend to optimize over the space of accelerators $\rvx$. We do not possess functional access to $f(\rvx)$, and the optimizer can only access $f(\rvx)$ values for accelerators $\rvx$ in the feasible partition of the data, $\mathcal{D}_\text{feasible}$.
 %
 For all infeasible accelerators, the simulator does not provide any value of $f(\rvx)$.
-%
-% In our experiments (Section~\ref{sec:eval}), we pick $f(\rvx)$ to be the runtime (or latency) of the accelerator.
-%
-In addition to satisfying feasibility, the optimizer must handle explicit constraints on parameters such as area and power~\citep{flynn2011computer}.
-%
-In our applications, we impose an explicit area constraint, $\mathrm{Area}(\rvx) \leq \review{\alpha_0}$, though additional explicit constraints are also possible. 
+In addition to satisfying feasibility, the optimizer must handle explicit constraints on parameters such as area and power~\citep{flynn2011computer}. In our applications, we impose an explicit area constraint, $\mathrm{Area}(\rvx) \leq \review{\alpha_0}$, though additional explicit constraints are also possible. 
 %
 To account for different constraints, we formulate this task as a constrained optimization problem.
 %
@@ -41,7 +28,7 @@ Formally:
 %
 
 
-While Equation~\ref{eqn:opt_prob} may appear similar to other standard black-box optimization problems, solving it over the space of accelerator designs is challenging due to the large number of infeasible points, the need to handle explicit design constraints, and the difficulty in navigating the non-smooth landscape (See Figure~\ref{fig:ds_dist_all} and Figure~\ref{fig:appx_ds} in the Appendix) of the objective function.
+While Equation~\ref{eqn:opt_prob} may appear similar to a typical black-box optimization problem, solving it over the space of accelerator designs is challenging due to the large number of infeasible points, the need to handle explicit design constraints, and the difficulty in navigating the non-smooth landscape (See Figure~\ref{fig:ds_dist_all} and Figure~\ref{fig:appx_ds} in the Appendix) of the objective function.
 %
 \input{chapters/prime/tables/arch_params}
 
@@ -50,12 +37,6 @@ While Equation~\ref{eqn:opt_prob} may appear similar to other standard black-box
 First, accelerator design spaces typically feature a narrow manifold of feasible accelerators within a sea of infeasible points~\citep{prac_dse:mascots:2019,shi2020learned,gelbart2014bayesian}, as visualized in Figure~\ref{fig:ds_dist_all} and Appendix (Figure~\ref{fig:tsne_infeasible}).
 %
 While some of these infeasible points can be identified via simple rules (e.g. estimating chip area usage), most infeasible points correspond to failures during compilation or hardware simulation. These infeasible points are generally not straightforward to formulate into the optimization problem and requires simulation~\citep{shi2020learned,timeloop,yazdanbakhsh2021apollo}.
-
-
-% \iffalse
-
-
-%
 
 Second, the optimization objective can exhibit high sensitivity to small variations in some architecture parameters (Figure~\ref{fig:appx_ds_memory}) in some regions of the design space, but remain relatively insensitive in other parts, resulting in a complex optimization landscape. This suggests that optimization algorithms based on local parameter updates (e.g., gradient ascent,  evolutionary schemes, etc.) may have a challenging task traversing the nearly flat landscape of the objective, which can lead to poor performance.
 \begin{figure}[t]
@@ -72,7 +53,7 @@ Second, the optimization objective can exhibit high sensitivity to small variati
     \end{center}
     \vspace{-0.2cm}
     \caption{\footnotesize{\textbf{Left:} histogram of infeasible (right orange bar with large score values) and feasible (left cluster of bars) data points for MobileNetEdgeTPU; \textbf{Right:} zoomed-in histogram (different number of bins) focused on feasible points highlighting the variable latencies.}}
-    \vspace{-0.5cm}
+    \vspace{-0.2cm}
     \label{fig:ds_dist_all}
 \end{figure}
 
@@ -94,7 +75,7 @@ These applications span the gamut from small models, such as \msix, with only 0.
 
 \niparagraph{Evaluation protocol.}
 %
-To compare state-of-the-art simulator-driven methods and our data-driven method, we limit the number of feasible points (costly to evaluate) that can be used by any algorithm to equal amounts. 
+To compare simulator-driven methods and our data-driven method, we limit the number of feasible points (costly to evaluate) that can be used by any algorithm to equal amounts. 
 %
 We still provide infeasible points to any method and leave it up to the optimization method to use it or not.
 % 
@@ -105,7 +86,7 @@ However, it is worthwhile to note that in contrast to our method where \emph{wor
 % it is crucially our method uses \emph{worse-quality} data from small offline dataset: we utilize the worst performing feasible points found via random sampling, while any simulator-driven method can freely steer querying any datapoint in the simulator.
 % have an inherent advantage over our method because they can steer towards points that are likely to be high quality.
 %
-Following prior work~\citep{brookes19a,trabucco2021conservative,trabucco2021designbench}, we evaluate each run of a method by first sampling the top $n=256$ design candidates according to the algorithm's predictions, evaluating all of these under the ground truth objective function and recording the performance of the best accelerator design.
+Following prior work in data-driven design~\citep{brookes19a}, we evaluate each run of a method by first sampling the top $n=256$ design candidates according to the algorithm's predictions, evaluating all of these under the ground truth objective function and recording the performance of the best accelerator design.
 %
 The final reported results is the median of ground truth objective values across five independent runs.
 

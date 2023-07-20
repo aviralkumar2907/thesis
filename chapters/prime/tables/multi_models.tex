@@ -2,11 +2,11 @@
 \small{
 \centering
 % \vspace*{0.1cm}
-\caption{\label{table:results_multi_task} Optimized average latency (the lower, the better) across multiple applications (up to ten applications) from diverse domains by \methodname\ and best online algorithms (Evolutionary and MBO) under different area constraints. Each row show the (Best, Median) of average latency across five runs. The geometric mean of \methodname's improvement over other methods (last row) indicates that \methodname\ is at least 21\% better.}
+\caption{\label{table:results_multi_task} Optimized average latency (the lower, the better) across multiple applications (up to ten applications) from diverse domains by \primemethodname\ and best online algorithms (Evolutionary and MBO) under different area constraints. Each row show the (Best, Median) of average latency across five runs. The geometric mean of \primemethodname's improvement over other methods (last row) indicates that \primemethodname\ is at least 21\% better.}
 \vspace{-0.1cm}
 \resizebox{\textwidth}{!}{\begin{tabular}{l|l|l|l|l}
 \toprule
-\textbf{Applications}&\textbf{Area}&\textbf{\methodname\ (Ours)}&\textbf{Evolutionary~ (Online)}&\textbf{MBO~(Online)}\\\midrule
+\textbf{Applications}&\textbf{Area}&\textbf{\primemethodname\ (Ours)}&\textbf{Evolutionary~ (Online)}&\textbf{MBO~(Online)}\\\midrule
 % 3 Models
 {MobileNet~(EdgeTPU, V2, V3)}&29~mm$^2$&(310.21, 334.70)&(\textbf{315.72}, \textbf{325.69})&(342.02, 351.92)\\\hline
 % 4 Models
@@ -20,9 +20,9 @@
 % 9 Models
 {MobileNet~(EdgeTPU, V2, V3), \mfour, \mfive, \msix, t-RNN~(Dec, Enc)}&29~mm$^2$&(\textbf{426.65}, \textbf{426.65})&(586.55, 586.55)&(626.62, 692.61)\\\hline
 {MobileNet~(EdgeTPU, V2, V3), \mfour, \mfive, \msix, U-Net, t-RNN~(Dec, Enc)}&100~mm$^2$&(\textbf{383.57}, \textbf{385.56})&(518.58, 519.37)&(526.37, 530.99)\\\bottomrule
-\CC \textbf{Geomean of \methodname's Improvement}&\CC~---&\CC~\texttt{\textbf{(1.0$\times$, 1.0$\times$)}}&\CC~\texttt{\textbf{(1.21$\times$, 1.20$\times$)}}&\CC~\texttt{\textbf{(1.24$\times$, 1.27$\times$)}}\\
+\CC \textbf{Geomean of \primemethodname's Improvement}&\CC~---&\CC~\texttt{\textbf{(1.0$\times$, 1.0$\times$)}}&\CC~\texttt{\textbf{(1.21$\times$, 1.20$\times$)}}&\CC~\texttt{\textbf{(1.24$\times$, 1.27$\times$)}}\\
 \bottomrule
 \end{tabular}}
 }
-\vspace{-0.7cm}
+\vspace{-0.2cm}
 \end{table*}

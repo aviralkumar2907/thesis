@@ -1,11 +1,13 @@
 \vspace{-0.15cm}
-\section{Theoretical Analysis of \methodname}
+\section{Theoretical Intuition of \methodname}
 \label{sec:theory}
 \vspace{-0.25cm}
 
 We will now analyze the cumulative regret attained over online fine-tuning, when the value function is pre-trained with Cal-QL, and show that enforcing calibration (Defintion~\ref{cond:calibration}) leads to a favorable regret bound during the online phase. Our analysis utilizes tools from \citet{song2023hybrid}, but studies the impact of calibration on fine-tuning. We also remark that we simplify the treatment of certain aspects (e.g., how to incorporate pessimism) as it allows us to cleanly demonstrate benefits of calibration.  
 
-{\textbf{Notation \& terminology.}} In our analysis, we will consider an idealized version of \methodname\ for simplicity. Specifically, following prior work~\citep{song2023hybrid} under the bilinear model~\citep{du2021bilinear}, we will operate in a finite-horizon setting with a horizon $H$. We denote the learned Q-function at each learning iteration $k$ for a given $(\bs, \mathbf{a})$ pair and time-step $h$ by $Q_{\theta}^k(\bs, \mathbf{a})$. For any given policy $\pi$, let $C_\pi\geq1$ denote the concentrability coefficient such that $C_\pi:=\max_{f\in \mc C}\frac{\sum_{h=0}^{H-1}\bb E_{s,a\sim d_h^\pi}[\mc T f_{h+1}(s,a)-f_h(s,a)]}{\sqrt{\sum_{h=0}^{H-1}\bb E_{s,a\sim \nu_h}(\mc T f_{h+1}(s,a)-f_h(s,a))^2}}$,
+~
+
+\niparagraph{\textbf{Notation \& terminology.}} In our analysis, we will consider an idealized version of \methodname\ for simplicity. Specifically, following prior work~\citep{song2023hybrid} under the bilinear model~\citep{du2021bilinear}, we will operate in a finite-horizon setting with a horizon $H$. We denote the learned Q-function at each learning iteration $k$ for a given $(\bs, \mathbf{a})$ pair and time-step $h$ by $Q_{\theta}^k(\bs, \mathbf{a})$. For any given policy $\pi$, let $C_\pi\geq1$ denote the concentrability coefficient such that $C_\pi:=\max_{f\in \mc C}\frac{\sum_{h=0}^{H-1}\bb E_{s,a\sim d_h^\pi}[\mc T f_{h+1}(s,a)-f_h(s,a)]}{\sqrt{\sum_{h=0}^{H-1}\bb E_{s,a\sim \nu_h}(\mc T f_{h+1}(s,a)-f_h(s,a))^2}}$,
 i.e., a coefficient that quantifies the distribution shift between the policy $\pi$ and the dataset $\mathcal{D}$, in terms of the ratio of Bellman errors averaged under $\pi$ and the dataset $\mathcal{D}$. Note that $\mc C$ represents the Q-function class and we assume $\mc C$ has a bellman-bilinear rank~\citep{du2021bilinear} of $d$. We also use $C_\pi^\mu$ to denote the concentrability coefficient over a subset of {\em calibrated} Q-functions w.r.t. a reference policy $\mu$: $C^\mu_\pi:=\max_{f\in \mc C,f(s,a)\geq Q^\mu(s,a)}\frac{\sum_{h=0}^{H-1}\bb E_{s,a\sim d_h^\pi}[\mc T f_{h+1}(s,a)-f_h(s,a)]}{\sqrt{\sum_{h=0}^{H-1}\bb E_{s,a\sim \nu_h}(\mc T f_{h+1}(s,a)-f_h(s,a))^2}}$, which provides $C^\mu_\pi\leq C_\pi$. Similar to $\mc C$, let $d_\mu$ denote the bellman bilinear rank of $\mc C_\mu$ -- 
 the calibrated Q-function class w.r.t. the reference policy $\mu$.
 Intuitively, we have $\mc C_\mu\subset\mc C$, which implies that $d_\mu\leq d$. The formal definitions are provided in Appendix~\ref{appendix:notations}.
@@ -15,7 +17,9 @@ We will use $\pi^k$ to denote the arg-max policy induced by $Q^k_\theta$.
 % \subsection{Intuition} 
 % \vspace{-0.4cm}
 
-{\textbf{Intuition.}} We intuitively discuss how calibration and conservatism enable \methodname\ to attain a smaller regret compared to not imposing calibration. Our goal is to bound the cumulative regret of online fine-tuning, ${\sum_{k} \mathbb{E}_{\bs_0 \sim \rho}[V^{\pi^\star}(\bs_0) - V^{\pi^k}(\bs_0)]}$. We can decompose this expression into two terms: 
+~
+
+\niparagraph{\textbf{Intuition.}} We intuitively discuss how calibration and conservatism enable \methodname\ to attain a smaller regret compared to not imposing calibration. Our goal is to bound the cumulative regret of online fine-tuning, ${\sum_{k} \mathbb{E}_{\bs_0 \sim \rho}[V^{\pi^\star}(\bs_0) - V^{\pi^k}(\bs_0)]}$. We can decompose this expression into two terms: 
 \vspace{-0.05cm}
 \begin{align}
     \resizebox{.87\textwidth}{!}{$\regret(K) = \underbrace{\sum_{k=1}^K \mathbb{E}_{\bs_0 \sim \rho} \brac{V^{\star}(\bs_0) -\max_a {Q}_{\theta}^k(\bs_0,\mathbf{a})}}_{(i) ~:=~ \text{miscalibration}}
@@ -28,6 +32,10 @@ This decomposition of regret into terms (i) and (ii) is instructive. Term (ii) c
 % \subsection{Theorem Statement}
 % \vspace{-0.15cm}
 
+% \iffalse
+
+\begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=-3pt,bottom=2pt]
+\vspace{5mm}
 \begin{theorem}[Informal regret bound of \methodname]
 \label{thm:main-thm-informal}
     With high probability, \methodname{} obtains the following bound on total regret accumulated during online fine-tuning: \vspace{-0.15cm}
@@ -39,9 +47,12 @@ This decomposition of regret into terms (i) and (ii) is instructive. Term (ii) c
 \end{equation*}
 where $\mc F$ is the functional class of the Q-function.
 \end{theorem}
+\end{tcolorbox}
 
-{\textbf{Comparison to~\citet{song2023hybrid}.}}
+\niparagraph{\textbf{Comparison to~\citet{song2023hybrid}.}}
 \citet{song2023hybrid} analyzes an online RL algorithm that utilizes offline data without imposing conservatism or calibration. We now compare Theorem~\ref{thm:main-thm-informal} to Theorem 1 of \citet{song2023hybrid} to understand the impact of these conditions on the final regret guarantee. Theorem 1 of \citet{song2023hybrid} presents a regret bound: $\regret(K) = \wt{O}\left( C_{\pi^\star} H \sqrt{d K \log\paren{|\mc F|}} \right)$ and we note some improvements in our guarantee, that we also verify via experiments in Section~\ref{subsec:diagonistic}: \textbf{(a)} for the setting where the reference policy $\mu$ contains near-optimal behavior, i.e., $V^\star - V^\mu \lesssim O(H\sqrt{d\log\paren{|\mc F|}/K})$, \methodname\ can enable a tighter regret guarantee compared to \citet{song2023hybrid}; \textbf{(b)} as we show in Appendix~\ref{subsec:CalQL-assumptions}, the concentrability coefficient $C^\mu_{\pi^\star}$ appearing in our guarantee is no larger than the one that appears in Theorem 1 of \citet{song2023hybrid}, providing another source of improvement; and \textbf{(c)} finally, in the case where the reference policy has broad coverage \emph{and} is highly sub-optimal, \methodname\ reverts back to the guarantee from \citep{song2023hybrid}, meaning that \methodname\ improves upon this prior work.
+
+% \fi
 
 
 \vspace{-0.2cm}

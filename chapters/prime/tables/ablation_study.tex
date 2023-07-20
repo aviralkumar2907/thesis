@@ -4,12 +4,12 @@
 \captionsetup{font=small}
 \vspace{5pt}
 \centering
-\caption{\label{table:appx_results_single_task}{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to a given application. Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\methodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\methodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that, in all the applications \methodname\ improves over the best in the dataset, outperforms online optimization methods in 7/9 applications and the complete version of \methodname\ generally performs best. The best accelerator designs are in bold.}}
+\caption{\label{table:appx_results_single_task}{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to a given application. Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\primemethodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\primemethodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that, in all the applications \primemethodname\ improves over the best in the dataset, outperforms online optimization methods in 7/9 applications and the complete version of \primemethodname\ generally performs best. The best accelerator designs are in bold.}}
 \renewcommand{\arraystretch}{1.2}
 \fontsize{7}{7}\selectfont
 \begin{tabular}{l||r|r|r||r||r|r||r}
 \hline
-&\multicolumn{3}{c||}{\textbf{\methodname}}&&\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
+&\multicolumn{3}{c||}{\textbf{\primemethodname}}&&\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
 \textbf{Application}&\textbf{All}& \textbf{-Opt}&\textbf{-Infeasible}&\textbf{Standard}&\textbf{Bayes Opt}&\textbf{Evolutionary}&\textbf{$\mathcal{D}$ (Best in Training)}\\\midrule
 MobileNetEdge&\textbf{298.50}&435.40&322.20&411.12&319.00&320.28&354.13\\\hline
 MobileNetV2&\textbf{207.43}&281.01&214.71&374.52&240.56&238.58&410.83\\\hline

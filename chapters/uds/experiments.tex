@@ -1,11 +1,15 @@
 
-\section{Experiments}
+\newcommand{\CC}{\cellcolor{Gray}}
+\definecolor{Gray}{gray}{0.9}
+
+\subsection{Experimental Evaluation of UDS}
 \label{sec:exp}
-In our experiments, we aim to evaluate whether the theoretical potential for simple minimum-reward relabeling to attain good results is reflected in benchmark tasks and more complex offline RL settings. In particular, we will study: \textbf{(1)} can UDS match or exceed the performance of sophisticated reward inference methods and methods with oracle reward functions in simulated locomotion and navigation tasks? \textbf{(2)} can an optimized reweighting strategy (e.g., CDS+UDS) further improve the results achieved by UDS?, \textbf{(3)} how does UDS behave with and without combining with an optimized reweighting strategy in multi-task offline RL settings?, \textbf{(4)} under which conditions does UDS work and not work and does optimizing for reweighting help?
+In our experiments, we aim to evaluate whether the theoretical potential for simple minimum-reward relabeling to attain good results is reflected in benchmark tasks and more complex offline RL settings. In particular, we will study: \textbf{(1)} can UDS match or exceed the performance of sophisticated reward inference methods and methods with oracle reward functions in simulated locomotion and navigation tasks? \textbf{(2)} can combining with CDS further improve the results achieved by UDS?, \textbf{(3)} how does UDS behave with and without combining with an optimized reweighting strategy in multi-task offline RL settings?, \textbf{(4)} under which conditions does UDS work and not work and does optimizing for reweighting via CDS help?
 
 \begin{table*}[ht]
-\vspace{-0.2cm}
+% \vspace{-0.2cm}
 \caption{\footnotesize Results for multi-task robotic manipulation (Meta-World) and navigation environments (AntMaze) with low-dimensional state inputs. Numbers are averaged across 6 seeds, $\pm$ the 95$\%$-confidence interval. We take the results of No Sharing, Sharing All and CDS, directly from \cite{yu2021conservative}. We bold the best-performing method that does not have access to the true rewards for relabeling. We include per-task performance for Meta-World domains and the overall performance averaged across tasks (highlighted in gray) for all three domains. Both CDS+UDS and UDS outperforms prior vanilla multi-task offline RL approach (No Sharing) and reward learning methods (Reward Predictor, VICE and RCE) while performing competitively compared to oracle reward relabeling methods.}
+\vspace{-0.4cm}
 \begin{center}
 \resizebox{\textwidth}{!}{\begin{tabular}{l|l|rrrrrr|rr}
 \toprule
@@ -32,9 +36,10 @@ AntMaze    & medium (3 tasks)  &\textbf{31.5\%}$\pm$3.0\% & 26.5\%$\pm$9.1\%  & 
 \vspace*{-0.3cm}
 \caption{\footnotesize Results for multi-task imaged-based robotic manipulation domains in \citep{yu2021conservative}. Numbers are averaged across 3 seeds, $\pm$ the 95$\%$ confidence interval. UDS outperforms No Sharing in 7 out of 10 tasks as well as the average task performance, while performing comparably to Sharing All. CDS+UDS further improves the performance of UDS and outperforms No Sharing in all of the 10 tasks.
 }
+\vspace{-0.3cm}
 \small{
 \begin{center}
-\begin{tabular}{l|rrr|rr}
+\resizebox{0.99\textwidth}{!}{\begin{tabular}{l|rrr|rr}
 \toprule
 \textbf{Task Name} & \textbf{CDS+UDS}& \textbf{UDS} & \textbf{No Sharing} & \textbf{CDS (oracle)} & \textbf{Sharing All (oracle)}\\ \midrule
 \texttt{lift-banana} & \textbf{55.9\%}$\pm$11.7\% & 48.6\%$\pm$5.1\% & 20.0\%$\pm$6.0\% &  \textbf{53.1\%}$\pm$3.2\% & 41.8\%$\pm$4.2\%\\
@@ -50,9 +55,9 @@ AntMaze    & medium (3 tasks)  &\textbf{31.5\%}$\pm$3.0\% & 26.5\%$\pm$9.1\%  & 
 \texttt{place-divider-plate} & \textbf{89.0\%}$\pm$2.2\%  & 80.2\%$\pm$2.2\%  & 85.0\%$\pm$5.9\% & \textbf{87.8\%}$\pm$7.6\% & 79.2\%$\pm$6.3\%\\
 \CC \textbf{average} & \CC \textbf{75.0\%}$\pm$3.3\%  & \CC 67.3\%$\pm$0.8\% & \CC 60.8\%$\pm$7.5\% & \CC \textbf{74.8\%} $\pm$6.4\% & \CC 66.4\%$\pm$7.2\%\\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{center}
-\vspace{-0.7cm}
+\vspace{-0.3cm}
 \label{tbl:mtopt}
 }
 \end{table*}
@@ -75,8 +80,7 @@ For more details on experimental set-up and hyperparameter settings, please see 
     \label{fig:env}
 \end{figure}
 
-\noindent \textbf{Single-task domains \& datasets.} We adopt two environments: hopper and the AntMaze from the D4RL benchmark~\citep{fu2020d4rl} for evaluation in the single-task setting. For the hopper environment, we consider two scenarios where we have 10k labeled data from the {hopper-expert} and 1M unlabeled transitions from the {hopper-random} datasets and {hopper-medium} datasets respectively. This setup is resembles practical problems where unlabeled data is of low-quality and even, irrelevant to the target task.
-For AntMaze, following the setup in \cite{yang2021trail}, we use 10k expert transitions as the labeled data and the entire datasets of {large-play} and {medium-play} as the unlabeled data.
+\noindent \textbf{Single-task domains \& datasets.} We adopt two environments: hopper and the AntMaze from the D4RL benchmark~\citep{fu2020d4rl} for evaluation in the single-task setting. For the hopper environment, we consider two scenarios where we have 10k labeled data from the {hopper-expert} and 1M unlabeled transitions from the {hopper-random} datasets and {hopper-medium} datasets respectively. This setup is resembles practical problems where unlabeled data is of low-quality and even, irrelevant to the target task. For AntMaze, following the setup in \cite{yang2021trail}, we use 10k expert transitions as the labeled data and the entire datasets of {large-play} and {medium-play} as the unlabeled data.
 
 
 \begin{table*}[ht]
@@ -111,7 +115,7 @@ In addition, we test multi-task offline RL methods with UDS in the multi-task vi
 
 
 \vspace{-0.1cm}
-\subsection{Results of Empirical Evaluations}
+\subsubsection{Results of Empirical Evaluations}
 \label{sec:results}
 \vspace{-0.1cm}
 \noindent \textbf{Results of Question (1) and (2).} We evaluate each method on the single-task hopper and AntMaze domains. As shown in Table~\ref{tbl:single_task}, we find that UDS outperforms No Sharing in 3 out of the 4 settings and reward learning methods in all the settings. We hypothesize that reward learning methods underperform because reward predictors are unable to achieve reasonable generalization ability in the limited labeled data setting. Note that UDS even achieves competitive performance as the oracle Sharing All method. Furthermore, an optimized reweighting scheme, i.e., CDS+UDS, is able to improve over UDS in each case, including cases where UDS fails to improve over No Sharing, indicating a large reward bias. These results testify to the effectiveness of optimizing for reweighting when dealing with unlabeled data. Note that on the AntMaze domain, CDS+UDS performs comparably to the recent approach~\citep{yang2021trail} that performs representation learning on the offline dataset first and then run offline training leveraging the learned representation. CDS+UDS also outperforms all the prior methods in offline training with learned representations discussed in \cite{yang2021trail}.
@@ -122,7 +126,7 @@ Since reward learning approaches obtain similar or worse results compared to No 
 
 
 
-Finally, note that, CDS+UDS and UDS attain performance competitive with their oracle counterparts, CDS and Sharing All, that assume access to full reward information, both in Tables~\ref{tbl:gym} \& \ref{tbl:mtopt}. This is potentially very surprising, and one could hypothesize that this might be because most transitions in the unlabeled dataset were actually failures, and hence, were labeled correctly by UDS. However, to the contrary, our diagnostic analysis in Table~\ref{tbl:data_quality}, Appendix~\ref{app:data_quality} reveals that the unlabeled data \emph{does not} consist entirely of failures; in fact, around 60\% of the unlabeled data succeeds at the task of interest, indicating that the rewards are wrong for more than half the unlabeled data. In spite of this, UDS and CDS+UDS perform well. This indicates that the simple UDS approach can be effective in removing the dependence of functional form of reward functions, which is often costly, without much loss in the performance and CDS+UDS can boost performance by reducing the bias.
+Finally, note that, CDS+UDS and UDS attain performance competitive with their oracle counterparts, CDS and Sharing All, that assume access to full reward information, both in Tables~\ref{tbl:gym} \& \ref{tbl:mtopt}. This is potentially very surprising, and one could hypothesize that this might be because most transitions in the unlabeled dataset were actually failures, and hence, were labeled correctly by UDS. However, to the contrary, our diagnostic analysis in Table~\ref{tbl:data_quality}, Appendix~\ref{app:data_quality} reveals that the unlabeled data \emph{does not} consist entirely of failures; in fact, around 60\% of the unlabeled data succeeds at the task of interest, indicating that the rewards are wrong for more than half the unlabeled data. In spite of this, UDS and CDS+UDS perform well. This indicates that UDS can be effective in removing the dependence of functional form of reward functions, which is often costly, without much loss in the performance and CDS+UDS can boost performance by reducing the bias.
 
 
 \subsection{Empirical Analysis of UDS and CDS+UDS}
@@ -134,7 +138,7 @@ To answer question (4), we analyze UDS and CDS+UDS on several offline RL problem
 When the labeled data is of expert-level, adding unlabeled random or medium data (cases \textbf{a} and \textbf{b} in Table~\ref{tbl:single_task_analysis}) should only increase coverage, since the labeled data only consists of expert transitions. Moreover, the reward bias induced due to incorrect labeling of rewards on the medium unlabeled data should not hurt, since the 10k expert transitions retain their correct labels, and the medium/random data should only serve as negatives, provided the annotated rewards on this data are worse than the rewards in the expert data. Therefore, we expect the benefits of coverage to outweigh any reward bias; as seen in Table~\ref{tbl:single_task_analysis}, we find that UDS indeed helps compared to No Sharing. In particular, in those two cases, UDS approaches the oracle Sharing All method. 
 
 Since reward bias is exacerbated when the unlabeled data is of higher quality and present in large amounts (cases \textbf{e, f, g}), it is reasonable to surmise that UDS will perform worse in such scenarios. However, on the contrary, in settings: random labeled data with medium or expert unlabeled data and medium labeled data with expert unlabeled data, we find that even though the rewards on the unlabeled transitions are incorrect, the addition of unlabeled data into training improves performance. This is because a higher quality unlabeled data improves the performance of the effective behavior policy, thereby improving performance for a conservative offline RL method. This result validates Theorem~\ref{prop:uds_ours}. 
-We also conduct an ablation that varies the amount of unlabeled data in Appendix~\ref{app:unlabeled_dataset_size_analysis}. This ablation shows that the benefit of UDS reduces as the we reduce the amount of unlabeled data, which confirms our theory in Section~\ref{sec:uds_theory}.
+We also conduct an ablation that varies the amount of unlabeled data in Appendix~\ref{app:unlabeled_dataset_size_analysis}. This ablation shows that the benefit of UDS reduces as the we reduce the amount of unlabeled data, which confirms our theory.
 
 In the case where labeled data is medium and unlabeled data is random (case \textbf{d}), we find that UDS hurts compared to No Sharing. This is because the labeled data as well as unlabeled data are both low-medium quality and medium data already provides decent coverage (not as high as random data, but not as low as expert data). Therefore, in this case, we believe that the addition of unlabeled data neither provides trajectories of good quality that can help improve performance, nor does it significantly improve coverage, and only hurts by incurring reward bias. We therefore believe that UDS may not help in such cases where the coverage does not improve, and added data is not so high quality, which also agrees with our theoretical analysis. Furthermore, in the case where the labeled and unlabeled data are both expert (case \textbf{c}), UDS performs close to oracle methods CDS and Sharing All, which confirms the insights derived from Section~\ref{sec:uds_theory} that UDS does not introduce bias when the labeled and unlabeled data have the same distribution and hence should perform well.
 
