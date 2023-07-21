@@ -1,19 +1,19 @@
-\section*{Appendices}
-
 \section{Benchmark Tabular Domains}
 \label{app:domains}
 
 We evaluate on a benchmark of 8 tabular domains, selected for qualitative differences.
 
-\textbf{4 Gridworlds}. The Gridworld environment is an NxN grid with randomly placed walls. The reward is proportional to Manhattan distance to a goal state (1 at the goal, 0 at the initial position), and there is a 5\% chance the agent travels in a different direction than commanded. We vary two parameters: the size ($16 \times 16$ and $64 \times 64$), and the state representations. We use a ``one-hot'' representation, an (X, Y) coordinate tuple (represented as two one-hot vectors), and a ``random'' representation, a vector drawn from $\mathcal{N}(0, 1)^N$, where N is the width or height of the Gridworld. The random observation significantly increases the challenge of function approximation, as significant state aliasing occurs.
+\textbf{Gridworlds}. The Gridworld task is an NxN grid with randomly placed walls. The reward is proportional to Manhattan distance to a goal state (1 at the goal, 0 at the initial position), and there is a 5\% chance the agent travels in a different direction than commanded. We vary two parameters: the size ($16 \times 16$ and $64 \times 64$), and the state representations. We use a ``one-hot'' representation, an (X, Y) coordinate tuple (represented as two one-hot vectors), and a ``random'' representation, a vector drawn from $\mathcal{N}(0, 1)^N$, where N is the width or height of the Gridworld. Random observations significantly increase the difficulty, as significant state aliasing occurs.
 
 \textbf{Cliffwalk}: Cliffwalk is a toy example from \citet{Schaul2015}. It consists of a sequence of states, where each state has two allowed actions: advance to the next state or return to the initial state. A reward of 1.0 is obtained when the agent reaches the final state. Observations consist of vectors drawn from $\mathcal{N}(0, 1)^{16}$.
 
 \textbf{InvertedPendulum and MountainCar}: InvertedPendulum and MountainCar are discretized versions of continuous control tasks found in OpenAI gym~\citep{gym}, and are based on problems from classical RL literature. 
 In the InvertedPendulum task, an agent must swing up an pendulum and hold it in its upright position. The state consists of the angle and angular velocity of the pendulum. Maximum reward is given when the pendulum is upright. The observation consists of the $\sin$ and $\cos$ of the pendulum angle, and the angular velocity.
-In the MountainCar task, the agent must push a vehicle up a hill, but the hill is steep enough that the agent must gather momentum by swinging back and forth within a valley in order to reach the top. The state consists of the position and velocity of the vehicle.
+In MountainCar, the agent must push a vehicle up a hill, but the hill is steep that the agent must gather momentum by swinging back and forth within a valley to reach the top. The state consists of the position and velocity of the vehicle.
 
 \textbf{SparseGraph}: The SparseGraph environment is a 256-state graph with randomly drawn edges. Each state has two edges, each corresponding to an action. One state is chosen as the goal state, where the agent receives a reward of one.
+
+\iffalse
 
 \section{Fitted Q-iteration with Bounded Projection Error}
 \label{app:bounded_error}
@@ -250,3 +250,5 @@ As discussed in Section \ref{sec:function_approx}, we validate our findings on t
 \caption{\label{fig:td3_grad_sweep} Performance on Half Cheetah and Hopper trained via TD3 with replay buffer of size $2e4$ with increasing number of gradient steps taken per environment step ($N$) on the critic and the actor. Note the clearly observable decay in performance of the agent with more number of gradient steps -- which clearly validates our claim of the presence of overfitting in Q-functions. Each iteration on the x-axis corresponds to taking 5000 steps in the environment.}
 
 \end{figure*}
+
+\fi

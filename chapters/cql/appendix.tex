@@ -1,6 +1,3 @@
-\part*{Appendices}
-
-
 \section{Discussion of CQL Variants}
 \label{app:cql_variants}
 We derive several variants of CQL in Section~\ref{sec:framework}. Here, we discuss these variants on more detail and describe their specific properties. We first derive the variants: CQL($\mathcal{H}$), CQL($\rho$), and then present another variant of CQL, which we call CQL(var). This third variant has strong connections to distributionally robust optimization~\citep{namkoong2017variance}.
@@ -17,7 +14,7 @@ the optimal solution is equal to $\mu^*(\bx) = \frac{1}{Z} \exp(f(\bx))$, where 
 \end{equation*}
 The optimal solution is given by, $\mu^*(\bx) = \frac{1}{Z} \rho(\bx) \exp(f(\bx))$, where $Z$ is a normalizing factor. Plugging this back into the CQL family (Equation~\ref{eqn:cql_framework}), we obtain the following objective for training the Q-function (modulo some normalization terms):
 \begin{equation}
-    \small{\min_{Q}~ \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\E_{\ba \sim \rho(\ba|\bs)} \left[Q(\bs, \ba) \frac{\exp(Q(\bs, \ba))}{Z'}\right] - \E_{\ba \sim \behavior(\ba|\bs)}\left[Q(\bs, \ba)\right]\right] + \frac{1}{2}\!\E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!.}
+    \small{\min_{Q}~ \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\E_{\mathbf{a} \sim \rho(\mathbf{a}|\bs)} \left[Q(\bs, \mathbf{a}) \frac{\exp(Q(\bs, \mathbf{a}))}{Z'}\right] - \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]\right] + \frac{1}{2}\!\E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!.}
     \label{eqn:cql_rho_objective}
 \end{equation}
 
@@ -32,20 +29,20 @@ can be approximated using the following upper-bound:
 \end{equation}
 where the gap between the two sides of the inequality decays inversely w.r.t. to the dataset size, $\mathcal{O}(1/N)$. By using Equation~\ref{eqn:robust_expectation} to simplify Equation~\ref{eqn:cql_framework}, we obtain an objective for training the Q-function that penalizes the variance of Q-function predictions under the distribution $\hat{P}$. 
 \begin{multline}
-    \min_{Q}~~ \frac{1}{2}~ \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right] + \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\sqrt{\frac{\text{var}_{\hat{P}(\ba|\bs)}\left( Q(\bs, \ba) \right)}{d^\behavior(s) |\mathcal{D}|}} \right] \\ 
-    + \alpha \E_{s \sim d^\behavior(\bs)}\left[ \E_{\hat{P}(\ba|\bs)}[Q(\bs, \ba)] - \E_{\behavior(\ba|\bs)}[Q(\bs, \ba)] \right]
+    \min_{Q}~~ \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right] + \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\sqrt{\frac{\text{var}_{\hat{P}(\mathbf{a}|\bs)}\left( Q(\bs, \mathbf{a}) \right)}{d^\behavior(s) |\mathcal{D}|}} \right] \\ 
+    + \alpha \E_{s \sim d^\behavior(\bs)}\left[ \E_{\hat{P}(\mathbf{a}|\bs)}[Q(\bs, \mathbf{a})] - \E_{\behavior(\mathbf{a}|\bs)}[Q(\bs, \mathbf{a})] \right]
     \label{eqn:variance_regularized_again}
 \end{multline}
-The only remaining decision is the choice of $\hat{P}$, which can be chosen to be the inverse of the empirical action distribution in the dataset, $\hat{P}(\ba|\bs) \propto \frac{1}{\hat{D}(\ba|\bs)}$, or even uniform over actions, $\hat{P}(\ba|\bs) = \text{Unif}(\ba)$, to obtain this variant of variance-regularized CQL.
+The only remaining decision is the choice of $\hat{P}$, which can be chosen to be the inverse of the empirical action distribution in the dataset, $\hat{P}(\mathbf{a}|\bs) \propto \frac{1}{\hat{D}(\mathbf{a}|\bs)}$, or even uniform over actions, $\hat{P}(\mathbf{a}|\bs) = \text{Unif}(\mathbf{a})$, to obtain this variant of variance-regularized CQL.
 
-% \textbf{CQL with variable state distributions.} The formulations of CQL in Sections~\ref{sec:policy_eval} and \ref{sec:framework} only use a variable action distribution $\mu(\ba|\bs)$. In principle, we can extend these formulations to account for a variable state-distribution as well. In order to do this, we can modify Equation~\ref{eqn:objective_1} as follows:
+% \textbf{CQL with variable state distributions.} The formulations of CQL in Sections~\ref{sec:policy_eval} and \ref{sec:framework} only use a variable action distribution $\mu(\mathbf{a}|\bs)$. In principle, we can extend these formulations to account for a variable state-distribution as well. In order to do this, we can modify Equation~\ref{eqn:objective_1} as follows:
 % \begin{multline}
 %     \label{eqn:cql_framework_state_dist}
-%     \small{\min_{Q} ~~ \alpha \E_{\bs \sim \textcolor{red}{\mu(\bs)}, \ba \sim \textcolor{red}{\mu(\ba|\bs)}}\left[Q(\bs, \ba)\right] + \frac{1}{2}~ \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \ba) - \bellman^{\policy} \hat{Q}^{k} (\bs, \ba) \right)^2 \right].}
+%     \small{\min_{Q} ~~ \alpha \E_{\bs \sim \textcolor{red}{\mu(\bs)}, \mathbf{a} \sim \textcolor{red}{\mu(\mathbf{a}|\bs)}}\left[Q(\bs, \mathbf{a})\right] + \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \bellman^{\policy} \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right].}
 % \end{multline}
 % In this case, the resulting tabular Q-function iterate, $\hat{Q}^k$ is given by:
 % \begin{equation*}
-% \hat{Q}^{k+1}(\bs, \ba) = \bellman^\policy \hat{Q}^k (\bs, \ba) - \alpha \left[\frac{\mu(\bs) \mu(\ba|\bs)}{d^\behavior(\bs) \behavior(\ba|\bs)} - 1\right].
+% \hat{Q}^{k+1}(\bs, \mathbf{a}) = \bellman^\policy \hat{Q}^k (\bs, \mathbf{a}) - \alpha \left[\frac{\mu(\bs) \mu(\mathbf{a}|\bs)}{d^\behavior(\bs) \behavior(\mathbf{a}|\bs)} - 1\right].
 % \end{equation*}
 % We note that analogous to Proposition~\ref{thm:cql_underestimates}, we can argue that this is a lower bound estimate, since a positive quantity (i.e. density ratios) is being subtracted from the ideal tabular Q-function backup, at each iteration.
 
@@ -54,71 +51,81 @@ The only remaining decision is the choice of $\hat{P}$, which can be chosen to b
 \vspace{-0.25cm}
 \input{chapters/cql/theory}
 
+\vspace{-0.3cm}
 \section{Theorem Proofs}
 \label{app:missing_proofs}
 \vspace{-0.3cm}
 
 In this section, we provide proofs of the theorems in Sections~\ref{sec:policy_eval} and \ref{sec:framework}. We first redefine notation for clarity and then provide the proofs of the results in the main paper.
 
-\textbf{Notation.} Let $k \in \mathbb{N}$ denote an iteration of policy evaluation (in Section~\ref{sec:policy_eval}) or Q-iteration (in Section~\ref{sec:framework}). In an iteration $k$, the objective -- Equation~\ref{eqn:modified_policy_eval} or Equation~\ref{eqn:cql_framework} -- is optimized using the previous iterate (i.e. $\hat{Q}^{k-1}$) as the target value in the backup. $Q^k$ denotes the true, tabular Q-function iterate in the MDP, without any correction. In an iteration, say $k+1$, the current tabular Q-function iterate, $Q^{k+1}$ is related to the previous tabular Q-function iterate ${Q}^k$ as: $Q^{k+1} = \bellman^{\policy} Q^k$ (for policy evaluation) or $Q^{k+1} = \bellman^{\policy_k} Q^k$ (for policy learning). Let $\hat{Q}^k$ denote the $k$-th Q-function iterate obtained from CQL. Let $\hat{V}^k$ denote the value function, $\hat{V}^k := \E_{\ba \sim \policy(\ba|\bs)}[\hat{Q}^k(\bs, \ba)]$.   
+\textbf{Notation.} Let $k \in \mathbb{N}$ denote an iteration of policy evaluation (in Section~\ref{sec:policy_eval}) or Q-iteration (in Section~\ref{sec:framework}). In an iteration $k$, the objective -- Equation~\ref{eqn:modified_policy_eval} or Equation~\ref{eqn:cql_framework} -- is optimized using the previous iterate (i.e. $\hat{Q}^{k-1}$) as the target value in the backup. $Q^k$ denotes the true, tabular Q-function iterate in the MDP, without any correction. In an iteration, say $k+1$, the current tabular Q-function iterate, $Q^{k+1}$ is related to the previous tabular Q-function iterate ${Q}^k$ as: $Q^{k+1} = \bellman^{\policy} Q^k$ (for policy evaluation) or $Q^{k+1} = \bellman^{\policy_k} Q^k$ (for policy learning). Let $\hat{Q}^k$ denote the $k$-th Q-function iterate obtained from CQL. Let $\hat{V}^k$ denote the value function, $\hat{V}^k := \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)}[\hat{Q}^k(\bs, \mathbf{a})]$.   
 
 \textbf{A note on the value of $\alpha$.} Before proving the theorems, we remark that while the statements of Theorems~\ref{thm:cql_underestimates}, \ref{thm:min_q_underestimates} and \ref{thm:policy_eval_func_approx} (we discuss this in Appendix~\ref{app:additional_theory}) show that CQL produces lower bounds if $\alpha$ is larger than some threshold, so as to overcome either sampling error (Theorems~\ref{thm:cql_underestimates} and \ref{thm:min_q_underestimates}) or function approximation error (Theorem~\ref{thm:policy_eval_func_approx}). While the optimal $\alpha_k$ in some of these cases depends on the current Q-value, $\hat{Q}^k$, we can always choose a worst-case value of $\alpha_k$ by using the inequality $\hat{Q}^k \leq 2 R_{\max}/(1 - \gamma)$, still guaranteeing a lower bound. If it is unclear why the learned Q-function $\hat{Q}^k$ should be bounded, we can always clamp the Q-values if they go outside $\left[ \frac{-2 R_{\max}}{1 - \gamma}, \frac{2 R_{\max}}{1 - \gamma} \right]$.
-
 We first prove Theorem~\ref{thm:min_q_underestimates}, which shows that policy evaluation using a simplified version of CQL (Equation~\ref{eqn:objective_1}) results in a point-wise lower-bound on the Q-function. 
 
-\textbf{Proof of Theorem~\ref{thm:min_q_underestimates}.} In order to start, we first note that the form of the resulting Q-function iterate, $\hat{Q}^k$, in the setting without function approximation. By setting the derivative of Equation~\ref{eqn:objective_1} to 0, we obtain the following expression for $\hat{Q}^{k+1}$ in terms of $\hat{Q}^k$,
+~
+
+\niparagraph{\large{Proof of Theorem~\ref{thm:min_q_underestimates}}} 
+
+
+We start by analyzing $\hat{Q}^k$ by setting the derivative of Equation~\ref{eqn:objective_1} to 0:
 \begin{equation}
-    \forall~\bs, \ba \in \mathcal{D}, k, ~~ \hat{Q}^{k+1}(\bs, \ba) = \hat{\bellman}^\pi \hat{Q}^k(\bs, \ba) - \alpha \frac{\mu(\ba|\bs)}{\hatbehavior(\ba|\bs)}.
+    \forall~\bs, \mathbf{a} \in \mathcal{D}, k, ~~ \hat{Q}^{k+1}(\bs, \mathbf{a}) = \hat{\bellman}^\pi \hat{Q}^k(\bs, \mathbf{a}) - \alpha \frac{\mu(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)}.
     \label{eqn:q_expression_objective1}
 \end{equation}
-Now, since, $\mu(\ba|\bs) > 0, \alpha > 0, \hatbehavior(\ba|\bs) > 0$, we observe that at each iteration we underestimate the next Q-value iterate, i.e. $\hat{Q}^{k+1} \leq \hat{\bellman}^\policy \hat{Q}^k$.
+Now, since, $\mu(\mathbf{a}|\bs) > 0, \alpha > 0, \hatbehavior(\mathbf{a}|\bs) > 0$, we observe that at each iteration we underestimate the next Q-value iterate, i.e. $\hat{Q}^{k+1} \leq \hat{\bellman}^\policy \hat{Q}^k$.
 
-\textbf{Accounting for sampling error.} Note that so far we have only shown that the Q-values are upper-bounded by the the ``empirical Bellman targets'' given by, $\hat{\bellman}^\policy \hat{Q}^k$. In order to relate $\hat{Q}^k$ to the true Q-value iterate, $Q^k$, we need to relate the empirical Bellman operator, $\hat{\bellman}^\policy$ to the actual Bellman operator, $\bellman^\policy$. In Appendix~\ref{app:handling_unobserved_actions}, we show that if the reward function $r(\bs, \ba)$ and the transition function, $\transitions(\bs'|\bs, \ba)$ satisfy ``concentration'' properties, meaning that the difference between the observed reward sample, $r$ ($\bs, \ba, r, \bs') \in \mathcal{D}$) and the actual reward function $r(\bs, \ba)$ (and analogously for the transition matrix) is bounded with high probability, then overestimation due to the empirical Backup operator is bounded. Formally, with high probability (w.h.p.) $\geq 1 - \delta$, $\delta \in (0, 1)$, 
+\textbf{Accounting for sampling error.} Note that so far we have only shown that the Q-values are upper-bounded by the the ``empirical Bellman targets'' given by, $\hat{\bellman}^\policy \hat{Q}^k$. In order to relate $\hat{Q}^k$ to the true Q-value iterate, $Q^k$, we need to relate the empirical Bellman operator, $\hat{\bellman}^\policy$ to the actual Bellman operator, $\bellman^\policy$. In Appendix~\ref{app:handling_unobserved_actions}, we show that if the reward function $r(\bs, \mathbf{a})$ and the transition function, $\transitions(\bs'|\bs, \mathbf{a})$ satisfy ``concentration'' properties, meaning that the difference between the observed reward sample, $r$ ($\bs, \mathbf{a}, r, \bs') \in \mathcal{D}$) and the actual reward function $r(\bs, \mathbf{a})$ (and analogously for the transition matrix) is bounded with high probability, then overestimation due to the empirical Backup operator is bounded. Formally, with high probability (w.h.p.) $\geq 1 - \delta$, $\delta \in (0, 1)$, 
 \begin{equation*}
-    \forall Q, \bs, \ba \in \mathcal{D},~~ \left\vert \hat{\bellman}^\policy Q(\bs, \ba) - \bellman^\policy Q(\bs, \ba) \right\vert \leq \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}}.
+    \forall Q, \bs, \mathbf{a} \in \mathcal{D},~~ \left\vert \hat{\bellman}^\policy Q(\bs, \mathbf{a}) - \bellman^\policy Q(\bs, \mathbf{a}) \right\vert \leq \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}.
 \end{equation*}
 Hence, the following can be obtained, w.h.p.:
 \begin{align}
 \label{eqn:pac_bound_q_value}
-    \hat{Q}^{k+1}(\bs, \ba) = \bellman^\policy \hat{Q}^k(\bs, \ba) \leq \bellman^\policy \hat{Q}^k(\bs, \ba) - \alpha \frac{\mu(\ba|\bs)}{\hatbehavior(\ba|\bs)} + \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}}.
+    \hat{Q}^{k+1}(\bs, \mathbf{a}) = \bellman^\policy \hat{Q}^k(\bs, \mathbf{a}) \leq \bellman^\policy \hat{Q}^k(\bs, \mathbf{a}) - \alpha \frac{\mu(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} + \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}.
 \end{align}
 
 Now we need to reason about the fixed point of the update procedure in Equation~\ref{eqn:q_expression_objective1}. The fixed point of Equation~\ref{eqn:q_expression_objective1} is given by:
 \begin{multline*}
-    \hat{Q}^\policy \leq \bellman^\policy \hat{Q}^\policy - \alpha \frac{\mu(\ba|\bs)}{\hatbehavior(\ba|\bs)} + \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}} \implies \hat{Q}^\pi \leq (I - \gamma P^\pi)^{-1} \left[ R  - \alpha \frac{\mu}{\hatbehavior} + \frac{C_{r, T, \delta} R_{\max}}{1 - \gamma) \sqrt{|\mathcal{D}}}\right]\\
-    \hat{Q}^\policy(\bs, \ba) \leq Q^\policy(\bs, \ba) - \alpha \left[ \left(I - \gamma P^\pi \right)^{-1} \left[\frac{\mu}{\hatbehavior} \right] \right](\bs, \ba) + \left[(I - \gamma P^\policy)^{-1} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}|}} \right](\bs, \ba),
+    \hat{Q}^\policy \leq \bellman^\policy \hat{Q}^\policy - \alpha \frac{\mu(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} + \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}} \implies \hat{Q}^\pi \leq (I - \gamma P^\pi)^{-1} \left[ R  - \alpha \frac{\mu}{\hatbehavior} + \frac{C_{r, T, \delta} R_{\max}}{1 - \gamma) \sqrt{|\mathcal{D}}}\right]\\
+    \hat{Q}^\policy(\bs, \mathbf{a}) \leq Q^\policy(\bs, \mathbf{a}) - \alpha \left[ \left(I - \gamma P^\pi \right)^{-1} \left[\frac{\mu}{\hatbehavior} \right] \right](\bs, \mathbf{a}) + \left[(I - \gamma P^\policy)^{-1} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}|}} \right](\bs, \mathbf{a}),
 \end{multline*}
 thus proving the relationship in Theorem~\ref{thm:min_q_underestimates}.
 
 In order to guarantee a lower bound, $\alpha$ can be chosen to cancel any potential overestimation incurred by $\frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma)\sqrt{|\mathcal{D}|}}$. Note that this  choice works, since $(I - \gamma P^\pi)^{-1}$ is a matrix with all non-negative entries. The choice of $\alpha$ that guarantees a lower bound is then given by:
 \begin{align*}
-    \alpha& ~ \cdot \min_{\bs, \ba} \left[\frac{\mu(\ba|\bs)}{\hatbehavior(\ba|\bs)} \right] \geq \max_{\bs, \ba} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}}\\
-    \implies \alpha&~ \geq \max_{\bs, \ba} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}} \cdot \max_{\bs, \ba} \left[\frac{\mu(\ba|\bs)}{\hatbehavior(\ba|\bs)} \right]^{-1}.
+    \alpha& ~ \cdot \min_{\bs, \mathbf{a}} \left[\frac{\mu(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} \right] \geq \max_{\bs, \mathbf{a}} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}\\
+    \implies \alpha&~ \geq \max_{\bs, \mathbf{a}} \frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}} \cdot \max_{\bs, \mathbf{a}} \left[\frac{\mu(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} \right]^{-1}.
 \end{align*}
-Note that the theoretically minimum possible value of $\alpha$ decreases as more samples are observed, i.e., when $|\mathcal{D}(\bs, \ba)|$ is large. Also, note that since, $\frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma0 \sqrt{|\mathcal{D}|}} \approx 0$, when $\hat{\bellman}^\policy = \bellman^\policy$, any $\alpha \geq 0$ guarantees a lower bound. And so choosing a value of $\alpha = 0$ is sufficient in this case.
+Note that the theoretically minimum possible value of $\alpha$ decreases as more samples are observed, i.e., when $|\mathcal{D}(\bs, \mathbf{a})|$ is large. Also, note that since, $\frac{C_{r, T, \delta} R_{\max}}{(1 - \gamma0 \sqrt{|\mathcal{D}|}} \approx 0$, when $\hat{\bellman}^\policy = \bellman^\policy$, any $\alpha \geq 0$ guarantees a lower bound. And so choosing a value of $\alpha = 0$ is sufficient in this case.
 
-Next, we prove Theorem~\ref{thm:cql_underestimation} that shows that the additional term that maximizes the expected Q-value under the dataset distribution, $\mathbb{D}(\bs, \ba)$, (or $d^\behavior(\bs) \behavior(\ba|\bs)$, in the absence of sampling error), results in a lower-bound on only the expected value of the policy at a state, and not a pointwise lower-bound on Q-values at all actions.
+Next, we prove Theorem~\ref{thm:cql_underestimation} that shows that the additional term that maximizes the expected Q-value under the dataset distribution, $\mathbb{D}(\bs, \mathbf{a})$, (or $d^\behavior(\bs) \behavior(\mathbf{a}|\bs)$, in the absence of sampling error), results in a lower-bound on only the expected value of the policy at a state, and not a pointwise lower-bound on Q-values at all actions.
 
-\textbf{Proof of Theorem~\ref{thm:cql_underestimates}.} We first prove this theorem in the absence of sampling error, and then incorporate sampling error at the end, using a technique similar to the previous proof. In the tabular setting, we can set the derivative of the modified objective in Equation~\ref{eqn:modified_policy_eval}, and compute the Q-function update induced in the exact, tabular setting (this assumes $\hat{\bellman}^\policy = \bellman^\policy)$ and $\behavior(\ba|\bs) = \hatbehavior(\ba|\bs)$).
+~
+
+\niparagraph{\large{Proof of Theorem~\ref{thm:cql_underestimates}}} 
+
+
+We first prove this theorem in the absence of sampling error, and then incorporate sampling error at the end, using a technique similar to the previous proof. In the tabular setting, we can set the derivative of the modified objective in Equation~\ref{eqn:modified_policy_eval}, and compute the Q-function update induced in the exact, tabular setting (this assumes $\hat{\bellman}^\policy = \bellman^\policy)$ and $\behavior(\mathbf{a}|\bs) = \hatbehavior(\mathbf{a}|\bs)$).
 \begin{equation}
-    \forall ~\bs, \ba, k ~~ \hat{Q}^{k+1} (\bs, \ba) = \bellman^\policy \hat{Q}^k(\bs, \ba) - \alpha \left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right].
+    \forall ~\bs, \mathbf{a}, k ~~ \hat{Q}^{k+1} (\bs, \mathbf{a}) = \bellman^\policy \hat{Q}^k(\bs, \mathbf{a}) - \alpha \left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right].
     \label{eqn:q_function_modified_eval}
 \end{equation}
-Note that for state-action pairs, $(\bs, \ba)$, such that, $\mu(\ba|\bs) < \behavior(\ba|\bs)$, we are infact adding a positive quantity, $1 - \frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)}$, to the Q-function obtained, and this we cannot guarantee a point-wise lower bound, i.e. $\exists~ \bs, \ba, \text{~~s.t.}~~ \hat{Q}^{k+1}(\bs, \ba) \geq Q^{k+1}(\bs, \ba)$. To formally prove this, we can construct a counter-example three-state, two-action MDP, and choose a specific behavior policy $\policy(\ba|\bs)$, such that this is indeed the case.
+Note that for state-action pairs, $(\bs, \mathbf{a})$, such that, $\mu(\mathbf{a}|\bs) < \behavior(\mathbf{a}|\bs)$, we are infact adding a positive quantity, $1 - \frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}$, to the Q-function obtained, and this we cannot guarantee a point-wise lower bound, i.e. $\exists~ \bs, \mathbf{a}, \text{~~s.t.}~~ \hat{Q}^{k+1}(\bs, \mathbf{a}) \geq Q^{k+1}(\bs, \mathbf{a})$. To formally prove this, we can construct a counter-example three-state, two-action MDP, and choose a specific behavior policy $\policy(\mathbf{a}|\bs)$, such that this is indeed the case.
 
 The value of the policy, on the other hand, $\hat{V}^{k+1}$ is underestimated, since:
 \begin{equation}
-    \hat{V}^{k+1}(\bs) := \E_{\ba \sim \policy(\ba|\bs)} \left[ \hat{Q}^{k+1}(\bs, \ba) \right] = \bellman^\policy \hat{V}^k (\bs) - \alpha \E_{\ba \sim \policy(\ba|\bs)}\left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right].
+    \hat{V}^{k+1}(\bs) := \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)} \left[ \hat{Q}^{k+1}(\bs, \mathbf{a}) \right] = \bellman^\policy \hat{V}^k (\bs) - \alpha \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right].
     \label{eqn:value_recursion}
 \end{equation}
-and we can show that $D_{\text{CQL}}(\bs): = \sum_{\ba} \policy(\ba|\bs) \left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right]$ is always positive, when $\policy(\ba|\bs) = \mu(\ba|\bs)$. To note this, we present the following derivation:
+and we can show that $D_{\text{CQL}}(\bs): = \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right]$ is always positive, when $\policy(\mathbf{a}|\bs) = \mu(\mathbf{a}|\bs)$. To note this, we present the following derivation:
 \begin{align*}
-    D_{\text{CQL}}(\bs) &:=~ \sum_{\ba} \policy(\ba|\bs) \left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right]\\
-    &= \sum_{\ba} (\policy(\ba|\bs) - \behavior(\ba|\bs) + \behavior(\ba|\bs)) \left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right]\\
-    &= \sum_{\ba} (\policy(\ba|\bs) - \behavior(\ba|\bs)) \left[ \frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs} \right] + \sum_{\ba} \behavior(\ba|\bs) \left[\frac{\mu(\ba|\bs)}{\behavior(\ba|\bs)} - 1 \right]\\
-    &= \sum_{\ba} \underbrace{\left[ \frac{\left(\policy(\ba|\bs) - \behavior(\ba|\bs) \right)^2}{\behavior(\ba|\bs)} \right]}_{\geq 0}~ +~ 0 \text{~~~since,~} \sum_{\ba} \policy(\ba|\bs) = \sum_{\ba} \behavior(\ba|\bs) = 1.
+    D_{\text{CQL}}(\bs) &:=~ \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right]\\
+    &= \sum_{\mathbf{a}} (\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs) + \behavior(\mathbf{a}|\bs)) \left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right]\\
+    &= \sum_{\mathbf{a}} (\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)) \left[ \frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs} \right] + \sum_{\mathbf{a}} \behavior(\mathbf{a}|\bs) \left[\frac{\mu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1 \right]\\
+    &= \sum_{\mathbf{a}} \underbrace{\left[ \frac{\left(\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs) \right)^2}{\behavior(\mathbf{a}|\bs)} \right]}_{\geq 0}~ +~ 0 \text{~~~since,~} \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) = \sum_{\mathbf{a}} \behavior(\mathbf{a}|\bs) = 1.
 \end{align*}
-Note that the marked term, is positive since both the numerator and denominator are positive, and this implies that $D_\text{CQL}(\bs) \geq 0$. Also, note that $D_\text{CQL}(\bs) = 0$, iff $\policy(\ba|\bs) = \behavior(\ba|\bs)$. This implies that each value iterate incurs some underestimation, $\hat{V}^{k+1}(\bs) \leq \bellman^\policy \hat{V}^k (\bs)$.
+Note that the marked term, is positive since both the numerator and denominator are positive, and this implies that $D_\text{CQL}(\bs) \geq 0$. Also, note that $D_\text{CQL}(\bs) = 0$, iff $\policy(\mathbf{a}|\bs) = \behavior(\mathbf{a}|\bs)$. This implies that each value iterate incurs some underestimation, $\hat{V}^{k+1}(\bs) \leq \bellman^\policy \hat{V}^k (\bs)$.
 
 Now, we can compute the fixed point of the recursion in Equation~\ref{eqn:value_recursion}, and this gives us the following estimated policy value:
 \begin{equation*}
@@ -134,58 +141,66 @@ The resulting value-function satisfies (w.h.p.), $\forall \bs \in \mathcal{D}$,
 \end{equation*}
 thus proving the theorem statement. In this case, the choice of $\alpha$, that prevents overestimation w.h.p. is given by:
 \begin{equation*}
-    \alpha \geq \max_{\bs, \ba \in \mathcal{D}} \frac{C_{r, T} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \ba)|}} \cdot \max_{\bs \in \mathcal{D}} \left[\sum_{\ba} \policy(\ba|\bs) \left(\frac{\policy(\ba|\bs)}{\hatbehavior(\ba|\bs))} - 1\right)\right]^{-1}.
+    \alpha \geq \max_{\bs, \mathbf{a} \in \mathcal{D}} \frac{C_{r, T} R_{\max}}{(1 - \gamma) \sqrt{|\mathcal{D}(\bs, \mathbf{a})|}} \cdot \max_{\bs \in \mathcal{D}} \left[\sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \left(\frac{\policy(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs))} - 1\right)\right]^{-1}.
 \end{equation*}
 Similar to Theorem~\ref{thm:min_q_underestimates}, note that the theoretically acceptable value of $\alpha$ decays as the number of occurrences of a state action pair in the dataset increases.
 Next we provide a proof for Theorem~\ref{thm:cql_underestimation}.
 
-\textbf{Proof of Theorem~\ref{thm:cql_underestimation}.} In order to prove this theorem, we compute the difference induced in the policy value, $\hat{V}^{k+1}$, derived from the Q-value iterate, $\hat{Q}^{k+1}$, with respect to the previous iterate $\bellman^\policy \hat{Q}^{k}$. If this difference is negative at each iteration, then the resulting Q-values are guaranteed to lower bound the true policy value.
+~
+
+\niparagraph{\large{Proof of Theorem~\ref{thm:cql_underestimation}}} 
+
+In order to prove this theorem, we compute the difference induced in the policy value, $\hat{V}^{k+1}$, derived from the Q-value iterate, $\hat{Q}^{k+1}$, with respect to the previous iterate $\bellman^\policy \hat{Q}^{k}$. If this difference is negative at each iteration, then the resulting Q-values are guaranteed to lower bound the true policy value.
 
 \begin{align*}
-    \E_{\hat{\policy}^{k+1}(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] &=  \E_{\hat{\policy}^{k+1}(\ba|\bs)}\left[ \bellman^\policy \hat{Q}^k (\bs, \ba) \right] - \E_{\hat{\policy}^{k+1}(\ba|\bs)}\left[ \frac{\pi_{\hat{Q}^k}(\ba | \bs)}{\hatbehavior(\ba|\bs)} -1 \right]\\
-    &= \E_{\hat{\policy}^{k+1}(\ba|\bs)}\left[ \bellman^\policy \hat{Q}^k (\bs, \ba) \right] - \underbrace{\E_{\policy_{\hat{Q}^k}(\ba | \bs)}\left[ \frac{\policy_{\hat{Q}^k}(\ba | \bs)}{\hatbehavior(\ba|\bs)} -1 \right]}_{\text{underestimation, ~~(a)}}\\
-    &~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+ \sum_{\ba} \underbrace{\left(\policy_{\hat{Q}^k}(\ba | \bs) - \hat{\policy}^{k+1}(\ba|\bs) \right)}_{\text{(b),}~~{\leq \mathrm{D_{TV}}(\policy_{\hat{Q}^k}, \hat{\policy}^{k+1})}} \frac{\policy_{\hat{Q}^k}(\ba | \bs)}{\hatbehavior(\ba|\bs)}
-    %   \E_{\pi_{\hat{Q}^k}(\ba | \bs)}[\hat{Q}^{k+1}(\bs, \ba)] - 
+    \E_{\hat{\policy}^{k+1}(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] &=  \E_{\hat{\policy}^{k+1}(\mathbf{a}|\bs)}\left[ \bellman^\policy \hat{Q}^k (\bs, \mathbf{a}) \right] - \E_{\hat{\policy}^{k+1}(\mathbf{a}|\bs)}\left[ \frac{\pi_{\hat{Q}^k}(\mathbf{a} | \bs)}{\hatbehavior(\mathbf{a}|\bs)} -1 \right]\\
+    &= \E_{\hat{\policy}^{k+1}(\mathbf{a}|\bs)}\left[ \bellman^\policy \hat{Q}^k (\bs, \mathbf{a}) \right] - \underbrace{\E_{\policy_{\hat{Q}^k}(\mathbf{a} | \bs)}\left[ \frac{\policy_{\hat{Q}^k}(\mathbf{a} | \bs)}{\hatbehavior(\mathbf{a}|\bs)} -1 \right]}_{\text{underestimation, ~~(a)}}\\
+    &~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+ \sum_{\mathbf{a}} \underbrace{\left(\policy_{\hat{Q}^k}(\mathbf{a} | \bs) - \hat{\policy}^{k+1}(\mathbf{a}|\bs) \right)}_{\text{(b),}~~{\leq \mathrm{D_{TV}}(\policy_{\hat{Q}^k}, \hat{\policy}^{k+1})}} \frac{\policy_{\hat{Q}^k}(\mathbf{a} | \bs)}{\hatbehavior(\mathbf{a}|\bs)}
+    %   \E_{\pi_{\hat{Q}^k}(\mathbf{a} | \bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - 
 \end{align*}
-If (a) has a larger magnitude than (b), then the learned Q-value induces an underestimation in an iteration $k+1$, and hence, by a recursive argument, the learned Q-value underestimates the optimal Q-value. We note that by upper bounding term (b) by $\mathrm{D_{TV}}(\policy_{\hat{Q}^k}, \hat{\policy}^{k+1}) \cdot \max_{\ba} \frac{\policy_{\hat{Q}^k}(\ba | \bs)}{\hatbehavior(\ba|\bs)}$, and writing out (a) > upper-bound on (b), we obtain the desired result.
+If (a) has a larger magnitude than (b), then the learned Q-value induces an underestimation in an iteration $k+1$, and hence, by a recursive argument, the learned Q-value underestimates the optimal Q-value. We note that by upper bounding term (b) by $\mathrm{D_{TV}}(\policy_{\hat{Q}^k}, \hat{\policy}^{k+1}) \cdot \max_{\mathbf{a}} \frac{\policy_{\hat{Q}^k}(\mathbf{a} | \bs)}{\hatbehavior(\mathbf{a}|\bs)}$, and writing out (a) > upper-bound on (b), we obtain the desired result.
 
 
 Finally, we show that under specific choices of $\alpha_1, \cdots, \alpha_k$, the CQL backup is gap-expanding by providing a proof for Theorem~\ref{thm:gap_amplify}.
 
-\textbf{Proof of Theorem~\ref{thm:gap_amplify} (CQL is gap-expanding).} For this theorem, we again first present the proof in the absence of sampling error, and then incorporate sampling error into the choice of $\alpha$. We follow the strategy of observing the Q-value update in one iteration. Recall that the expression for the Q-value iterate at iteration $k$ is given by:
+~
+
+\niparagraph{\large{Proof of Theorem~\ref{thm:gap_amplify} (CQL is gap-expanding)}}
+
+For this theorem, we again first present the proof in the absence of sampling error, and then incorporate sampling error into the choice of $\alpha$. We follow the strategy of observing the Q-value update in one iteration. Recall that the expression for the Q-value iterate at iteration $k$ is given by:
 \begin{equation*}
-    \hat{Q}^{k+1}(\bs, \ba) = \bellman^{\policy^k} \hat{Q}^{k}(\bs, \ba) - \alpha_k \frac{\mu_k(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)}.
+    \hat{Q}^{k+1}(\bs, \mathbf{a}) = \bellman^{\policy^k} \hat{Q}^{k}(\bs, \mathbf{a}) - \alpha_k \frac{\mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}.
 \end{equation*}
-Now, the value of the policy $\mu_{k}(\ba|\bs)$ under $\hat{Q}^{k+1}$ is given by:
+Now, the value of the policy $\mu_{k}(\mathbf{a}|\bs)$ under $\hat{Q}^{k+1}$ is given by:
 \begin{equation*}
-    \E_{\ba \sim \mu_k(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] = \E_{\ba \sim \mu_k(\ba|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \ba)] - \alpha_k \underbrace{\mu_k^T \left(\frac{\mu_k(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right)}_{:= \hat{\Delta}^k, \geq 0, \text{~~by proof of Theorem~\ref{thm:cql_underestimates}.}} 
+    \E_{\mathbf{a} \sim \mu_k(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] = \E_{\mathbf{a} \sim \mu_k(\mathbf{a}|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \mathbf{a})] - \alpha_k \underbrace{\mu_k^T \left(\frac{\mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right)}_{:= \hat{\Delta}^k, \geq 0, \text{~~by proof of Theorem~\ref{thm:cql_underestimates}.}} 
 \end{equation*}
-Now, we also note that the expected amount of extra underestimation introduced at iteration $k$ under action sampled from the behavior policy $\behavior(\ba|\bs)$ is 0, as,
+Now, we also note that the expected amount of extra underestimation introduced at iteration $k$ under action sampled from the behavior policy $\behavior(\mathbf{a}|\bs)$ is 0, as,
 \begin{equation*}
-    \E_{\ba \sim \behavior(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] = \E_{\ba \sim \behavior(\ba|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \ba)] - \alpha_k \underbrace{\behavior^T \left(\frac{\mu_k(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right)}_{= 0}. 
+    \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] = \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \mathbf{a})] - \alpha_k \underbrace{\behavior^T \left(\frac{\mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right)}_{= 0}. 
 \end{equation*}
-where the marked quantity is equal to 0 since it is equal since $\behavior(\ba|\bs)$ in the numerator cancels with the denominator, and the remaining quantity is a sum of difference between two density functions, $\sum_{\ba} \mu_k(\ba|\bs) - \behavior(\ba|\bs)$, which is equal to 0. Thus, we have shown that,
+where the marked quantity is equal to 0 since it is equal since $\behavior(\mathbf{a}|\bs)$ in the numerator cancels with the denominator, and the remaining quantity is a sum of difference between two density functions, $\sum_{\mathbf{a}} \mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)$, which is equal to 0. Thus, we have shown that,
 \begin{equation*}
-    \E_{\behavior(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] - \E_{\mu_k(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] = \E_{\behavior(\ba|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \ba)] - \E_{\mu_k(\ba|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \ba)] - \alpha_k \hat{\Delta}^k.
+    \E_{\behavior(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - \E_{\mu_k(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] = \E_{\behavior(\mathbf{a}|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \mathbf{a})] - \E_{\mu_k(\mathbf{a}|\bs)}[\bellman^{\policy^k} \hat{Q}^k (\bs, \mathbf{a})] - \alpha_k \hat{\Delta}^k.
 \end{equation*}
-Now subtracting the difference, $\E_{\behavior(\ba|\bs)}[Q^{k+1}(\bs, \ba)] - \E_{\mu_k(\ba|\bs)}[Q^{k+1}(\bs, \ba)]$, computed under the tabular Q-function iterate, $Q^{k+1}$, from the previous equation, we obtain that
+Now subtracting the difference, $\E_{\behavior(\mathbf{a}|\bs)}[Q^{k+1}(\bs, \mathbf{a})] - \E_{\mu_k(\mathbf{a}|\bs)}[Q^{k+1}(\bs, \mathbf{a})]$, computed under the tabular Q-function iterate, $Q^{k+1}$, from the previous equation, we obtain that
 \begin{multline*}
-    \E_{\ba \sim \behavior(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] - \E_{\behavior(\ba|\bs)}[{Q}^{k+1}(\bs, \ba)] = \E_{\mu_k(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] - \E_{\mu_k(\ba|\bs)}[{Q}^{k+1}(\bs, \ba)]\\
-    + (\mu_k(\ba|\bs) - \behavior(\ba|\bs))^T \underbrace{\left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}_{(a)}- \alpha_k \hat{\Delta}^k.
+    \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - \E_{\behavior(\mathbf{a}|\bs)}[{Q}^{k+1}(\bs, \mathbf{a})] = \E_{\mu_k(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - \E_{\mu_k(\mathbf{a}|\bs)}[{Q}^{k+1}(\bs, \mathbf{a})]\\
+    + (\mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs))^T \underbrace{\left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}_{(a)}- \alpha_k \hat{\Delta}^k.
 \end{multline*}
 % Now, by invoking Theorem~\ref{thm:cql_underestimation}, we note that the quantity marked as (a) in the previous equation is negative, since it is the expected difference between $\hat{Q}^k - \hat{Q}^k$ under the policy iterate, $\policy^k$. 
 
-Now, by choosing $\alpha_k$, such that any positive bias introduced by the quantity $(\mu_k(\ba|\bs) - \behavior(\ba|\bs))^T (a)$ is cancelled out, we obtain the following gap-expanding relationship:
+Now, by choosing $\alpha_k$, such that any positive bias introduced by the quantity $(\mu_k(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs))^T (a)$ is cancelled out, we obtain the following gap-expanding relationship:
 \begin{equation*}
-    \E_{\ba \sim \behavior(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] - \E_{\behavior(\ba|\bs)}[{Q}^{k+1}(\bs, \ba)] > \E_{\mu_k(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)] - \E_{\mu_k(\ba|\bs)}[{Q}^{k+1}(\bs, \ba)]
+    \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - \E_{\behavior(\mathbf{a}|\bs)}[{Q}^{k+1}(\bs, \mathbf{a})] > \E_{\mu_k(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})] - \E_{\mu_k(\mathbf{a}|\bs)}[{Q}^{k+1}(\bs, \mathbf{a})]
 \end{equation*}
 for, $\alpha_k$ satisfying, 
 \begin{equation*}
-    \alpha_k > \max \left(\frac{(\behavior(\ba|\bs) - \mu_k(\ba|\bs))^T \left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}{\hat{\Delta}^k}, 0\right),
+    \alpha_k > \max \left(\frac{(\behavior(\mathbf{a}|\bs) - \mu_k(\mathbf{a}|\bs))^T \left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}{\hat{\Delta}^k}, 0\right),
 \end{equation*}
 thus proving the desired result.
 
-To avoid the dependency on the true Q-value iterate, ${Q}^k$, we can upper-bound $Q^k$ by $\frac{R_{\max}}{1 - \gamma}$, and upper-bound $(\behavior(\ba|\bs) - \mu_k(\ba|\bs))^T \bellman^{\policy^k} Q^k (\bs, \cdot)$ by $D_{\mathrm{TV}}(\behavior, \mu_k) \cdot \frac{R_{\max}}{1 - \gamma}$, and use this in the expression for $\alpha_k$. While this bound may be loose, it still guarantees the gap-expanding property, and we indeed empirically show the existence of this property in practice in Appendix~\ref{app:gap_amplify}. 
+To avoid the dependency on the true Q-value iterate, ${Q}^k$, we can upper-bound $Q^k$ by $\frac{R_{\max}}{1 - \gamma}$, and upper-bound $(\behavior(\mathbf{a}|\bs) - \mu_k(\mathbf{a}|\bs))^T \bellman^{\policy^k} Q^k (\bs, \cdot)$ by $D_{\mathrm{TV}}(\behavior, \mu_k) \cdot \frac{R_{\max}}{1 - \gamma}$, and use this in the expression for $\alpha_k$. While this bound may be loose, it still guarantees the gap-expanding property, and we indeed empirically show the existence of this property in practice in Appendix~\ref{app:gap_amplify}. 
 
 To incorporate sampling error, we can follow a similar strategy as previous proofs: the worst case overestimation due to sampling error is given by $\frac{C_{r, T, \delta} R_{\max}}{1 - \gamma}$. In this case, we note that, w.h.p.,
 \begin{equation*}
@@ -193,7 +208,7 @@ To incorporate sampling error, we can follow a similar strategy as previous proo
 \end{equation*}
 Hence, the presence of sampling error adds $D_{\mathrm{TV}}(\hat{\behavior}, \mu_k) \cdot \frac{2 \cdot C_{r, T, \delta} R_{\max}}{1 - \gamma}$ to the value of $\alpha_k$, giving rise to the following, sufficient condition on $\alpha_k$ for the gap-expanding property:
 \begin{equation*}
-     \alpha_k > \max \left(\frac{(\behavior(\ba|\bs) - \mu_k(\ba|\bs))^T \left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}{\hat{\Delta}^k} + D_{\mathrm{TV}}(\hat{\behavior}, \mu_k) \cdot \frac{2 \cdot C_{r, T, \delta} R_{\max}}{1 - \gamma}, 0\right),
+     \alpha_k > \max \left(\frac{(\behavior(\mathbf{a}|\bs) - \mu_k(\mathbf{a}|\bs))^T \left[ \bellman^{\policy^k} \left( \hat{Q}^k - Q^k \right)(\bs, \cdot) \right]}{\hat{\Delta}^k} + D_{\mathrm{TV}}(\hat{\behavior}, \mu_k) \cdot \frac{2 \cdot C_{r, T, \delta} R_{\max}}{1 - \gamma}, 0\right),
 \end{equation*}
 concluding the proof of this theorem.
 
@@ -208,10 +223,10 @@ In this section, we present a theoretical analysis of additional properties of C
 \label{app:cql_linear_non_linear}
 \begin{theorem}
 \label{thm:policy_eval_func_approx}
-Assume that the Q-function is represented as a linear function of given state-action feature vectors $\Qfeat$, i.e., $Q(s, a) = w^T \Qfeat(s, a)$. Let $D = \text{diag}\left(d^\behavior(\bs) \behavior(\ba|\bs)\right)$ denote the diagonal matrix with data density, and assume that $\Qfeat^T D \Qfeat$ is invertible. Then, the expected value of the policy under Q-value from Eqn~\ref{eqn:modified_policy_eval} at iteration $k+1$, $\E_{d^\behavior(\ba)}[\hat{V}^{k+1}(\bs)] = \E_{d^\behavior(\bs), \policy(\ba|\bs)}[\hat{Q}^{k+1}(\bs, \ba)]$, lower-bounds the corresponding tabular value, $\E_{d^\behavior(\bs)}[V^{k+1}(\bs)] =\E_{d^\behavior(\bs), \policy(\ba|\bs)}[Q^{k+1}(\bs, \ba)]$, if
+Assume that the Q-function is represented as a linear function of given state-action feature vectors $\Qfeat$, i.e., $Q(s, a) = w^T \Qfeat(s, a)$. Let $D = \text{diag}\left(d^\behavior(\bs) \behavior(\mathbf{a}|\bs)\right)$ denote the diagonal matrix with data density, and assume that $\Qfeat^T D \Qfeat$ is invertible. Then, the expected value of the policy under Q-value from Eqn~\ref{eqn:modified_policy_eval} at iteration $k+1$, $\E_{d^\behavior(\mathbf{a})}[\hat{V}^{k+1}(\bs)] = \E_{d^\behavior(\bs), \policy(\mathbf{a}|\bs)}[\hat{Q}^{k+1}(\bs, \mathbf{a})]$, lower-bounds the corresponding tabular value, $\E_{d^\behavior(\bs)}[V^{k+1}(\bs)] =\E_{d^\behavior(\bs), \policy(\mathbf{a}|\bs)}[Q^{k+1}(\bs, \mathbf{a})]$, if
 \begin{equation*}
-\small{\alpha_k \geq \max \left(\frac{D^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \ba)\right)}{D^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(D \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right] \right)},~ 0 \right).}
-    %  \small{\alpha_k \geq \max \left(\frac{\left(d^\behavior(\bs) \mu(\ba|\bs)\right)^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \ba)\right)}{\left(d^\behavior(\bs) \mu(\ba|\bs)\right)^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(d^\behavior(\bs) \left( \mu(\ba|\bs) - \behavior(\ba|\bs) \right) \right)},~ 0 \right).}
+\small{\alpha_k \geq \max \left(\frac{D^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \mathbf{a})\right)}{D^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(D \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right] \right)},~ 0 \right).}
+    %  \small{\alpha_k \geq \max \left(\frac{\left(d^\behavior(\bs) \mu(\mathbf{a}|\bs)\right)^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \mathbf{a})\right)}{\left(d^\behavior(\bs) \mu(\mathbf{a}|\bs)\right)^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(d^\behavior(\bs) \left( \mu(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs) \right) \right)},~ 0 \right).}
 \end{equation*}
 \end{theorem}
 %intuitive justification for the theorem
@@ -220,34 +235,34 @@ The choice of $\alpha_k$ in Theorem~\ref{thm:policy_eval_func_approx} intuitivel
 \begin{proof} 
 In order to extend the result of Theorem~\ref{thm:cql_underestimates} to account for function approximation, we follow the similar recipe as before. We obtain the optimal solution to the optimization problem below in the family of linearly expressible Q-functions, i.e. $\mathcal{Q} := \{\Qfeat w | w \in \mathbb{R}^{dim(\Qfeat)} \}$. 
 \begin{equation*}
-    \min_{Q \in \mathcal{Q}}~~ \alpha_k \cdot \left(\E_{d^\behavior(\bs),\mu(\ba|\bs)}\left[Q(\bs, \ba)\right] - {\E_{d^\behavior(\bs),\behavior(\ba|\bs)}\left[Q(\bs, \ba)\right]} \right) + \frac{1}{2}~ \E_{\mathcal{D}}\left[\left(Q(\bs, \ba) - \bellman^\policy \hat{Q}^{k} (\bs, \ba) \right)^2 \right].
+    \min_{Q \in \mathcal{Q}}~~ \alpha_k \cdot \left(\E_{d^\behavior(\bs),\mu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right] - {\E_{d^\behavior(\bs),\behavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]} \right) + \frac{1}{2}~ \E_{\mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \bellman^\policy \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right].
 \end{equation*}
-By substituting $Q(\bs, \ba) = w^T \Qfeat(\bs, \ba)$, and setting the derivative with respect to $w$ to be 0, we obtain,
+By substituting $Q(\bs, \mathbf{a}) = w^T \Qfeat(\bs, \mathbf{a})$, and setting the derivative with respect to $w$ to be 0, we obtain,
 \begin{align*}
-    \alpha \sum_{\bs, \ba} d^\behavior(\bs) \cdot \left( \mu(\ba|\bs) - \behavior(\ba|\bs) \right) \Qfeat(\bs, \ba) + \sum_{\bs, \ba} d^\behavior(\bs) \behavior(\ba|\bs) \left( Q(\bs, \ba) - \bellman^\pi \hat{Q}^k(\bs, \ba) \right) \Qfeat(\bs, \ba) = 0.
+    \alpha \sum_{\bs, \mathbf{a}} d^\behavior(\bs) \cdot \left( \mu(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs) \right) \Qfeat(\bs, \mathbf{a}) + \sum_{\bs, \mathbf{a}} d^\behavior(\bs) \behavior(\mathbf{a}|\bs) \left( Q(\bs, \mathbf{a}) - \bellman^\pi \hat{Q}^k(\bs, \mathbf{a}) \right) \Qfeat(\bs, \mathbf{a}) = 0.
 \end{align*}
 By re-arranging terms, and converting it to vector notation, defining $D = \text{diag}(d^\behavior(\bs)\behavior(\bs))$, and referring to the parameter $w$ at the k-iteration as $w^k$ we obtain:
 \begin{align*}
-    \left(\Qfeat^T D \Qfeat \right) w^{k+1} = \underbrace{\Qfeat^T D \left( \bellman^\policy \hat{Q}^k \right)}_{\text{LSTD iterate}} - \underbrace{\alpha_k \Qfeat^T \text{diag}\left[d^\behavior(\bs) \cdot(\mu(\ba|\bs) - \behavior(\ba|\bs)) \right]}_{\text{underestimation}}.
+    \left(\Qfeat^T D \Qfeat \right) w^{k+1} = \underbrace{\Qfeat^T D \left( \bellman^\policy \hat{Q}^k \right)}_{\text{LSTD iterate}} - \underbrace{\alpha_k \Qfeat^T \text{diag}\left[d^\behavior(\bs) \cdot(\mu(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)) \right]}_{\text{underestimation}}.
 \end{align*}
-Now, our task is to show that the term labelled as ``underestimation'' is indeed negative in expectation under $\mu(\ba|\bs)$ (This is analogous to our result in the tabular setting that shows underestimated values). In order to show this, we write out the expression for the value, under the linear weights $w^{k+1}$ at state $\bs$, after substituting $\mu = \policy$,
+Now, our task is to show that the term labelled as ``underestimation'' is indeed negative in expectation under $\mu(\mathbf{a}|\bs)$ (This is analogous to our result in the tabular setting that shows underestimated values). In order to show this, we write out the expression for the value, under the linear weights $w^{k+1}$ at state $\bs$, after substituting $\mu = \policy$,
 \begin{align}
-    \hat{V}^{k+1}(\bs) &:= \policy(\ba|\bs)^T \Qfeat w^{k+1}\\
-    = \policy(&\ba|\bs)^T \underbrace{\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D \left(\bellman^\policy \hat{Q}^k \right)}_{\text{value under LSTD-Q~\citep{lagoudakis2003least}}} - \alpha_k \policy(\ba|\bs)^T \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right].
+    \hat{V}^{k+1}(\bs) &:= \policy(\mathbf{a}|\bs)^T \Qfeat w^{k+1}\\
+    = \policy(&\mathbf{a}|\bs)^T \underbrace{\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D \left(\bellman^\policy \hat{Q}^k \right)}_{\text{value under LSTD-Q~\citep{lagoudakis2003least}}} - \alpha_k \policy(\mathbf{a}|\bs)^T \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right].
     \label{expr:lstdq_value}
 \end{align}
-Now, we need to reason about this additional penalty term. Defining, $P_\Qfeat := \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D$ as the projection matrix onto the subspace of features $\Qfeat$, we need to show that the product that appears as a penalty is positive: $\policy(\ba|\bs)^T P_\Qfeat \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right] \geq 0$. In order to show this, we compute minimum value of this product optimizing over $\policy$. If the minimum value is $0$, then we are done.
+Now, we need to reason about this additional penalty term. Defining, $P_\Qfeat := \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T D$ as the projection matrix onto the subspace of features $\Qfeat$, we need to show that the product that appears as a penalty is positive: $\policy(\mathbf{a}|\bs)^T P_\Qfeat \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right] \geq 0$. In order to show this, we compute minimum value of this product optimizing over $\policy$. If the minimum value is $0$, then we are done.
 
-Let's define $f(\policy) = \policy(\ba|\bs)^T P_\Qfeat \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right]$, our goal is to solve for $\min_{\policy} f(\policy)$. Setting the derivative of $f(\policy)$ with respect to $\policy$ to be equal to 0, we obtain (including Lagrange multiplier $\eta$ that guarantees $\sum_{\ba} \policy(\ba|\bs) = 1$,
+Let's define $f(\policy) = \policy(\mathbf{a}|\bs)^T P_\Qfeat \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right]$, our goal is to solve for $\min_{\policy} f(\policy)$. Setting the derivative of $f(\policy)$ with respect to $\policy$ to be equal to 0, we obtain (including Lagrange multiplier $\eta$ that guarantees $\sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) = 1$,
 \begin{equation*}
-    \left( P_\Qfeat + P_\Qfeat^T \right) \left[\frac{\policy(\ba|\bs)}{\behavior(\ba|\bs)}\right] = P_\Qfeat \Vec{1} + \eta \Vec{1}.
+    \left( P_\Qfeat + P_\Qfeat^T \right) \left[\frac{\policy(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}\right] = P_\Qfeat \Vec{1} + \eta \Vec{1}.
 \end{equation*}
-By solving for $\eta$ (using the condition that a density function sums to 1), we obtain that the minimum value of $f(\policy)$ occurs at a $\policy^*(\ba|\bs)$, which satisfies the following condition,
+By solving for $\eta$ (using the condition that a density function sums to 1), we obtain that the minimum value of $f(\policy)$ occurs at a $\policy^*(\mathbf{a}|\bs)$, which satisfies the following condition,
 \begin{equation*}
-    \left(P_\Qfeat + P_\Qfeat^T \right) \left[\frac{\policy^*(\ba|\bs)}{\behavior(\ba|\bs)}\right] = \left( P_\Qfeat + P_\Qfeat^T \right) \Vec{1}.
+    \left(P_\Qfeat + P_\Qfeat^T \right) \left[\frac{\policy^*(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}\right] = \left( P_\Qfeat + P_\Qfeat^T \right) \Vec{1}.
 \end{equation*}
 Using this relation to compute $f$, we obtain, $f(\policy^*) = 0$, indicating that the minimum value of $0$ occurs when the projected density ratio matches under the matrix $(P_\Qfeat + P_\Qfeat^T)$ is equal to the projection of a vector of ones, $\Vec{1}$. Thus, \begin{equation*}
-    \forall~ \policy(\ba|\bs),~ f(\policy) = \policy(\ba|\bs)^T P_\Qfeat \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right] \geq 0.
+    \forall~ \policy(\mathbf{a}|\bs),~ f(\policy) = \policy(\mathbf{a}|\bs)^T P_{\Qfeat} \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right] \geq 0.
 \end{equation*}
 
 This means that: $\forall ~\bs, \hat{V}^{k+1}(\bs) \leq \hat{V}^{k+1}_{\text{LSTD-Q}}(\bs)$ given identical previous $\hat{Q}^{k}$ values. This result indicates, that if $\alpha_k \geq 0$, the resulting CQL value estimate with linear function approximation is guaranteed to lower-bound the value estimate obtained from a least-squares temporal difference Q-learning algorithm (which only minimizes Bellman error assuming a linear Q-function parameterization), such as LSTD-Q~\citep{lagoudakis2003least}, since at each iteration, CQL induces a lower-bound with respect to the previous value iterate, whereas this underestimation is absent in LSTD-Q. Also note that we can also apply an inductive argument.
@@ -256,14 +271,14 @@ So far, we have only shown that the learned value iterate, $\hat{V}^{k+1}(\bs)$ 
 
 In order to account for this change, we make a simple change: we choose $\alpha_k$ such that the resulting penalty nullifes the effect of any over-estimation caused due to the inability to fit the true value function iterate in the linear function class parameterized by $\Qfeat$. Formally, this means:
 \begin{align*}
-    \E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}(\bs)\right] &\leq \E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs)\right] - \alpha_k \E_{d^\behavior(\bs)}[f(\policy(\ba|\bs))] \\
-    & \leq \E_{d^\behavior(\bs)}\left[V^{k+1}(\bs)\right] - \underbrace{\E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs) - V^{k+1}(\bs) \right] - \alpha_k \E_{d^\behavior(\bs)}[f(\policy(\ba|\bs))]}_{\text{choose~} \alpha_k \text{~to make this negative}} \\
+    \E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}(\bs)\right] &\leq \E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs)\right] - \alpha_k \E_{d^\behavior(\bs)}[f(\policy(\mathbf{a}|\bs))] \\
+    & \leq \E_{d^\behavior(\bs)}\left[V^{k+1}(\bs)\right] - \underbrace{\E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs) - V^{k+1}(\bs) \right] - \alpha_k \E_{d^\behavior(\bs)}[f(\policy(\mathbf{a}|\bs))]}_{\text{choose~} \alpha_k \text{~to make this negative}} \\
     & \leq \E_{d^\behavior(\bs)}\left[V^{k+1}(\bs)\right]
 \end{align*}
 And the choice of $\alpha_k$ in that case is given by:
 \begin{align*}
-    \alpha_k \geq& ~ \max \left(\frac{\E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs) - V^{k+1}(\bs) \right]}{\E_{d^\behavior(\bs)}[f(\policy(\ba|\bs))]}, 0 \right)\\
-    \geq& ~ \max \left(\frac{D^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \ba)\right)}{D^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(D \left[\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right] \right)},~ 0 \right).
+    \alpha_k \geq& ~ \max \left(\frac{\E_{d^\behavior(\bs)}\left[\hat{V}^{k+1}_{\text{LSTD-Q}}(\bs) - V^{k+1}(\bs) \right]}{\E_{d^\behavior(\bs)}[f(\policy(\mathbf{a}|\bs))]}, 0 \right)\\
+    \geq& ~ \max \left(\frac{D^T\left[\Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T - I \right]\left((\bellman^\policy \hat{Q}^k)(\bs, \mathbf{a})\right)}{D^T\left[ \Qfeat \left(\Qfeat^T D \Qfeat \right)^{-1} \Qfeat^T \right] \left(D \left[\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right] \right)},~ 0 \right).
 \end{align*}
 Finally, we note that since this choice of $\alpha_k$ induces under-estimation in the next iterate, $\hat{V}^{k+1}$ with respect to the previous iterate, $\hat{V}^k$, for all $k \in \mathbb{N}$, by induction, we can claim that this choice of $\alpha_1, \cdots, \alpha_k$ is sufficient to make $\hat{V}^{k+1}$ lower-bound the tabular, exact value-function iterate. $V^{k+1}$, for all $k$, thus completing our proof.
 \end{proof}
@@ -274,28 +289,28 @@ We can generalize Theorem~\ref{thm:policy_eval_func_approx} to non-linear functi
 %%SL.5.30: I don't think this should be called a corollary. Corollaries are supposed to quick and easy to prove, if it takes the better part of a page to prove, it's not a corollary.
 \begin{theorem}[Extension to non-linear function approximation]
 \label{corr:nonlinear_ntk}
-Assume that the Q-function is represented by a general non-linear function approximator parameterized by $\theta$, $Q_\theta(\bs, \ba)$. let $D = \text{diag}(d^\behavior(\bs) \behavior(\ba|\bs))$ denote the matrix with the data density on the diagonal, and assume that $\nabla_\theta Q_\theta^T D \nabla_\theta Q_\theta$ is invertible. Then, the expected value of the policy under the Q-function obtained by taking a gradient step on Equation~\ref{eqn:modified_policy_eval}, at iteration $k+1$ lower-bounds the corresponding tabular function iterate if: 
+Assume that the Q-function is represented by a general non-linear function approximator parameterized by $\theta$, $Q_\theta(\bs, \mathbf{a})$. let $D = \text{diag}(d^\behavior(\bs) \behavior(\mathbf{a}|\bs))$ denote the matrix with the data density on the diagonal, and assume that $\nabla_\theta Q_\theta^T D \nabla_\theta Q_\theta$ is invertible. Then, the expected value of the policy under the Q-function obtained by taking a gradient step on Equation~\ref{eqn:modified_policy_eval}, at iteration $k+1$ lower-bounds the corresponding tabular function iterate if: 
 \end{theorem}
 
 \begin{proof} Our proof strategy is to reduce the non-linear optimization problem into a linear one, with features $\Qfeat$ (in Theorem~\ref{thm:policy_eval_func_approx}) replaced with features given by the gradient of the current Q-function $\hat{Q}^{k}_\theta$ with respect to parameters $\theta$, i.e. $\nabla_\theta \hat{Q}^k$. To see, this we start by writing down the expression for $\hat{Q}^{k+1}_\theta$ obtained via one step of gradient descent with step size $\eta$, on the objective in Equation~\ref{eqn:modified_policy_eval}.
 \begin{align*}
-    \theta^{k+1} = \theta^k &- \eta \alpha_k \left( \E_{d^\behavior(\bs), \mu(\ba|\bs)}\left[\nabla_\theta \hat{Q}^{k}(\bs, \ba)\right] - \E_{d^\behavior(\bs), \behavior(\ba|\bs)}\left[\nabla_\theta \hat{Q}^{k}(\bs, \ba)\right] \right) \\ 
-    &- \eta \E_{d^\behavior(\bs), \behavior(\ba|\bs)}\left[ \left(\hat{Q}^k - \bellman^\policy \hat{Q}^{k} \right)(\bs, \ba) \cdot \nabla_\theta \hat{Q}^{k}(\bs, \ba) \right].
+    \theta^{k+1} = \theta^k &- \eta \alpha_k \left( \E_{d^\behavior(\bs), \mu(\mathbf{a}|\bs)}\left[\nabla_\theta \hat{Q}^{k}(\bs, \mathbf{a})\right] - \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)}\left[\nabla_\theta \hat{Q}^{k}(\bs, \mathbf{a})\right] \right) \\ 
+    &- \eta \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)}\left[ \left(\hat{Q}^k - \bellman^\policy \hat{Q}^{k} \right)(\bs, \mathbf{a}) \cdot \nabla_\theta \hat{Q}^{k}(\bs, \mathbf{a}) \right].
 \end{align*}
 Using the above equation and making an approximation linearization assumption on the non-linear Q-function, for small learning rates $\eta << 1$, as has been commonly used by prior works on the neural tangent kernel (NTK) in deep learning theory~\citep{ntk} in order to explain neural network learning dynamics in the infinite-width limit, we can write out the expression for the next Q-function iterate, $\hat{Q}^{k+1}_\theta$ in terms of $\hat{Q}^k_\theta$ as~\citep{achiam2019towards,ntk}:
 \begin{align*}
-    \hat{Q}^{k+1}_\theta(\bs, \ba) &\approx \hat{Q}^k_\theta(\bs, \ba) + \left(\theta^{k+1} - \theta^{k}\right)^T \nabla_\theta \hat{Q}^{k}_\theta (\bs, \ba) ~~~~ \text{(under NTK assumptions)}\\
-    &= \hat{Q}^k_\theta(\bs, \ba) - \eta \alpha_k \E_{d^\behavior(\bs'), \mu(\ba'|\bs')}\left[\nabla_\theta \hat{Q}^{k}(\bs', \ba')^T \nabla_\theta \hat{Q}^{k}(\bs, \ba) \right]\\
-    &~~ + \eta \alpha_k \E_{d^\behavior(\bs'), \behavior(\ba'|\bs')}\left[\nabla_\theta \hat{Q}^{k}(\bs', \ba')^T \nabla_\theta \hat{Q}^k(\bs, \ba) \right]\\
-    &~~ - \eta \E_{d^\behavior(\bs'), \behavior(\ba'|\bs')}\left[ \left(\hat{Q}^k - \bellman^\policy \hat{Q}^{k} \right)(\bs', \ba') \cdot \nabla_\theta \hat{Q}^{k}(\bs', \ba')^T \nabla_\theta \hat{Q}^k(\bs, \ba) \right].
+    \hat{Q}^{k+1}_\theta(\bs, \mathbf{a}) &\approx \hat{Q}^k_\theta(\bs, \mathbf{a}) + \left(\theta^{k+1} - \theta^{k}\right)^T \nabla_\theta \hat{Q}^{k}_\theta (\bs, \mathbf{a}) ~~~~ \text{(under NTK assumptions)}\\
+    &= \hat{Q}^k_\theta(\bs, \mathbf{a}) - \eta \alpha_k \E_{d^\behavior(\bs'), \mu(\mathbf{a}'|\bs')}\left[\nabla_\theta \hat{Q}^{k}(\bs', \mathbf{a}')^T \nabla_\theta \hat{Q}^{k}(\bs, \mathbf{a}) \right]\\
+    &~~ + \eta \alpha_k \E_{d^\behavior(\bs'), \behavior(\mathbf{a}'|\bs')}\left[\nabla_\theta \hat{Q}^{k}(\bs', \mathbf{a}')^T \nabla_\theta \hat{Q}^k(\bs, \mathbf{a}) \right]\\
+    &~~ - \eta \E_{d^\behavior(\bs'), \behavior(\mathbf{a}'|\bs')}\left[ \left(\hat{Q}^k - \bellman^\policy \hat{Q}^{k} \right)(\bs', \mathbf{a}') \cdot \nabla_\theta \hat{Q}^{k}(\bs', \mathbf{a}')^T \nabla_\theta \hat{Q}^k(\bs, \mathbf{a}) \right].
 \end{align*}
 To simplify presentation, we convert into matrix notation, where we define the $|\mathcal{S}||\mathcal{A}| \times |\mathcal{S}||\mathcal{A}|$ matrix, $\bM^k = \left(\nabla_\theta \hat{Q}^k\right)^T \nabla_\theta \hat{Q}^k$, as the neural tangent kernel matrix of the Q-function at iteration $k$. Then, the vectorized $\hat{Q}^{k+1}$ (with $\mu = \policy$) is given by,
 \begin{align*}
-    \hat{Q}^{k+1} = \hat{Q}^{k} -&~ \eta \alpha_k \bM^k D \left[ \frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right] + \eta \bM^k D \left(\bellman^\policy \hat{Q}^k - \hat{Q}^k \right).
+    \hat{Q}^{k+1} = \hat{Q}^{k} -&~ \eta \alpha_k \bM^k D \left[ \frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right] + \eta \bM^k D \left(\bellman^\policy \hat{Q}^k - \hat{Q}^k \right).
 \end{align*}
 Finally, the value of the policy is given by:
 \begin{equation}
-    \hat{V}^{k+1} := \underbrace{\policy(\ba|\bs)^T \hat{Q}^k(\bs, \ba) + \eta \policy(\ba|\bs) \bM^k D \left(\bellman^\policy \hat{Q}^k - \hat{Q}^k \right)}_{\text{(a) unpenalized value}} - \underbrace{\eta \alpha_k \policy(\ba|\bs)^T \bM^k D \left[ \frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right]}_{\text{(b) penalty}}.
+    \hat{V}^{k+1} := \underbrace{\policy(\mathbf{a}|\bs)^T \hat{Q}^k(\bs, \mathbf{a}) + \eta \policy(\mathbf{a}|\bs) \bM^k D \left(\bellman^\policy \hat{Q}^k - \hat{Q}^k \right)}_{\text{(a) unpenalized value}} - \underbrace{\eta \alpha_k \policy(\mathbf{a}|\bs)^T \bM^k D \left[ \frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right]}_{\text{(b) penalty}}.
 \end{equation}
 Term marked (b) in the above equation is similar to the penalty term shown in Equation~\ref{expr:lstdq_value}, and by performing a similar analysis, we can show that $\text{(b)} \geq 0$. Again similar to how $\hat{V}^{k+1}_\text{LSTD-Q}$ appeared in Equation~\ref{expr:lstdq_value}, we observe that here we obtain the value function corresponding to a regular gradient-step on the Bellman error objective. 
 \end{proof}
@@ -309,58 +324,58 @@ Again similar to before, term (a) can introduce overestimation relative to the t
 \subsection{Choice of Distribution to Maximize Expected Q-Value in Equation~\ref{eqn:modified_policy_eval}}
 \label{app:maximizing_distributions}
 
-In Section~\ref{sec:policy_eval}, we introduced a term that maximizes Q-values under the dataset $d^\behavior(\bs) \behavior(\ba|\bs)$ distribution when modifying Equation~\ref{eqn:objective_1} to Equation~\ref{eqn:modified_policy_eval}. Theorem~\ref{thm:cql_underestimates} indicates the ``sufficiency'' of maximizing Q-values under the dataset distribution -- this guarantees a lower-bound on value. We now investigate the neccessity of this assumption: We ask the formal question: \textbf{For which other choices of $\nu(\ba|\bs)$ for the maximization term, is the value of the policy under the learned Q-value, $\hat{Q}^{k+1}_\nu$ guaranteed to be a lower bound on the actual value of the policy?}
+In Section~\ref{sec:policy_eval}, we introduced a term that maximizes Q-values under the dataset $d^\behavior(\bs) \behavior(\mathbf{a}|\bs)$ distribution when modifying Equation~\ref{eqn:objective_1} to Equation~\ref{eqn:modified_policy_eval}. Theorem~\ref{thm:cql_underestimates} indicates the ``sufficiency'' of maximizing Q-values under the dataset distribution -- this guarantees a lower-bound on value. We now investigate the neccessity of this assumption: We ask the formal question: \textbf{For which other choices of $\nu(\mathbf{a}|\bs)$ for the maximization term, is the value of the policy under the learned Q-value, $\hat{Q}^{k+1}_\nu$ guaranteed to be a lower bound on the actual value of the policy?}
 
 To recap and define notation, we restate the objective from Equation~\ref{eqn:objective_1} below.  
 \begin{equation}
-    \small{\hat{Q}^{k+1} \leftarrow \arg\min_{Q}~ \alpha~ \E_{\bs \sim d^\behavior(\bs), \ba \sim \mu(\ba|\bs)}\left[Q(\bs, \ba)\right] + \frac{1}{2}~ \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \ba) - \bellman^\policy \hat{Q}^{k} (\bs, \ba) \right)^2 \right].} 
+    \small{\hat{Q}^{k+1} \leftarrow \arg\min_{Q}~ \alpha~ \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \mu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right] + \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \bellman^\policy \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right].} 
     \label{eqn:objective_1_restated}
 \end{equation}
-We define a general family of objectives from Equation~\ref{eqn:modified_policy_eval}, parameterized by a distribution $\nu$ which is chosen to maximize Q-values as shown below (CQL is a special case, with $\nu(\ba|\bs) = \behavior(\ba|\bs)$):
+We define a general family of objectives from Equation~\ref{eqn:modified_policy_eval}, parameterized by a distribution $\nu$ which is chosen to maximize Q-values as shown below (CQL is a special case, with $\nu(\mathbf{a}|\bs) = \behavior(\mathbf{a}|\bs)$):
 \begin{multline}
-    \small{\hat{Q}^{k+1}_\nu \leftarrow \arg\min_{Q}~~ \alpha \cdot \left(\E_{\bs \sim d^\behavior(\bs), \ba \sim \mu(\ba|\bs)}\left[Q(\bs, \ba)\right] - \textcolor{red}{\E_{\bs \sim d^\behavior(\bs), \ba \sim \nu(\ba|\bs)}\left[Q(\bs, \ba)\right]} \right)} \\
-    \small{+ \frac{1}{2}~ \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \ba) - \bellman^\policy \hat{Q}^{k} (\bs, \ba) \right)^2 \right].~~~~~ (\nu\text{-CQL})}
+    \small{\hat{Q}^{k+1}_\nu \leftarrow \arg\min_{Q}~~ \alpha \cdot \left(\E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \mu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right] - \textcolor{red}{\E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \nu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]} \right)} \\
+    \small{+ \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \bellman^\policy \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right].~~~~~ (\nu\text{-CQL})}
     \label{eqn:modified_policy_eval_new}
 \end{multline}
 
 In order to answer our question, we prove the following result:
-\begin{theorem}[Necessity of maximizing Q-values under $\behavior(\ba|\bs)$.] For any policy $\policy(\ba|\bs)$, any $\alpha > 0$, and for all $k > 0$, the value of the policy., $\hat{V}^{k+1}_\nu$ under Q-function iterates from $\nu-$CQL, $\hat{Q}^{k+1}_\nu(\bs, \ba)$ is guaranteed to be a lower bound on the exact value iterate, $\hat{V}^{k+1}$, only if $\nu(\ba|\bs) = \behavior(\ba|\bs)$.   
+\begin{theorem}[Necessity of maximizing Q-values under $\behavior(\mathbf{a}|\bs)$.] For any policy $\policy(\mathbf{a}|\bs)$, any $\alpha > 0$, and for all $k > 0$, the value of the policy., $\hat{V}^{k+1}_\nu$ under Q-function iterates from $\nu-$CQL, $\hat{Q}^{k+1}_\nu(\bs, \mathbf{a})$ is guaranteed to be a lower bound on the exact value iterate, $\hat{V}^{k+1}$, only if $\nu(\mathbf{a}|\bs) = \behavior(\mathbf{a}|\bs)$.   
 \end{theorem}
 
 \begin{proof}
 We start by noting the parametric form of the resulting tabular Q-value iterate:
 \begin{equation}
-    \hat{Q}^{k+1}_\nu(\bs, \ba) = \bellman^\policy \hat{Q}^{k}_\nu(\bs, \ba) - \alpha_k \frac{\mu(\ba|\bs) - \nu(\ba|\bs)}{\behavior(\ba|\bs)}.
+    \hat{Q}^{k+1}_\nu(\bs, \mathbf{a}) = \bellman^\policy \hat{Q}^{k}_\nu(\bs, \mathbf{a}) - \alpha_k \frac{\mu(\mathbf{a}|\bs) - \nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}.
     \label{eqn:q_value_nu}
 \end{equation}
-The value of the policy under this Q-value iterate, when distribution $\mu$ is chosen to be the target policy $\pi(\ba|\bs)$ i.e. $\mu(\ba|\bs) = \policy(\ba|\bs)$ is given by:
+The value of the policy under this Q-value iterate, when distribution $\mu$ is chosen to be the target policy $\pi(\mathbf{a}|\bs)$ i.e. $\mu(\mathbf{a}|\bs) = \policy(\mathbf{a}|\bs)$ is given by:
 \begin{equation}
-    \small{\hat{V}^{k+1}_\nu(\bs): = \E_{\ba \sim \policy(\ba|\bs)}\left[\hat{Q}^{k+1}_\nu(\bs, \ba)\right] = \E_{\ba \sim \policy(\ba|\bs)}\left[\bellman^\policy \hat{Q}^k_\nu(\bs, \ba) \right] - \alpha_k~ \policy(\ba|\bs)^T \left(\frac{\policy(\ba|\bs) - \nu(\ba|\bs)}{\behavior(\ba|\bs)}\right)}. 
+    \small{\hat{V}^{k+1}_\nu(\bs): = \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[\hat{Q}^{k+1}_\nu(\bs, \mathbf{a})\right] = \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[\bellman^\policy \hat{Q}^k_\nu(\bs, \mathbf{a}) \right] - \alpha_k~ \policy(\mathbf{a}|\bs)^T \left(\frac{\policy(\mathbf{a}|\bs) - \nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}\right)}. 
 \end{equation}
-We are interested in conditions on $\nu(\ba|\bs)$ such that the penalty term in the above equation is positive. It is clear that choosing $\nu(\ba|\bs) = \behavior(\ba|\bs)$ returns a policy that satisfies the requirement, as shown in the proof for Theorem~\ref{thm:cql_underestimates}. In order to obtain other choices of $\nu(\ba|\bs)$ that guarantees a lower bound for all possible choices of $\policy(\ba|\bs)$, we solve the following concave-convex maxmin optimization problem, that computes a $\nu(\ba|\bs)$ for which a lower-bound is guaranteed for \textit{all} choices of $\mu(\ba|\bs)$:
+We are interested in conditions on $\nu(\mathbf{a}|\bs)$ such that the penalty term in the above equation is positive. It is clear that choosing $\nu(\mathbf{a}|\bs) = \behavior(\mathbf{a}|\bs)$ returns a policy that satisfies the requirement, as shown in the proof for Theorem~\ref{thm:cql_underestimates}. In order to obtain other choices of $\nu(\mathbf{a}|\bs)$ that guarantees a lower bound for all possible choices of $\policy(\mathbf{a}|\bs)$, we solve the following concave-convex maxmin optimization problem, that computes a $\nu(\mathbf{a}|\bs)$ for which a lower-bound is guaranteed for \textit{all} choices of $\mu(\mathbf{a}|\bs)$:
 \begin{align*}
-    \max_{\nu(\ba|\bs)} ~\min_{\policy(\ba|\bs)}~~& ~\sum_{\ba} \policy(\ba|\bs) \cdot \left(\frac{\policy(\ba|\bs) - \nu(\ba|\bs)}{\behavior(\ba|\bs)}\right)\\
-    \text{s.t.}~~& ~~ \sum_{\ba} \policy(\ba|\bs) = 1,~ \sum_{\ba} \nu(\ba|\bs) = 1,~ \nu(\ba|\bs) \geq 0,~ \policy(\ba|\bs) \geq 0. 
+    \max_{\nu(\mathbf{a}|\bs)} ~\min_{\policy(\mathbf{a}|\bs)}~~& ~\sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \cdot \left(\frac{\policy(\mathbf{a}|\bs) - \nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}\right)\\
+    \text{s.t.}~~& ~~ \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) = 1,~ \sum_{\mathbf{a}} \nu(\mathbf{a}|\bs) = 1,~ \nu(\mathbf{a}|\bs) \geq 0,~ \policy(\mathbf{a}|\bs) \geq 0. 
 \end{align*}
-We first solve the inner minimization over $\policy(\ba|\bs)$ for a fixed $\nu(\ba|\bs)$, by writing
+We first solve the inner minimization over $\policy(\mathbf{a}|\bs)$ for a fixed $\nu(\mathbf{a}|\bs)$, by writing
 %%SL.5.27: seperate it into two sentences or rephrase? You have two clauses that both start with "by"
 out the Lagrangian and setting the gradient of the Lagrangian to be 0, we obtain:
 \begin{equation*}
-    \forall \ba, ~~ 2 \cdot \frac{\policy^*(\ba|\bs)}{\behavior(\ba|\bs)} - \frac{\nu(\ba|\bs)}{\behavior(\ba|\bs)} - \zeta(\ba|\bs) + \eta = 0, 
+    \forall \mathbf{a}, ~~ 2 \cdot \frac{\policy^*(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - \frac{\nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - \zeta(\mathbf{a}|\bs) + \eta = 0, 
 \end{equation*}
-where $\zeta(\ba|\bs)$ is the Lagrange dual variable for the positivity constraints on $\policy(\ba|\bs)$, and $\eta$ is the Lagrange dual variable for the normalization constraint on $\policy$. If $\policy(\ba|\bs)$ is full support (for example, when it is chosen to be a Boltzmann policy), KKT conditions imply that, $\zeta(\ba|\bs)$ = 0, and computing $\eta$ by summing up over actions, $\ba$, the optimal choice of $\policy$ for the inner minimization is given by:
+where $\zeta(\mathbf{a}|\bs)$ is the Lagrange dual variable for the positivity constraints on $\policy(\mathbf{a}|\bs)$, and $\eta$ is the Lagrange dual variable for the normalization constraint on $\policy$. If $\policy(\mathbf{a}|\bs)$ is full support (for example, when it is chosen to be a Boltzmann policy), KKT conditions imply that, $\zeta(\mathbf{a}|\bs)$ = 0, and computing $\eta$ by summing up over actions, $\mathbf{a}$, the optimal choice of $\policy$ for the inner minimization is given by:
 \begin{equation}
-    \policy^*(\ba|\bs) = \frac{1}{2} \nu(\ba|\bs) + \frac{1}{2} \behavior(\ba|\bs).
+    \policy^*(\mathbf{a}|\bs) = \frac{1}{2} \nu(\mathbf{a}|\bs) + \frac{1}{2} \behavior(\mathbf{a}|\bs).
     \label{eqn:optimal_inner}
 \end{equation}
-Now, plugging Equation~\ref{eqn:optimal_inner} in the original optimization problem, we obtain the following optimization over only $\nu(\ba|\bs)$:
+Now, plugging Equation~\ref{eqn:optimal_inner} in the original optimization problem, we obtain the following optimization over only $\nu(\mathbf{a}|\bs)$:
 \begin{equation}
-    \max_{\nu(\ba|\bs)} \sum_{\ba} \behavior(\ba|\bs) \cdot \left( \frac{1}{2} - \frac{\nu(\ba|\bs)}{2 \behavior(\ba|\bs)} \right) \cdot \left( \frac{1}{2} + \frac{\nu(\ba|\bs)}{2 \behavior(\ba|\bs)} \right)~~~ \text{s.t.}~~ \sum_{\ba} \nu(\ba|\bs) = 1,~ \nu(\ba|\bs) \geq 0.
+    \max_{\nu(\mathbf{a}|\bs)} \sum_{\mathbf{a}} \behavior(\mathbf{a}|\bs) \cdot \left( \frac{1}{2} - \frac{\nu(\mathbf{a}|\bs)}{2 \behavior(\mathbf{a}|\bs)} \right) \cdot \left( \frac{1}{2} + \frac{\nu(\mathbf{a}|\bs)}{2 \behavior(\mathbf{a}|\bs)} \right)~~~ \text{s.t.}~~ \sum_{\mathbf{a}} \nu(\mathbf{a}|\bs) = 1,~ \nu(\mathbf{a}|\bs) \geq 0.
 \end{equation}
-Solving this optimization, we find that the optimal distribution, $\nu(\ba|\bs)$ is equal to $\behavior(\ba|\bs)$. and the optimal value of penalty, which is also the objective for the problem above is equal to $0$. Since we are maximizing over $\nu$, this indicates for other choices of $\nu \neq \behavior$, we can find a $\policy$ so that the penalty is negative, and hence a lower-bound is not guaranteed. Therefore, we find that with a worst case choice of $\policy(\ba|\bs)$, a lower bound can only be guaranteed only if $\nu(\ba|\bs) = \behavior(\ba|\bs)$. This justifies the necessity of $\behavior(\ba|\bs)$ for maximizing Q-values in Equation~\ref{eqn:modified_policy_eval}. The above analysis doesn't take into account the effect of function approximation or sampling error. We can, however, generalize this result to those settings, by following a similar strategy of appropriately choosing $\alpha_k$, as previously utilized in Theorem~\ref{thm:policy_eval_func_approx}.
+Solving this optimization, we find that the optimal distribution, $\nu(\mathbf{a}|\bs)$ is equal to $\behavior(\mathbf{a}|\bs)$. and the optimal value of penalty, which is also the objective for the problem above is equal to $0$. Since we are maximizing over $\nu$, this indicates for other choices of $\nu \neq \behavior$, we can find a $\policy$ so that the penalty is negative, and hence a lower-bound is not guaranteed. Therefore, we find that with a worst case choice of $\policy(\mathbf{a}|\bs)$, a lower bound can only be guaranteed only if $\nu(\mathbf{a}|\bs) = \behavior(\mathbf{a}|\bs)$. This justifies the necessity of $\behavior(\mathbf{a}|\bs)$ for maximizing Q-values in Equation~\ref{eqn:modified_policy_eval}. The above analysis doesn't take into account the effect of function approximation or sampling error. We can, however, generalize this result to those settings, by following a similar strategy of appropriately choosing $\alpha_k$, as previously utilized in Theorem~\ref{thm:policy_eval_func_approx}.
 \end{proof}
 
-% \textbf{Remark 1.} When performing policy optimization, for example with an instance of the CQL family shown in Equation~\ref{eqn:cql_framework}, we can potentially choose $\nu(\ba|\bs) \neq \behavior(\ba|\bs)$ for maximizing Q-values. The reason is that the choice of $\mu(\ba|\bs)$ (which is equal to $\policy$ in the above argument) is limited by the optimization $\max_{\mu}$ introduced by the CQL family, and it maybe possible to obtain a separate choice of $\nu$, such as a uniform distribution on the support of $\behavior$, which may still guarantee a lower-bound.
+% \textbf{Remark 1.} When performing policy optimization, for example with an instance of the CQL family shown in Equation~\ref{eqn:cql_framework}, we can potentially choose $\nu(\mathbf{a}|\bs) \neq \behavior(\mathbf{a}|\bs)$ for maximizing Q-values. The reason is that the choice of $\mu(\mathbf{a}|\bs)$ (which is equal to $\policy$ in the above argument) is limited by the optimization $\max_{\mu}$ introduced by the CQL family, and it maybe possible to obtain a separate choice of $\nu$, such as a uniform distribution on the support of $\behavior$, which may still guarantee a lower-bound.
 % %%SL.5.27: I think you can delete the above remark. It's not really clear what its implication is, and it kind of muddies the interpretation a bit. It is true, but I think it will just confuse more than it elucidates.
 
 
@@ -370,55 +385,55 @@ Solving this optimization, we find that the optimal distribution, $\nu(\ba|\bs)$
 
 The results in Sections~\ref{sec:policy_eval} and~\ref{sec:framework} account for sampling error due to the finite size of the dataset $\mathcal{D}$. In our practical implementation as well, we optimize a sample-based version of Equation~\ref{eqn:modified_policy_eval}, as shown below:
 \begin{multline}
-    \small{\hat{Q}^{k+1} \leftarrow \arg\min_{Q}~~ \alpha \cdot \left(\sum_{\bs \in \mathcal{D}} \E_{\ba \sim \mu(\ba|\bs)}\left[Q(\bs, \ba)\right] - {\sum_{\bs \in \mathcal{D}} \E_{\ba \sim \behavior(\ba|\bs)}\left[Q(\bs, \ba)\right]} \right)} \\
-    \small{+ \frac{1}{2 |\mathcal{D}|}~ \sum_{\bs, \ba, \bs' \in \mathcal{D}}\left[\left(Q(\bs, \ba) - \hat{\bellman}^\policy \hat{Q}^{k} (\bs, \ba) \right)^2 \right]},
+    \small{\hat{Q}^{k+1} \leftarrow \arg\min_{Q}~~ \alpha \cdot \left(\sum_{\bs \in \mathcal{D}} \E_{\mathbf{a} \sim \mu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right] - {\sum_{\bs \in \mathcal{D}} \E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]} \right)} \\
+    \small{+ \frac{1}{2 |\mathcal{D}|}~ \sum_{\bs, \mathbf{a}, \bs' \in \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \hat{\bellman}^\policy \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right]},
     \label{eqn:sampled_policy_eval}
 \end{multline}
 where $\hat{\bellman}^\policy$ denotes the ``empirical'' Bellman operator computed using samples in $\mathcal{D}$ as follows:
 \begin{equation}
 \label{eqn:app_empirical_bellman}
-    \forall \bs, \ba \in \mathcal{D}, ~~ \left(\hat{\bellman}^\policy \hat{Q}^k \right)(\bs, \ba) = r + \gamma \sum_{\bs'} \hat{\transitions}(\bs'|\bs, \ba) \E_{\ba' \sim \policy(\ba'|\bs')}\left[\hat{Q}^k(\bs' , \ba')\right],  
+    \forall \bs, \mathbf{a} \in \mathcal{D}, ~~ \left(\hat{\bellman}^\policy \hat{Q}^k \right)(\bs, \mathbf{a}) = r + \gamma \sum_{\bs'} \hat{\transitions}(\bs'|\bs, \mathbf{a}) \E_{\mathbf{a}' \sim \policy(\mathbf{a}'|\bs')}\left[\hat{Q}^k(\bs' , \mathbf{a}')\right],  
 \end{equation}
-where $r$ is the empirical average reward obtained in the dataset when executing an action $\ba$ at state $\bs$, i.e. \mbox{$r = \frac{1}{|\mathcal{D}(\bs, \ba)|} \sum_{\bs_i, \ba_i in \mathcal{D}} \mathbf{1}_{\bs_i = \bs, \ba_i = \ba} \cdot r(\bs, \ba)$}, and $\hat{\transitions}(\bs'|\bs, \ba)$ is the empirical transition matrix.
-Note that expectation under $\policy(\ba|\bs)$ can be computed exactly, since it does not depend on the dataset. The empirical Bellman operator can take higher values as compared to the actual Bellman operator, $\bellman^\policy$, for instance, in an MDP with stochastic dynamics, where $\mathcal{D}$ may not contain transitions to all possible next-states $\bs'$ that can be reached by executing action $\ba$ at state $\bs$, and only contains an optimistic transition. 
+where $r$ is the empirical average reward obtained in the dataset when executing an action $\mathbf{a}$ at state $\bs$, i.e. \mbox{$r = \frac{1}{|\mathcal{D}(\bs, \mathbf{a})|} \sum_{\bs_i, \mathbf{a}_i in \mathcal{D}} \mathbf{1}_{\bs_i = \bs, \mathbf{a}_i = \mathbf{a}} \cdot r(\bs, \mathbf{a})$}, and $\hat{\transitions}(\bs'|\bs, \mathbf{a})$ is the empirical transition matrix.
+Note that expectation under $\policy(\mathbf{a}|\bs)$ can be computed exactly, since it does not depend on the dataset. The empirical Bellman operator can take higher values as compared to the actual Bellman operator, $\bellman^\policy$, for instance, in an MDP with stochastic dynamics, where $\mathcal{D}$ may not contain transitions to all possible next-states $\bs'$ that can be reached by executing action $\mathbf{a}$ at state $\bs$, and only contains an optimistic transition. 
 
 %%SL.5.27: Can we state the result below as a theorem?
 We next show how the CQL lower bound result (Theorem~\ref{thm:cql_underestimates}) can be modified to guarantee a lower bound even in this presence of sampling error. To note this, following prior work~\citep{jaksch2010near,osband2017posterior}, we assume concentration properties of the reward function and the transition dynamics:
 \begin{assumption}
-    $\forall~ \bs, \ba \in \mathcal{D}$, the following relationships hold with high probability, $\geq 1 - \delta$
+    $\forall~ \bs, \mathbf{a} \in \mathcal{D}$, the following relationships hold with high probability, $\geq 1 - \delta$
     \begin{equation*}
-        |r - r(\bs, \ba)| \leq \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs, \ba)|}}, ~~~ ||\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs, \ba)||_{1} \leq \frac{C_{\transitions, \delta}}{\sqrt{|\mathcal{D}(\bs, \ba)|}}.
+        |r - r(\bs, \mathbf{a})| \leq \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}, ~~~ ||\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs, \mathbf{a})||_{1} \leq \frac{C_{\transitions, \delta}}{\sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}.
     \end{equation*}
 \end{assumption}
 
 Under this assumption, the difference between the empirical Bellman operator and the actual Bellman operator can be bounded:
 \begin{align*}
-    \left\vert\left(\hat{\bellman}^\policy \hat{Q}^k \right) - \left({\bellman}^\policy \hat{Q}^k \right)\right\vert &= \left\vert\left(r - r(\bs, \ba)\right) + \gamma \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs,\ba)\right) \E_{\policy(\ba'|\bs')}\left[\hat{Q}^k(\bs' , \ba')\right]\right\vert\\
-    &\leq \left\vert r - r(\bs, \ba)\right\vert + \gamma \left\vert \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs,\ba)\right) \E_{\policy(\ba'|\bs')}\left[\hat{Q}^k(\bs' , \ba')\right]\right\vert\\
-    &\leq \frac{C_{r, \delta} + \gamma C_{T, \delta} 2R_{\max} / (1 - \gamma)}{\sqrt{|\mathcal{D}(\bs, \ba)|}}. 
+    \left\vert\left(\hat{\bellman}^\policy \hat{Q}^k \right) - \left({\bellman}^\policy \hat{Q}^k \right)\right\vert &= \left\vert\left(r - r(\bs, \mathbf{a})\right) + \gamma \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs,\mathbf{a})\right) \E_{\policy(\mathbf{a}'|\bs')}\left[\hat{Q}^k(\bs' , \mathbf{a}')\right]\right\vert\\
+    &\leq \left\vert r - r(\bs, \mathbf{a})\right\vert + \gamma \left\vert \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs,\mathbf{a})\right) \E_{\policy(\mathbf{a}'|\bs')}\left[\hat{Q}^k(\bs' , \mathbf{a}')\right]\right\vert\\
+    &\leq \frac{C_{r, \delta} + \gamma C_{T, \delta} 2R_{\max} / (1 - \gamma)}{\sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}. 
 \end{align*}
 This gives us an expression to bound the potential overestimation that can occur due to sampling error, as a function of a constant, $C_{r, \transitions, \delta}$ that can be expressed as a function of $C_{r, \delta}$ and $C_{T, \delta}$, and depends on $\delta$ via a $\sqrt{\log (1/\delta)}$ dependency. This is similar to how prior works have bounded the sampling error due to an empirical Bellman operator~\citep{osband2017posterior,jaksch2010near}.
 
 \subsection{Safe Policy Improvement Guarantee for CQL}
 \label{app:safe_pi}
-In this section, we prove a safe policy improvement guarantee for CQL (and this analysis is also applicable in general to policy constraint methods with appropriate choices of constraints as we will show). We define the empirical MDP, $\hat{M}$ as the MDP formed by the transitions in the replay buffer, $\hat{M} = \{\bs, \ba, r, \bs' \in \mathcal{D} \}$, and let $J(\pi, \hat{M})$ denote the return of a policy $\pi(\ba|\bs)$ in MDP $\hat{M}$. Our goal is to show that $J(\policy, M) \geq J(\hatbehavior, M) - \varepsilon$, with high probability, where $\varepsilon$ is a small constant. We start by proving that CQL optimizes a penalized RL objective in the empirical MDP, $\hat{M}$.
+In this section, we prove a safe policy improvement guarantee for CQL (and this analysis is also applicable in general to policy constraint methods with appropriate choices of constraints as we will show). We define the empirical MDP, $\hat{M}$ as the MDP formed by the transitions in the replay buffer, $\hat{M} = \{\bs, \mathbf{a}, r, \bs' \in \mathcal{D} \}$, and let $J(\pi, \hat{M})$ denote the return of a policy $\pi(\mathbf{a}|\bs)$ in MDP $\hat{M}$. Our goal is to show that $J(\policy, M) \geq J(\hatbehavior, M) - \varepsilon$, with high probability, where $\varepsilon$ is a small constant. We start by proving that CQL optimizes a penalized RL objective in the empirical MDP, $\hat{M}$.
 
 \begin{lemma}
-Let $\hat{Q}^\pi$ be the fixed point of Equation~\ref{eqn:modified_policy_eval}, then $\policy^*(\ba|\bs) := \arg\max_{\policy} \mathbb{E}_{\bs \sim \rho(\bs)}[\hat{V}^\pi(\bs)]$ is equivalently obtained by solving:
+Let $\hat{Q}^\pi$ be the fixed point of Equation~\ref{eqn:modified_policy_eval}, then $\policy^*(\mathbf{a}|\bs) := \arg\max_{\policy} \mathbb{E}_{\bs \sim \rho(\bs)}[\hat{V}^\pi(\bs)]$ is equivalently obtained by solving:
 \begin{equation}
 \label{eqn:policy_optimality}
-    \policy^*(\ba|\bs) \leftarrow \arg \max_{\policy}~~ J(\pi, \hat{M}) - \alpha \frac{1}{1 - \gamma} \mathbb{E}_{\bs \sim d^\policy_{\hat{M}}(\bs)}\left[D_{\text{CQL}}(\policy, \hatbehavior)(\bs) \right],
+    \policy^*(\mathbf{a}|\bs) \leftarrow \arg \max_{\policy}~~ J(\pi, \hat{M}) - \alpha \frac{1}{1 - \gamma} \mathbb{E}_{\bs \sim d^\policy_{\hat{M}}(\bs)}\left[D_{\text{CQL}}(\policy, \hatbehavior)(\bs) \right],
 \end{equation}
-where $D_{\text{CQL}}(\policy, \hatbehavior)(\bs) := \sum_{\ba} \policy(\ba|\bs) \cdot \left(\frac{\policy(\ba|\bs)}{\hatbehavior(\ba|\bs)} - 1 \right)$.
+where $D_{\text{CQL}}(\policy, \hatbehavior)(\bs) := \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \cdot \left(\frac{\policy(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} - 1 \right)$.
 \end{lemma}
 \begin{proof}
-$\hat{Q}^\pi$ is obtained by solving a recursive Bellman fixed point equation in the empirical MDP $\hat{M}$, with an altered reward, $r(\bs, \ba) - \alpha \left[ \frac{\policy(\ba|\bs)}{\hatbehavior(\ba|\bs)} - 1 \right]$, hence the optimal policy $\policy^*(\ba|\bs)$ obtained by optimizing the value under the CQL Q-function equivalently is characterized via Equation~\ref{eqn:policy_optimality}.
+$\hat{Q}^\pi$ is obtained by solving a recursive Bellman fixed point equation in the empirical MDP $\hat{M}$, with an altered reward, $r(\bs, \mathbf{a}) - \alpha \left[ \frac{\policy(\mathbf{a}|\bs)}{\hatbehavior(\mathbf{a}|\bs)} - 1 \right]$, hence the optimal policy $\policy^*(\mathbf{a}|\bs)$ obtained by optimizing the value under the CQL Q-function equivalently is characterized via Equation~\ref{eqn:policy_optimality}.
 \end{proof}
 
-Now, our goal is to relate the performance of $\policy^*(\ba|\bs)$ in the \emph{actual} MDP, $M$, to the performance of the behavior policy, $\behavior(\ba|\bs)$. To this end, we prove the following theorem:
+Now, our goal is to relate the performance of $\policy^*(\mathbf{a}|\bs)$ in the \emph{actual} MDP, $M$, to the performance of the behavior policy, $\behavior(\mathbf{a}|\bs)$. To this end, we prove the following theorem:
 \begin{theorem}
 \label{thm:zeta_safe_app}
-Let $\policy^*(\ba|\bs)$ be the policy obtained by optimizing Equation~\ref{eqn:policy_optimality}. Then the performance of $\policy^*(\ba|\bs)$ in the actual MDP $M$ satisfies,
+Let $\policy^*(\mathbf{a}|\bs)$ be the policy obtained by optimizing Equation~\ref{eqn:policy_optimality}. Then the performance of $\policy^*(\mathbf{a}|\bs)$ in the actual MDP $M$ satisfies,
 \begin{multline}
     \label{eqn:performance_relation}
     J(\policy^*, M) \geq J(\hatbehavior, M) - 2\left({\frac{C_{r, \delta}}{1 - \gamma} + \frac{\gamma R_{\max} C_{T, \delta}}{(1 - \gamma)^2}} \right)\mathbb{E}_{\bs \sim d^{\policy^*}_{\hat{M}}(\bs)}\left[ \frac{\sqrt{|\mathcal{A}|}}{\sqrt{|\mathcal{D}(\bs)|}} \sqrt{ D_{\text{CQL}}(\policy^*, \hatbehavior)(\bs) + 1} \right] \\
@@ -426,7 +441,7 @@ Let $\policy^*(\ba|\bs)$ be the policy obtained by optimizing Equation~\ref{eqn:
 \end{multline}
 \end{theorem}
 \begin{proof}
-The proof for this statement is divided into two parts. The first part involves relating the return of $\policy^*(\ba|\bs)$ in MDP $\hat{M}$ with the return of $\hatbehavior$ in MDP $\hat{M}$. Since, $\policy^*(\ba|\bs)$ optimizes Equation~\ref{eqn:policy_optimality}, we can relate $J(\policy^*, \hat{M})$ and $J(\hatbehavior, \hat{M})$ as:
+The proof for this statement is divided into two parts. The first part involves relating the return of $\policy^*(\mathbf{a}|\bs)$ in MDP $\hat{M}$ with the return of $\hatbehavior$ in MDP $\hat{M}$. Since, $\policy^*(\mathbf{a}|\bs)$ optimizes Equation~\ref{eqn:policy_optimality}, we can relate $J(\policy^*, \hat{M})$ and $J(\hatbehavior, \hat{M})$ as:
 \begin{equation*}
     J(\policy^*, \hat{M}) - \alpha \mathbb{E}_{\bs \sim d^\policy_{\hat{M}}(\bs)}\left[D_{\text{CQL}}(\policy^*, \behavior)(\bs) \right] \geq J(\hatbehavior, \hat{M)} - 0 = J(\hatbehavior, \hat{M}).
 \end{equation*}
@@ -434,7 +449,7 @@ The next step involves using concentration inequalities to upper and lower bound
 \end{proof}
 
 \begin{lemma}
-For any MDP $M$, an empirical MDP $\hat{M}$ generated by sampling actions according to the behavior policy $\hatbehavior(\ba|\bs)$ and a given policy $\policy$,
+For any MDP $M$, an empirical MDP $\hat{M}$ generated by sampling actions according to the behavior policy $\hatbehavior(\mathbf{a}|\bs)$ and a given policy $\policy$,
 \begin{equation*}
     \left\vert J(\policy, \hat{M}) - J(\policy, M) \right\vert \leq \left({\frac{C_{r, \delta}}{1 - \gamma} + \frac{\gamma R_{\max} C_{T, \delta}}{(1 - \gamma)^2}} \right)\mathbb{E}_{\bs \sim d^{\policy}_{\hat{M}}(\bs)}\left[ \frac{\sqrt{|\mathcal{A}|}}{{|\mathcal{D}(\bs)|}} \sqrt{ D_{\text{CQL}}(\policy, \hatbehavior)(\bs) + 1} \right].
 \end{equation*}
@@ -442,40 +457,40 @@ For any MDP $M$, an empirical MDP $\hat{M}$ generated by sampling actions accord
 \begin{proof}
 To prove this, we first use the triangle inequality to clearly separate reward and transition dynamics contributions in the expected return.
 \begin{align}
-    & \left\vert J(\policy, \hat{M}) - J(\policy, M) \right\vert = \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \ba} d^\policy_{\hat{M}}(\bs) \policy(\ba|\bs) r_{\hat{M}}(\bs, \ba) -  \sum_{\bs, \ba} d^\policy_{{M}}(\bs) \policy(\ba|\bs) r_{{M}}(\bs, \ba) \right\vert\\
-    &\leq \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \ba} d^\policy_{\hat{M}}(\bs) \underbrace{\left[ \policy(\ba|\bs) ( r_{\hat{M}}(\bs, \ba) - r_M(\bs, \ba) \right]}_{:= \Delta_1(\bs)} \right\vert + \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \ba} \left(d^\policy_{\hat{M}}(\bs) - d^\policy_{{M}}(\bs) \right) \policy(\ba|\bs) r_M(\bs, \ba) \right\vert
+    & \left\vert J(\policy, \hat{M}) - J(\policy, M) \right\vert = \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \mathbf{a}} d^\policy_{\hat{M}}(\bs) \policy(\mathbf{a}|\bs) r_{\hat{M}}(\bs, \mathbf{a}) -  \sum_{\bs, \mathbf{a}} d^\policy_{{M}}(\bs) \policy(\mathbf{a}|\bs) r_{{M}}(\bs, \mathbf{a}) \right\vert\\
+    &\leq \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \mathbf{a}} d^\policy_{\hat{M}}(\bs) \underbrace{\left[ \policy(\mathbf{a}|\bs) ( r_{\hat{M}}(\bs, \mathbf{a}) - r_M(\bs, \mathbf{a}) \right]}_{:= \Delta_1(\bs)} \right\vert + \frac{1}{1 - \gamma} \left\vert \sum_{\bs, \mathbf{a}} \left(d^\policy_{\hat{M}}(\bs) - d^\policy_{{M}}(\bs) \right) \policy(\mathbf{a}|\bs) r_M(\bs, \mathbf{a}) \right\vert
 \end{align}
 We first use concentration inequalities to upper bound $\Delta_1(\bs)$. Note that under concentration assumptions, and by also using the fact that $\mathbb{E}[\Delta_1(\bs)] = 0$ (in the limit of infinite data), we get:
 \begin{align*}
-    \vert\Delta_1(\bs)\vert &~ \leq \sum_{\ba} \policy(\ba|\bs) \vert r_{\hat{M}}(\bs, \ba) - r_{M}(\bs, \ba)\vert \leq \sum_{\ba} \policy(\ba|\bs) \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs)| \cdot |\mathcal{D}(\ba|\bs)|}} = \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\ba} \frac{\policy(\ba|\bs)}{\sqrt{\hatbehavior(\ba|\bs)}},
+    \vert\Delta_1(\bs)\vert &~ \leq \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \vert r_{\hat{M}}(\bs, \mathbf{a}) - r_{M}(\bs, \mathbf{a})\vert \leq \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs)| \cdot |\mathcal{D}(\mathbf{a}|\bs)|}} = \frac{C_{r, \delta}}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\mathbf{a}} \frac{\policy(\mathbf{a}|\bs)}{\sqrt{\hatbehavior(\mathbf{a}|\bs)}},
 \end{align*}
-where the last step follows from the fact that $|\mathcal{D}(\bs, \ba)| = |\mathcal{D}(\bs)| \cdot \hatbehavior(\ba|\bs)$.
+where the last step follows from the fact that $|\mathcal{D}(\bs, \mathbf{a})| = |\mathcal{D}(\bs)| \cdot \hatbehavior(\mathbf{a}|\bs)$.
 
-Next we bound the second term. We first note that if we can bound $\vert\vert d^\policy_{\hat{M}} - d^\policy_M \vert\vert_1$, (i.e., the total variation between the marginal state distributions in $\hat{M}$ and $M$, then we are done, since $|r_M(\bs, \ba)| \leq R_{\max}$ and $\policy(\ba|\bs) \leq 1$, and hence we bound the second term effectively. We use an analysis similar to \citet{achiam2017constrained} to obtain this total variation bound. Define, $G = (I - \gamma P^{\policy}_{M})^{-1}$ and $\bar{G} = (I - \gamma P^\policy_{\hat{M}})^{-1}$ and let $\Delta = P^\policy_{M} - P^{\policy}_{\hat{M}}$. Then, we can write:
+Next we bound the second term. We first note that if we can bound $\vert\vert d^\policy_{\hat{M}} - d^\policy_M \vert\vert_1$, (i.e., the total variation between the marginal state distributions in $\hat{M}$ and $M$, then we are done, since $|r_M(\bs, \mathbf{a})| \leq R_{\max}$ and $\policy(\mathbf{a}|\bs) \leq 1$, and hence we bound the second term effectively. We use an analysis similar to \citet{achiam2017constrained} to obtain this total variation bound. Define, $G = (I - \gamma P^{\policy}_{M})^{-1}$ and $\mathbf{a}r{G} = (I - \gamma P^\policy_{\hat{M}})^{-1}$ and let $\Delta = P^\policy_{M} - P^{\policy}_{\hat{M}}$. Then, we can write:
 \begin{equation*}
-    d^\policy_{\hat{M}} - d^\policy_{M} = (1 - \gamma) (\bar{G} - G) \rho,
+    d^\policy_{\hat{M}} - d^\policy_{M} = (1 - \gamma) (\mathbf{a}r{G} - G) \rho,
 \end{equation*}
 where $\rho(\bs)$ is the initial state distribution, which is assumed to be the same for both the MDPs. Then, using Equation 21 from \citet{achiam2017constrained}, we can simplify this to obtain,
 \begin{equation*}
-    d^\policy_{{M}} - d^\policy_{\hat{M}} = (1 - \gamma) \gamma {G} \Delta \bar{G} \mu = \gamma \bar{G} \Delta d^\policy_{\hat{M}}
+    d^\policy_{{M}} - d^\policy_{\hat{M}} = (1 - \gamma) \gamma {G} \Delta \mathbf{a}r{G} \mu = \gamma \mathbf{a}r{G} \Delta d^\policy_{\hat{M}}
 \end{equation*}
 Now, following steps similar to proof of Lemma 3 in \citet{achiam2017constrained} we obtain,
 \begin{align*}
     \vert\vert \Delta d^\policy_M||_{1} &= \sum_{\bs'} \left\vert \sum_{\bs} \Delta(\bs'|\bs) d^\policy_{M}(\bs) \right\vert \leq \sum_{\bs, \bs'} \left\vert \Delta(\bs'|\bs) \right\vert d^\policy_{\hat{M}}\\
-    &= \sum_{\bs, \bs'} \left\vert \sum_{\ba} \left(P_{\hat{M}}(\bs'|\bs, \ba) - P_{M}(\bs'|\bs, \ba) \right) \policy(\ba|\bs) \right\vert d^\policy_{\hat{M}}(\bs) \\
-    &\leq \sum_{\bs, \ba} \vert\vert P_{\hat{M}}(\cdot|\bs, \ba) - P_M(\cdot|\bs, \ba) \vert\vert_{1} \policy(\ba|\bs) d^\policy_{\hat{M}}(\bs)\\
-    &\leq \sum_{\bs} d^\policy_{\hat{M}}(\bs) \frac{C_{T, \delta}}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\ba}  \frac{\policy(\ba|\bs)}{\sqrt{\hatbehavior(\ba|\bs)}}.
+    &= \sum_{\bs, \bs'} \left\vert \sum_{\mathbf{a}} \left(P_{\hat{M}}(\bs'|\bs, \mathbf{a}) - P_{M}(\bs'|\bs, \mathbf{a}) \right) \policy(\mathbf{a}|\bs) \right\vert d^\policy_{\hat{M}}(\bs) \\
+    &\leq \sum_{\bs, \mathbf{a}} \vert\vert P_{\hat{M}}(\cdot|\bs, \mathbf{a}) - P_M(\cdot|\bs, \mathbf{a}) \vert\vert_{1} \policy(\mathbf{a}|\bs) d^\policy_{\hat{M}}(\bs)\\
+    &\leq \sum_{\bs} d^\policy_{\hat{M}}(\bs) \frac{C_{T, \delta}}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\mathbf{a}}  \frac{\policy(\mathbf{a}|\bs)}{\sqrt{\hatbehavior(\mathbf{a}|\bs)}}.
 \end{align*}
 Hence, we can bound the second term by:
 \begin{align*}
-    \left\vert \sum_{\bs} \left(d^\policy_{\hat{M}}(\bs) - d^\policy_{{M}}(\bs) \right) \policy(\ba|\bs) r_M(\bs, \ba) \right\vert \leq \frac{\gamma C_{T, \delta} R_{\max}}{(1 - \gamma)} \sum_{\bs} d^\policy_{\hat{M}}(\bs) \frac{1}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\ba}  \frac{\policy(\ba|\bs)}{\sqrt{\hatbehavior(\ba|\bs)}}.
+    \left\vert \sum_{\bs} \left(d^\policy_{\hat{M}}(\bs) - d^\policy_{{M}}(\bs) \right) \policy(\mathbf{a}|\bs) r_M(\bs, \mathbf{a}) \right\vert \leq \frac{\gamma C_{T, \delta} R_{\max}}{(1 - \gamma)} \sum_{\bs} d^\policy_{\hat{M}}(\bs) \frac{1}{\sqrt{|\mathcal{D}(\bs)|}} \sum_{\mathbf{a}}  \frac{\policy(\mathbf{a}|\bs)}{\sqrt{\hatbehavior(\mathbf{a}|\bs)}}.
 \end{align*}
 
-To finally obtain $D_{\text{CQL}}(\policy, \behavior)(\bs)$ in the bound, let $\alpha(\bs, \ba) := \frac{\policy(\ba|\bs)}{\sqrt{\hatbehavior(\ba|\bs)}}$. Then, we can write $D_{\text{CQL}}(\policy, \hatbehavior)(\bs)$ as follows:
+To finally obtain $D_{\text{CQL}}(\policy, \behavior)(\bs)$ in the bound, let $\alpha(\bs, \mathbf{a}) := \frac{\policy(\mathbf{a}|\bs)}{\sqrt{\hatbehavior(\mathbf{a}|\bs)}}$. Then, we can write $D_{\text{CQL}}(\policy, \hatbehavior)(\bs)$ as follows:
 \begin{align*}
-    D_\text{CQL}(\bs) &= \sum_{\ba} \frac{\policy(\ba|\bs)^2}{\hatbehavior(\ba|\bs)} - 1\\
-    \implies D_{\text{CQL}}(\bs) + 1 &= \sum_{\ba} \alpha(\bs, \ba)^{2}\\
-    \implies D_{\text{CQL}}(\bs) + 1 &\leq \left(\sum_{\ba} \alpha(\bs,\ba)\right)^2 \leq |\mathcal{A}| \left(D_\text{CQL}(\bs) + 1 \right).
+    D_\text{CQL}(\bs) &= \sum_{\mathbf{a}} \frac{\policy(\mathbf{a}|\bs)^2}{\hatbehavior(\mathbf{a}|\bs)} - 1\\
+    \implies D_{\text{CQL}}(\bs) + 1 &= \sum_{\mathbf{a}} \alpha(\bs, \mathbf{a})^{2}\\
+    \implies D_{\text{CQL}}(\bs) + 1 &\leq \left(\sum_{\mathbf{a}} \alpha(\bs,\mathbf{a})\right)^2 \leq |\mathcal{A}| \left(D_\text{CQL}(\bs) + 1 \right).
 \end{align*}
 Combining these arguments together, we obtain the following upper bound on $|J(\policy, M) - J(\policy, \hat{M})|$,
 \begin{equation*}
@@ -490,129 +505,129 @@ The proof of Theorem~\ref{thm:zeta_safe_app} is then completed by using the abov
 
 % \begin{lemma}[Performance difference lemma~\citep{kakade2002approximately}]
 % \label{lemma:pdl}
-% Let the advantage of an action $\ba$ under a policy $\policy(\ba|\bs)$ at a state $\bs$ be defined as: $A^\policy(\bs, \ba) = Q^\policy(\bs, \ba) - V^\policy(\bs)$, and let $d^\policy(\bs)$ define the infinite-horizon, discounted marginal state distribution under policy $\policy$. For any two Markovian policies, $\policy(\ba|\bs)$ and $\policy'(\ba|\bs)$,
+% Let the advantage of an action $\mathbf{a}$ under a policy $\policy(\mathbf{a}|\bs)$ at a state $\bs$ be defined as: $A^\policy(\bs, \mathbf{a}) = Q^\policy(\bs, \mathbf{a}) - V^\policy(\bs)$, and let $d^\policy(\bs)$ define the infinite-horizon, discounted marginal state distribution under policy $\policy$. For any two Markovian policies, $\policy(\mathbf{a}|\bs)$ and $\policy'(\mathbf{a}|\bs)$,
 % \begin{equation*}
-%     J(\policy) = J(\policy') + \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \ba \sim \policy(\ba|\bs)}\left[ A^{\policy'}(\bs, \ba) \right]. 
-%     % = \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \ba \sim \policy(\ba|\bs)}\left[ Q^{\policy'}(\bs, \ba) - \E_{\ba' \sim \policy'(\ba'|\bs)}\left[Q^{\policy'}(\bs, \ba') \right] \right].
+%     J(\policy) = J(\policy') + \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[ A^{\policy'}(\bs, \mathbf{a}) \right]. 
+%     % = \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[ Q^{\policy'}(\bs, \mathbf{a}) - \E_{\mathbf{a}' \sim \policy'(\mathbf{a}'|\bs)}\left[Q^{\policy'}(\bs, \mathbf{a}') \right] \right].
 % \end{equation*}
 % \end{lemma}
 
-% We start by applying Lemma~\ref{lemma:pdl} on the target policy $\policy(\ba|\bs)$, and the empirical dataset action conditional $\hatbehavior(\ba|\bs)$.
+% We start by applying Lemma~\ref{lemma:pdl} on the target policy $\policy(\mathbf{a}|\bs)$, and the empirical dataset action conditional $\hatbehavior(\mathbf{a}|\bs)$.
 % \begin{align*}
-%     J(\behavior) =& ~ J(\policy) + \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\\
-%     J(\policy) =& ~J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\\
-%     =& ~\underbrace{J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right]}_{\text{predicted OPE return,~~} \hat{J}(\policy)}\\
-%     & \small{+ \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs), \behavior(\ba|\bs)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs), \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\right)}.
+%     J(\behavior) =& ~ J(\policy) + \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\\
+%     J(\policy) =& ~J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\\
+%     =& ~\underbrace{J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right]}_{\text{predicted OPE return,~~} \hat{J}(\policy)}\\
+%     & \small{+ \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\right)}.
 % \end{align*}
 % Thus, we obtain the final relationship between actual and predicted policy return:
 % \begin{equation}
 % \label{eqn:predicted_policy_return}
-%     \small{J(\policy) = \hat{J}(\policy) + \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs, \ba)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs, \ba)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\right)}. 
+%     \small{J(\policy) = \hat{J}(\policy) + \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs, \mathbf{a})} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs, \mathbf{a})} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\right)}. 
 % \end{equation}
 
 % % We now prove the following result:
 
 % % \begin{theorem}[CQL results in a lower-bound in the presence of sampling error.] Under the concentrations conditions specified by Assumption 1, the Q-function obtained by minimizing Equation~\ref{eqn:modified_policy_eval} lower bounds the policy value when,
 % % \begin{equation*}
-% %     \alpha > \max_{\bs \in \mathcal{D}} \left[ \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sum_{\ba} \policy(\ba|\bs) \frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)}} \right].
+% %     \alpha > \max_{\bs \in \mathcal{D}} \left[ \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}} \right].
 % % \end{equation*}
 % % \end{theorem}
 % % \begin{proof}
 % % Under assumption 1, the difference between the empirical Bellman operator and the actual Bellman operator can be bounded:
 % % \begin{align*}
-% %     \left\vert\left(\hat{\bellman}^\policy \hat{Q}^k \right) - \left({\bellman}^\policy \hat{Q}^k \right)\right\vert &= \left\vert\left(r - r(\bs, \ba)\right) + \gamma \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs,\ba)\right) \E_{\policy(\ba'|\bs')}\left[\hat{Q}^k(\bs' , \ba')\right]\right\vert\\
-% %     &\leq \left\vert r - r(\bs, \ba)\right\vert + \gamma \left\vert \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs,\ba)\right) \E_{\policy(\ba'|\bs')}\left[\hat{Q}^k(\bs' , \ba')\right]\right\vert\\
-% %     &\leq \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sqrt{|\mathcal{D}(\bs, \ba)|}}. 
+% %     \left\vert\left(\hat{\bellman}^\policy \hat{Q}^k \right) - \left({\bellman}^\policy \hat{Q}^k \right)\right\vert &= \left\vert\left(r - r(\bs, \mathbf{a})\right) + \gamma \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs,\mathbf{a})\right) \E_{\policy(\mathbf{a}'|\bs')}\left[\hat{Q}^k(\bs' , \mathbf{a}')\right]\right\vert\\
+% %     &\leq \left\vert r - r(\bs, \mathbf{a})\right\vert + \gamma \left\vert \sum_{\bs'} \left(\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs,\mathbf{a})\right) \E_{\policy(\mathbf{a}'|\bs')}\left[\hat{Q}^k(\bs' , \mathbf{a}')\right]\right\vert\\
+% %     &\leq \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sqrt{|\mathcal{D}(\bs, \mathbf{a})|}}. 
 % % \end{align*}
 % % Hence, we observe that we can bound the (potential) worst-case overestimation caused due to sampling error. Analogous to how Theorem~\ref{thm:policy_eval_func_approx} corrects for the the overestimation caused due to function approximator projections by choosing a specific value of $\alpha$, we can choose $\alpha$ to compensate for potential overestimation induced via sampling error.
 
-% % In this case, we can then see that any $\alpha > \max_{\bs \in \mathcal{D}} \left[ \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sum_{\ba} \policy(\ba|\bs) \frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)}} \right]$ suffices to guarantee a lower-bound, since, $\forall \bs, \ba \in \mathcal{D}, ~ |\mathcal{D}(\bs, \ba)| > 1$. This choice of $\alpha$ cancels potential the overestimation incurred due to sampling error (numerator) with the underestimation introduced due to the penalty (denominator). When $\alpha$ is larger than the ratio, the amount of underestimation in value is larger, and hence the lower-bound result.
+% % In this case, we can then see that any $\alpha > \max_{\bs \in \mathcal{D}} \left[ \frac{C_r + \gamma C_T R_{\max} / (1 - \gamma)}{\sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}} \right]$ suffices to guarantee a lower-bound, since, $\forall \bs, \mathbf{a} \in \mathcal{D}, ~ |\mathcal{D}(\bs, \mathbf{a})| > 1$. This choice of $\alpha$ cancels potential the overestimation incurred due to sampling error (numerator) with the underestimation introduced due to the penalty (denominator). When $\alpha$ is larger than the ratio, the amount of underestimation in value is larger, and hence the lower-bound result.
 % % \end{proof}
 
 % % \subsection{\ak{Remove, unless we have concrete proof} Comparison to Value-Penalty Policy-Constraint Methods}
 % % \label{sec:comparison_underestimation}
 % % In the tabular setting, CQL resembles prior policy-constraint methods that apply a value function penalty~\citep{wu2019behavior}, inside the Bellman backup during training. These prior methods aim to learn a value function for an f-divergence regularized RL problem,
 % % \begin{equation*}
-% %     \tilde{r}(\bs, \ba) = r(\bs, \ba) - f\left( \frac{\policy(\ba|\bs)}{\behavior(\ba|\bs)} \right),
+% %     \tilde{r}(\bs, \mathbf{a}) = r(\bs, \mathbf{a}) - f\left( \frac{\policy(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right),
 % % \end{equation*}
-% % and the resulting value-function for the modified reward function satisfies the following relationship: $\tilde{V}(\bs) = \E_{\bs' \sim d^\policy(\bs' | \bs_0 = \bs)} \left[ \E_{\ba' \sim \policy(\ba'|\bs')} [r(\bs', \ba')] - D_f(\policy(\ba'|\bs'), \behavior(\ba'|\bs'))  \right]$. One can instantiate such value-penalty methods using any choice of f-divergence. In this section, we analyze the corresponding CQL value function and shows that it gives rise to a stronger or comparable lower-bound to other divergences, such as the total variation distance or the KL-divergence, in a simple two-action case.
+% % and the resulting value-function for the modified reward function satisfies the following relationship: $\tilde{V}(\bs) = \E_{\bs' \sim d^\policy(\bs' | \bs_0 = \bs)} \left[ \E_{\mathbf{a}' \sim \policy(\mathbf{a}'|\bs')} [r(\bs', \mathbf{a}')] - D_f(\policy(\mathbf{a}'|\bs'), \behavior(\mathbf{a}'|\bs'))  \right]$. One can instantiate such value-penalty methods using any choice of f-divergence. In this section, we analyze the corresponding CQL value function and shows that it gives rise to a stronger or comparable lower-bound to other divergences, such as the total variation distance or the KL-divergence, in a simple two-action case.
 
-% % In order to show this result, we operate at the level of value function iterates obtained from CQL and such value-penalty methods. In each iteration, CQL subtracts a penalty that is given by (Theorem~\ref{thm:cql_underestimates}), $D_{\text{CQL}}(\bs) = \sum_{\ba} \policy(\ba|\bs) \cdot \left(\frac{\policy(\ba|\bs) - \behavior(\ba|\bs)}{\behavior(\ba|\bs)} \right)$ from the value of each state $\bs$, whereas a value penalty method based that uses an f-divergence subtracts a penalty, $D_{\text{VP}}(\bs) := D_{f}(\policy(\ba|\bs), \behavior(\ba|\bs))$ from the value function in each iteration.
+% % In order to show this result, we operate at the level of value function iterates obtained from CQL and such value-penalty methods. In each iteration, CQL subtracts a penalty that is given by (Theorem~\ref{thm:cql_underestimates}), $D_{\text{CQL}}(\bs) = \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \cdot \left(\frac{\policy(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} \right)$ from the value of each state $\bs$, whereas a value penalty method based that uses an f-divergence subtracts a penalty, $D_{\text{VP}}(\bs) := D_{f}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs))$ from the value function in each iteration.
 % % Our generic recipe here is to derive the maximum allowable value of the CQL penalty, $D_{\text{CQL}}(\bs)$, when the policy-constraint value penalty, $D_\text{VP}(\bs)$ is bounded by some $\delta > 0$, i.e. we aim to solve the following optimization problem:
 % % \begin{equation*}
 % %     \max_\policy~~ D_{\text{CQL}}(\bs) ~~\text{s.t.}~~ D_{\text{VP}}(\bs) = \delta. 
 % % \end{equation*}
 
-% % For the simple case of two actions, $D_\text{VP}(\bs) = D_{\text{TV}}(\policy(\ba|\bs), \behavior(\ba|\bs))$, and the $\policy(\ba|\bs)$ is supported over two actions, i.e. $\policy(\ba|\bs) = \left[ \alpha, 1 - \alpha \right]$, and if the behavior policy $\behavior(\ba|\bs)$ is given by, $\behavior(\ba|\bs) = \left[\beta, 1 - \beta \right]$, the total-variation distance is given by:
+% % For the simple case of two actions, $D_\text{VP}(\bs) = D_{\text{TV}}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs))$, and the $\policy(\mathbf{a}|\bs)$ is supported over two actions, i.e. $\policy(\mathbf{a}|\bs) = \left[ \alpha, 1 - \alpha \right]$, and if the behavior policy $\behavior(\mathbf{a}|\bs)$ is given by, $\behavior(\mathbf{a}|\bs) = \left[\beta, 1 - \beta \right]$, the total-variation distance is given by:
 % % \begin{equation*}
-% %     D_{\text{TV}}(\policy(\ba|\bs), \behavior(\ba|\bs)) = 2 \cdot |\alpha - \beta|~~ (= 2 \delta, \text{~~let}).
+% %     D_{\text{TV}}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs)) = 2 \cdot |\alpha - \beta|~~ (= 2 \delta, \text{~~let}).
 % % \end{equation*}
 % % Without loss of generality, assume $\alpha = \beta + \delta$. In this case, the expression for $D_{\text{CQL}}$ is given by:
 % % \begin{equation*}
-% %     D_{\text{CQL}}(\policy(\ba|\bs), \behavior(\ba|\bs)) = \alpha \left( \frac{\alpha}{\beta} - 1 \right) + (1 - \alpha) \left( \frac{1 - \alpha}{1 - \beta} - 1 \right) = \delta^2 \cdot \left(\frac{1}{\beta (1 - \beta)} \right).
+% %     D_{\text{CQL}}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs)) = \alpha \left( \frac{\alpha}{\beta} - 1 \right) + (1 - \alpha) \left( \frac{1 - \alpha}{1 - \beta} - 1 \right) = \delta^2 \cdot \left(\frac{1}{\beta (1 - \beta)} \right).
 % % \end{equation*}
 % % Thus, for $\delta < 1$, $D_{\text{CQL}}(\bs) = \mathcal{O}(\delta^2)$, whereas $D_\text{VP}(\bs) = \mathcal{O}(\delta)$, indicating that in $D_{\text{CQL}}$ is lesser than $D_{\text{VP}}$, in by a power of the difference between distributions, indicating the tightness of CQL.
 
-% % When we choose $D_{\text{VP}}(\bs) = D_\mathrm{KL}(\policy(\ba|\bs), \behavior(\ba|\bs))$, by using Pinsker's inequality, we obtain that $D_\text{KL}(\policy(\ba|\bs), \behavior(\ba|\bs)) = \Omega(\delta^2)$. This indicates that $D_\text{CQL}$ is smaller than $D_\text{KL}$ in this setting, though the order might be similar. 
+% % When we choose $D_{\text{VP}}(\bs) = D_\mathrm{KL}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs))$, by using Pinsker's inequality, we obtain that $D_\text{KL}(\policy(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs)) = \Omega(\delta^2)$. This indicates that $D_\text{CQL}$ is smaller than $D_\text{KL}$ in this setting, though the order might be similar. 
 
 % % \subsection{\ak{Remove unless concrete} Quantifying the Amount of Under-Estimation in CQL-based Off-Policy Evaluation}
 % % \label{app:error_bound_analysis}
 % % Next, we aim to answer the following question in the context of conservative off-policy evaluation: \textbf{How is the learned policy value, $\hat{J}(\policy)$, for any policy $\policy$ related to its true value, $J(\policy)$?}
 
-% % Our setup here is to use data from a behavior distribution, $d^{\behavior}(\bs)\behavior(\ba|\bs)$, to evaluate a policy $\policy(\ba|\bs)$. The CQL update used for this purpose is shown in Equation~\ref{eqn:modified_policy_eval}.
+% % Our setup here is to use data from a behavior distribution, $d^{\behavior}(\bs)\behavior(\mathbf{a}|\bs)$, to evaluate a policy $\policy(\mathbf{a}|\bs)$. The CQL update used for this purpose is shown in Equation~\ref{eqn:modified_policy_eval}.
 % % In order to quantify the amount of underestimation, we start our analysis with the performance difference lemma~\citep{kakade2002approximately}, and show that CQL regularizer/pnalty provides a convenient way to bound terms that appear as a result of applying this lemma. We state the performance difference lemma in Lemma~\ref{lemma:pdl} for completeness. 
 
 % % \begin{lemma}[Performance difference lemma~\citep{kakade2002approximately}]
 % % \label{lemma:pdl}
-% % Let the advantage of an action $\ba$ under a policy $\policy(\ba|\bs)$ at a state $\bs$ be defined as: $A^\policy(\bs, \ba) = Q^\policy(\bs, \ba) - V^\policy(\bs)$, and let $d^\policy(\bs)$ define the infinite-horizon, discounted marginal state distribution under policy $\policy$. For any two Markovian policies, $\policy(\ba|\bs)$ and $\policy'(\ba|\bs)$,
+% % Let the advantage of an action $\mathbf{a}$ under a policy $\policy(\mathbf{a}|\bs)$ at a state $\bs$ be defined as: $A^\policy(\bs, \mathbf{a}) = Q^\policy(\bs, \mathbf{a}) - V^\policy(\bs)$, and let $d^\policy(\bs)$ define the infinite-horizon, discounted marginal state distribution under policy $\policy$. For any two Markovian policies, $\policy(\mathbf{a}|\bs)$ and $\policy'(\mathbf{a}|\bs)$,
 % % \begin{equation*}
-% %     J(\policy) = J(\policy') + \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \ba \sim \policy(\ba|\bs)}\left[ A^{\policy'}(\bs, \ba) \right]. 
-% %     % = \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \ba \sim \policy(\ba|\bs)}\left[ Q^{\policy'}(\bs, \ba) - \E_{\ba' \sim \policy'(\ba'|\bs)}\left[Q^{\policy'}(\bs, \ba') \right] \right].
+% %     J(\policy) = J(\policy') + \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[ A^{\policy'}(\bs, \mathbf{a}) \right]. 
+% %     % = \frac{1}{1 - \gamma} \E_{\bs \sim d^\policy(\bs), \mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[ Q^{\policy'}(\bs, \mathbf{a}) - \E_{\mathbf{a}' \sim \policy'(\mathbf{a}'|\bs)}\left[Q^{\policy'}(\bs, \mathbf{a}') \right] \right].
 % % \end{equation*}
 % % \end{lemma}
 
-% % We start by applying Lemma~\ref{lemma:pdl} on policy $\policy(\ba|\bs)$ which is to be evaluated, and the effective Markovian policy $\behavior(\ba|\bs)$ of the dataset $\mathcal{D}$. Note that, we can always compute the effective Markovian policy, irrespective of the dataset composition, as the ratio of state-action marginal and the state-marginal density in the dataset, $\behavior(\ba|\bs) := \frac{d^\behavior(\bs, \ba)}{d^\behavior(\bs)}$ via marginal matching~\citep{puterman2014markov}.
+% % We start by applying Lemma~\ref{lemma:pdl} on policy $\policy(\mathbf{a}|\bs)$ which is to be evaluated, and the effective Markovian policy $\behavior(\mathbf{a}|\bs)$ of the dataset $\mathcal{D}$. Note that, we can always compute the effective Markovian policy, irrespective of the dataset composition, as the ratio of state-action marginal and the state-marginal density in the dataset, $\behavior(\mathbf{a}|\bs) := \frac{d^\behavior(\bs, \mathbf{a})}{d^\behavior(\bs)}$ via marginal matching~\citep{puterman2014markov}.
 % % Apply PDL:
 % % \begin{align*}
-% %     J(\behavior) =& ~ J(\policy) + \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\\
-% %     J(\policy) =& ~J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\\
-% %     =& ~\underbrace{J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \ba \sim \behavior(\ba|\bs)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right]}_{\text{predicted OPE return,~~} \hat{J}(\policy)}\\
-% %     & \small{+ \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs), \behavior(\ba|\bs)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs), \behavior(\ba|\bs)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\right)}.
+% %     J(\behavior) =& ~ J(\policy) + \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\\
+% %     J(\policy) =& ~J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\\
+% %     =& ~\underbrace{J(\behavior) - \frac{1}{1 - \gamma} \E_{\bs \sim d^\behavior(\bs), \mathbf{a} \sim \behavior(\mathbf{a}|\bs)} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right]}_{\text{predicted OPE return,~~} \hat{J}(\policy)}\\
+% %     & \small{+ \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs), \behavior(\mathbf{a}|\bs)} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\right)}.
 % % \end{align*}
 % % Thus, we obtain the final relationship between actual and predicted policy return:
 % % \begin{equation}
 % % \label{eqn:predicted_policy_return}
-% %     \small{J(\policy) = \hat{J}(\policy) + \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs, \ba)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs, \ba)} \left[ Q^\policy(\bs, \ba) - Q^\policy(\bs, \policy(\bs))\right]\right)}. 
+% %     \small{J(\policy) = \hat{J}(\policy) + \frac{1}{1 - \gamma} \left( \E_{d^\behavior(\bs, \mathbf{a})} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right] - \E_{d^\behavior(\bs, \mathbf{a})} \left[ Q^\policy(\bs, \mathbf{a}) - Q^\policy(\bs, \policy(\bs))\right]\right)}. 
 % % \end{equation}
-% % Hence, the difference between the predicted policy return and the actual return depends on the gap in expected Q-value on in-distribution actions ($\ba \sim \behavior(\ba|\bs)$) and policy actions ($\ba \sim \policy(\ba|\bs)$) only at in-distribution states ($\bs \sim d^\behavior(\bs)$) induced by the CQL algorithm. Theorem~\ref{thm:gap_amplify} shows that the gap induced by CQL is larger than the actual gap, indicating that the offset, $J(\policy) - \hat{J}(\policy)$ is positive, justifying the lower-bound property of the CQL-based off-policy evaluation described in Section~\ref{sec:policy_eval}.
+% % Hence, the difference between the predicted policy return and the actual return depends on the gap in expected Q-value on in-distribution actions ($\mathbf{a} \sim \behavior(\mathbf{a}|\bs)$) and policy actions ($\mathbf{a} \sim \policy(\mathbf{a}|\bs)$) only at in-distribution states ($\bs \sim d^\behavior(\bs)$) induced by the CQL algorithm. Theorem~\ref{thm:gap_amplify} shows that the gap induced by CQL is larger than the actual gap, indicating that the offset, $J(\policy) - \hat{J}(\policy)$ is positive, justifying the lower-bound property of the CQL-based off-policy evaluation described in Section~\ref{sec:policy_eval}.
 
-% % In order to quantify the under-estimation, we can bound the gap, $\E_{d^\behavior(\bs, \ba)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right]$, in terms of coefficents $\alpha_1, \cdots, \alpha_k$ chosen over the iterations of Q-function training as discussed in the proof of Theorem~\ref{thm:gap_amplify} described in Appendix~\ref{app:missing_proofs}. 
-% % Additionally, we note that an alternate formulation that optimizes the value of $\alpha$ to ensure that the gap:  $\E_{d^\behavior(\bs, \ba)} \left[ \hat{Q}^\policy(\bs, \ba) - \hat{Q}^\policy(\bs, \policy(\bs))\right]$ is always bounded by a threshold $\tau$, as depicted below,
+% % In order to quantify the under-estimation, we can bound the gap, $\E_{d^\behavior(\bs, \mathbf{a})} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right]$, in terms of coefficents $\alpha_1, \cdots, \alpha_k$ chosen over the iterations of Q-function training as discussed in the proof of Theorem~\ref{thm:gap_amplify} described in Appendix~\ref{app:missing_proofs}. 
+% % Additionally, we note that an alternate formulation that optimizes the value of $\alpha$ to ensure that the gap:  $\E_{d^\behavior(\bs, \mathbf{a})} \left[ \hat{Q}^\policy(\bs, \mathbf{a}) - \hat{Q}^\policy(\bs, \policy(\bs))\right]$ is always bounded by a threshold $\tau$, as depicted below,
 % % \begin{equation*}
-% %     \small{\min_{Q} \textcolor{red}{\max_\alpha}~ \alpha \left( \E_{d^\behavior(\bs)}\left[\E_{\policy(\ba|\bs)}[Q(\bs, \ba)]\!-\!\E_{\behavior(\ba|\bs)}\left[Q(\bs, \ba)\right]\right] - \textcolor{red}{\tau}\right) \!+\!\frac{1}{2}\!\E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!,}
+% %     \small{\min_{Q} \textcolor{red}{\max_\alpha}~ \alpha \left( \E_{d^\behavior(\bs)}\left[\E_{\policy(\mathbf{a}|\bs)}[Q(\bs, \mathbf{a})]\!-\!\E_{\behavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]\right] - \textcolor{red}{\tau}\right) \!+\!\frac{1}{2}\!\E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!,}
 % %     % \label{eqn:practical_objective_with_lagrange}
 % % \end{equation*}
 % % only attains a \ak{can we show a logarithmic or sublinear, i.e. $\sqrt{1/(1 - \gamma)}$ type bound here on the gap term, and then claim that with a variable choice of alpha, we are certainly doing better than the default $1/(1-\gamma)^2$ compounding error?}
 
-% % % Now, to obtain all possible choices of $\nu(\ba|\bs)$, we cast an optimization problem that maximizes a probabilistic distance between $\nu$ and $\behavior$ subject to the penalty being positive, as shown below:
+% % % Now, to obtain all possible choices of $\nu(\mathbf{a}|\bs)$, we cast an optimization problem that maximizes a probabilistic distance between $\nu$ and $\behavior$ subject to the penalty being positive, as shown below:
 % % % \begin{align*}
-% % %     \max_{\nu(\ba|\bs)}~~&~ D_{\mathrm{TV}}\left(\nu(\ba|\bs), \behavior(\ba|\bs)\right)\\
-% % %      &~ \text{s.t.} \sum_{\ba} \policy(\ba|\bs) \cdot \left(\frac{\policy(\ba|\bs) - \nu(\ba|\bs)}{\behavior(\ba|\bs)}\right) \geq 0.
+% % %     \max_{\nu(\mathbf{a}|\bs)}~~&~ D_{\mathrm{TV}}\left(\nu(\mathbf{a}|\bs), \behavior(\mathbf{a}|\bs)\right)\\
+% % %      &~ \text{s.t.} \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \cdot \left(\frac{\policy(\mathbf{a}|\bs) - \nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}\right) \geq 0.
 % % % \end{align*}
 % % % We can write out the Lagrangian for this optimization problem (including positivity and normalization constraints on $\nu$) and set the gradient of the Lagrangian to 0 to obtain conditions on $\nu$ farthest from $\behavior$, which still ensures that the penalty term is positive.
 % % % \begin{align*}
-% % %     \mathcal{L}(\nu; \lambda, \zeta, \eta) =&~ -\E_{\behavior}\left[\left|\frac{\nu(\ba|\bs)}{\behavior(\ba|\bs)}  - 1 \right|\right] + \lambda \sum_{\ba} \policy(\ba|\bs) \cdot \left(\frac{\nu(\ba|\bs) - \policy(\ba|\bs) }{\behavior(\ba|\bs)}\right) \\
-% % %     -&~  \sum_{\ba} \zeta(\ba|\bs) \nu(\ba|\bs) + \eta \left(\sum_{\ba} \nu(\ba|\bs) - 1 \right). \\
-% % %     \implies \frac{\partial \mathcal{L}}{\partial \nu(\ba|\bs)} =&   ~~ -\text{sign}\left(\frac{\nu(\ba|\bs)}{\behavior(\ba|\bs)}  - 1\right) + \lambda \cdot \frac{\policy(\ba|\bs)}{\behavior(\ba|\bs)} - \zeta(\ba|\bs) + \eta.
+% % %     \mathcal{L}(\nu; \lambda, \zeta, \eta) =&~ -\E_{\behavior}\left[\left|\frac{\nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}  - 1 \right|\right] + \lambda \sum_{\mathbf{a}} \policy(\mathbf{a}|\bs) \cdot \left(\frac{\nu(\mathbf{a}|\bs) - \policy(\mathbf{a}|\bs) }{\behavior(\mathbf{a}|\bs)}\right) \\
+% % %     -&~  \sum_{\mathbf{a}} \zeta(\mathbf{a}|\bs) \nu(\mathbf{a}|\bs) + \eta \left(\sum_{\mathbf{a}} \nu(\mathbf{a}|\bs) - 1 \right). \\
+% % %     \implies \frac{\partial \mathcal{L}}{\partial \nu(\mathbf{a}|\bs)} =&   ~~ -\text{sign}\left(\frac{\nu(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}  - 1\right) + \lambda \cdot \frac{\policy(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - \zeta(\mathbf{a}|\bs) + \eta.
 % % % \end{align*}
 
 %%% TODOs
 % \subsection{Policy Performance Bound for CQL}
-% In Appendix~\ref{app:safe_pi}, we showed that CQL theoretically enjoys a safe policy improvement guarantee. In this appendix, we will extend this analysis to provide a comparison between the performance of the optimal policy in the actual MDP, $\policy^*(\ba|\bs)$ and the policy obtained via CQL, $\policy_{\text{CQL}}(\ba|\bs)$. We analyze the policy-iterations style variant of the CQL algorithm that first evaluates a policy $\policy(\ba|\bs)$ using the conservative backup (Equation~\ref{eqn:modified_policy_eval}, with $\mu(\ba|\bs) = \policy(\ba|\bs)$) for $K_0$ iterations (i.e., $K_0$ calls to the Bellman Equation~\ref{eqn:modified_policy_eval}) and then improves the policy against this conservative Q-function, $\hat{Q}^\pi_{K_0}(\bs, \ba)$. Our key result is shown below
+% In Appendix~\ref{app:safe_pi}, we showed that CQL theoretically enjoys a safe policy improvement guarantee. In this appendix, we will extend this analysis to provide a comparison between the performance of the optimal policy in the actual MDP, $\policy^*(\mathbf{a}|\bs)$ and the policy obtained via CQL, $\policy_{\text{CQL}}(\mathbf{a}|\bs)$. We analyze the policy-iterations style variant of the CQL algorithm that first evaluates a policy $\policy(\mathbf{a}|\bs)$ using the conservative backup (Equation~\ref{eqn:modified_policy_eval}, with $\mu(\mathbf{a}|\bs) = \policy(\mathbf{a}|\bs)$) for $K_0$ iterations (i.e., $K_0$ calls to the Bellman Equation~\ref{eqn:modified_policy_eval}) and then improves the policy against this conservative Q-function, $\hat{Q}^\pi_{K_0}(\bs, \mathbf{a})$. Our key result is shown below
 
 % \begin{theorem}
 % \label{thm:policy_perf}
-% Let $\pi^*(\ba|\bs)$ be the optimal policy of an MDP $M$ and let $\pi^*_{\text{CQL}}(\ba|\bs)$ be the policy obtained by alternating between running CQL with conservative policy evaluation (Equation~\ref{eqn:modified_policy_eval}) for $K_0$ iterations and then conservative policy improvement in the empirical MDP $\hat{M}$. Then the expected discounted return of policy  $\policy_{\text{CQL}}(\ba|\bs)$ in the actual MDP $M$, with high probability $\geq 1 - \delta$ satisfies:
+% Let $\pi^*(\mathbf{a}|\bs)$ be the optimal policy of an MDP $M$ and let $\pi^*_{\text{CQL}}(\mathbf{a}|\bs)$ be the policy obtained by alternating between running CQL with conservative policy evaluation (Equation~\ref{eqn:modified_policy_eval}) for $K_0$ iterations and then conservative policy improvement in the empirical MDP $\hat{M}$. Then the expected discounted return of policy  $\policy_{\text{CQL}}(\mathbf{a}|\bs)$ in the actual MDP $M$, with high probability $\geq 1 - \delta$ satisfies:
 % \begin{multline}
 %     J(\pi^*, M) - J(\policy_{\text{CQL}}, M) \leq \frac{V_{\max} \epsilon_{K_0}}{1 - \gamma} + \frac{\alpha}{1 - \gamma} \Big( \E_{\bs\sim d^{\pi^*}_M(\bs)}\left[ D_{\text{CQL}}(\policy^*, \hatbehavior)(\bs) \right] -\\ 
 %     \E_{\bs\sim d^{\pi_{\text{CQL}}}_M(\bs)}\left[ D_{\text{CQL}}(\policy^*, \hatbehavior)(\bs) \right] \Big) + \frac{1}{(1 - \gamma)^2}  \left( {C_{r, \delta}} + \gamma R_{\max}  \right)
@@ -624,7 +639,7 @@ The proof of Theorem~\ref{thm:zeta_safe_app} is then completed by using the abov
 
 % \end{proof}
 
-\section{Extended Related Work and Connections to Prior Methods}
+\section{Extended Related Work}
 \label{sec:extended_related_work}
 
 In this section, we discuss related works to supplement Section~\ref{sec:related}. Specifically, we discuss the relationships between CQL and uncertainty estimation and policy-constraint methods.
@@ -633,27 +648,27 @@ In this section, we discuss related works to supplement Section~\ref{sec:related
 
 % \textbf{Connections to policy-constraint methods.} Several prior works that use a policy constraint have pointed out the need to constrain policy support and not the distribution to the behavior policy.~\citep{kumar_blog,kumar2019stabilizing,laroche2017safe}. Prior works have utilized IPMs~\citep{sriperumbudur2009integral} in the low-sample regime as surrogates for support matching. In order to intuitively put CQL into the same perspective as preventing OOD actions, we note that the CQL regularizer minimizes the Q-values at OOD actions with erroneously high Q-values, ensuring that Q-values are lower at OOD actions, which is formally expressed in Theorem~\ref{thm:gap_amplify}.  
 
-% More formally, note that CQL Q-value estimates, $\hat{Q}(\bs, \ba)$ underestimate the true Q-function computed via exact policy evaluation, $Q(\bs, \ba)$ by an amount equal to $\alpha_k \left[ \frac{\mu_k(\ba|\bs)}{\behavior(\ba|\bs)} - 1\right]$, at a particular state-action pair $(\bs, \ba)$ (A proof for this statement can be found in the proof for Theorem~\ref{thm:cql_underestimates} in Appendix~\ref{app:missing_proofs}). Thus, CQL uses the density ratio between the learned policy ($\mu_k$) and the behavior policy $\behavior(\ba|\bs)$, and negatively penalizes Q-values for actions with $\mu_k(\ba|\bs) > \behavior(\ba|\bs)$, which are precisely the actions which are less frequent in the distribution $\behavior(\ba|\bs)$ and highly frequent in $\mu_k(\ba|\bs)$. On other actions, where $\mu_k(\ba|\bs) < \behavior(\ba|\bs)$, CQL allows for overestimated values as well. We can interpret this penalty based on density ratios as a form of support matching -- actions with $\mu_k(\ba|\bs) > \behavior(\ba|\bs)$ are labeled ``out-of-support''.  \ak{Add some kind of dominance result over total variation distance, which tells us that our thing is the least conservative.}
+% More formally, note that CQL Q-value estimates, $\hat{Q}(\bs, \mathbf{a})$ underestimate the true Q-function computed via exact policy evaluation, $Q(\bs, \mathbf{a})$ by an amount equal to $\alpha_k \left[ \frac{\mu_k(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)} - 1\right]$, at a particular state-action pair $(\bs, \mathbf{a})$ (A proof for this statement can be found in the proof for Theorem~\ref{thm:cql_underestimates} in Appendix~\ref{app:missing_proofs}). Thus, CQL uses the density ratio between the learned policy ($\mu_k$) and the behavior policy $\behavior(\mathbf{a}|\bs)$, and negatively penalizes Q-values for actions with $\mu_k(\mathbf{a}|\bs) > \behavior(\mathbf{a}|\bs)$, which are precisely the actions which are less frequent in the distribution $\behavior(\mathbf{a}|\bs)$ and highly frequent in $\mu_k(\mathbf{a}|\bs)$. On other actions, where $\mu_k(\mathbf{a}|\bs) < \behavior(\mathbf{a}|\bs)$, CQL allows for overestimated values as well. We can interpret this penalty based on density ratios as a form of support matching -- actions with $\mu_k(\mathbf{a}|\bs) > \behavior(\mathbf{a}|\bs)$ are labeled ``out-of-support''.  \ak{Add some kind of dominance result over total variation distance, which tells us that our thing is the least conservative.}
 
-% We can also design asymmetrically penalized variants of CQL~\citep{wu2019domain,wu2019behavior} by selectively penalizing Q-values only when the density ratio, $\frac{\mu_k(\ba|\bs)}{\behavior(\ba|\bs)}$ is larger than a threshold $\zeta > 1$. This amounts to incorporating a hinge-loss in the CQL framework, as shown below:
+% We can also design asymmetrically penalized variants of CQL~\citep{wu2019domain,wu2019behavior} by selectively penalizing Q-values only when the density ratio, $\frac{\mu_k(\mathbf{a}|\bs)}{\behavior(\mathbf{a}|\bs)}$ is larger than a threshold $\zeta > 1$. This amounts to incorporating a hinge-loss in the CQL framework, as shown below:
 % \begin{multline*}
 %     \label{eqn:asymmetric_cql_framework}
-%     \small{\min_{Q}~~ \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\left(\mu_k(\ba|\bs) - \zeta \cdot \behavior(\ba|\bs)\right)_{+}^T Q(\bs, \ba)\right]}
-%     \small{+ \frac{1}{2}~ \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \ba) - \bellman^{\policy_k} \hat{Q}^{k} (\bs, \ba) \right)^2 \right]}
+%     \small{\min_{Q}~~ \alpha \E_{\bs \sim d^\behavior(\bs)}\left[\left(\mu_k(\mathbf{a}|\bs) - \zeta \cdot \behavior(\mathbf{a}|\bs)\right)_{+}^T Q(\bs, \mathbf{a})\right]}
+%     \small{+ \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \bellman^{\policy_k} \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right]}
 % \end{multline*}
-% where $(\cdot)_{+} = \max(\cdot, 0)$, denotes the hinge loss. This version only penalizes Q-values when actions $\ba$ that are out-of-support (as denoted by the density ratio) are chosen, and does not penalize Q-values otherwise.
+% where $(\cdot)_{+} = \max(\cdot, 0)$, denotes the hinge loss. This version only penalizes Q-values when actions $\mathbf{a}$ that are out-of-support (as denoted by the density ratio) are chosen, and does not penalize Q-values otherwise.
 
 % \textbf{Connection to gap-increasing Bellman operators.} Theorem~\ref{thm:gap_amplify} shows that CQL backups over-estimate the average gap between Q-values at in-distribution actions and Q-values at OOD actions and this makes the resulting Q-function robust to estimation error. Ideas in a similar spirit have been used with Bellman backups in standard, online RL, and \citet{bellemare2013arcade} introduced the notion of a gap-increasing Bellman optimality operator -- that amplifies the gap between Q-value of the instantaneously optimal action and other actions, given by:
 % \begin{equation}
-%     \tilde{\bellman}^* Q (\bs, \ba) = \bellman^* Q (\bs, \ba) - \alpha \left( \max_{\ba' \in \mathcal{A}}~Q(\bs, \ba')~ - Q(\bs, \ba) \right), ~~ \alpha \in (0, 1).
+%     \tilde{\bellman}^* Q (\bs, \mathbf{a}) = \bellman^* Q (\bs, \mathbf{a}) - \alpha \left( \max_{\mathbf{a}' \in \mathcal{A}}~Q(\bs, \mathbf{a}')~ - Q(\bs, \mathbf{a}) \right), ~~ \alpha \in (0, 1).
 % \end{equation}
 % Note that the value of the optimal actions remains unchanged in the above equation. In the context of offline RL, where we would want in-distribution actions to have higher values, as we discussed in Section~\ref{sec:framework}, we could write down similar gap-increasing operators. CQL provides one such operator as discussed in Theorem~\ref{thm:gap_amplify} and Appendix~\ref{app:gap_amplify}. Another gap-amplifying operator could take the form:
 % \begin{equation}
-%     \tilde{\bellman^*} Q(\bs, \ba) = \bellman^* Q(\bs, \ba) - \alpha \left| \max_{\ba' \in \text{Support}(\behavior)}[Q(\bs, \ba')] - Q(\bs, \ba) \right|,
+%     \tilde{\bellman^*} Q(\bs, \mathbf{a}) = \bellman^* Q(\bs, \mathbf{a}) - \alpha \left| \max_{\mathbf{a}' \in \text{Support}(\behavior)}[Q(\bs, \mathbf{a}')] - Q(\bs, \mathbf{a}) \right|,
 % \end{equation}
 % An indepth analysis of such operators and empirical efficacy is left for future work.
 
-\textbf{Relationship to uncertainty estimation in offline RL.} 
+\paragraph{Relationship to uncertainty estimation in offline RL.} 
 A number of prior approaches to offline RL estimate some sort of epistemic uncertainty to determine the trustworthiness of a Q-value prediction~\citep{kumar2019stabilizing,fujimoto2018off,agarwal2019optimistic,levine2020offline}.
 %%SL.5.27: Let's make sure that all of the citations here do appear in the main paper. Insofar as possible, try to avoid actually having "normal" related work material, and try instead to focus in this section on additional derivations or arguments about how your method relates to these prior works. Reviewers are likely to get very unhappy if they think you are just offloading your related work to an appendix -- it's not a good idea!
 The policy is then optimized with respect to lower-confidence estimates derived using the uncertainty metric. However, it has been empirically noted that uncertainty-based methods are not sufficient to prevent against OOD actions~\citep{fujimoto2018off,kumar2019stabilizing} in and of themselves, are often augmented with policy constraints due to the inability to estimate tight and calibrated uncertainty sets. Such loose or uncalibrated uncertainty sets are still effective in providing exploratory behavior in standard, online RL~\citep{osband2016deep,osband2017posterior}, where these methods were originally developed. However, offline RL places high demands on the fidelity of such sets~\citep{levine2020offline}, making it hard to directly use these methods.
@@ -663,17 +678,17 @@ The policy is then optimized with respect to lower-confidence estimates derived 
 %%SL.5.27: I think we should just put in one short sentence about this in the main paper, and cut this paragraph here.
 
 %%SL.5.27: This is perhaps closer to the sort of material we could have in an appendix. If you merge this section with A2, you could have one section about how this relates to uncertainty, and one about how it relates to policy constraints, and spend no more than one page on both.
-\textbf{How does CQL relate to prior uncertainty estimation methods?} Typical uncertainty estimation methods rely on learning a pointwise upper bound on the Q-function that depends on epistemic uncertainty~\citep{jaksch2010near,osband2017posterior} and these upper-confidence bound values are then used for exploration. In the context of offline RL, this means learning a pointwise lower-bound on the Q-function. We show in Section~\ref{sec:policy_eval} that, with a na\"ive choice of regularizer (Equation~\ref{eqn:objective_1}), we can learn a uniform lower-bound on the Q-function, however, we then showed that we can improve this bound since the value of the policy is the primary quantity of interest that needs to be lower-bounded. This implies that CQL strengthens the popular practice of point-wise lower-bounds made by uncertainty estimation methods.
+\paragraph{How does CQL relate to prior uncertainty estimation methods?} Typical uncertainty estimation methods rely on learning a pointwise upper bound on the Q-function that depends on epistemic uncertainty~\citep{jaksch2010near,osband2017posterior} and these upper-confidence bound values are then used for exploration. In the context of offline RL, this means learning a pointwise lower-bound on the Q-function. We show in Section~\ref{sec:policy_eval} that, with a na\"ive choice of regularizer (Equation~\ref{eqn:objective_1}), we can learn a uniform lower-bound on the Q-function, however, we then showed that we can improve this bound since the value of the policy is the primary quantity of interest that needs to be lower-bounded. This implies that CQL strengthens the popular practice of point-wise lower-bounds made by uncertainty estimation methods.
 
-\textbf{Can we make CQL dependent on uncertainty?} We can slightly modify CQL to make it be account for epistemic uncertainty under certain statistical concentration assumptions. Typical uncertainty estimation methods in RL~\citep{osband2016deep,jaksch2010near} assume the applicability of concentration inequalities (for example, by making sub-Gaussian assumptions on the reward and dynamics), to obtain upper or lower-confidence bounds and the canonical amount of over- (under-) estimation is usually given by,  $\mathcal{O}\left(\frac{1}{\sqrt{n(\bs, \ba)}}\right)$, where $n(\bs, \ba)$ is the number of times a state-action pair $(\bs, \ba)$ is observed in the dataset. We can incorporate such behavior in CQL by modifying Equation~\ref{eqn:cql_framework} to update Bellman error weighted by the cardinality of the dataset, $|\mathcal{D}|$, which gives rise to the following effective Q-function update in the tabular setting, without function approximation:
+\paragraph{Can we make CQL dependent on uncertainty?} We can slightly modify CQL to make it be account for epistemic uncertainty under certain statistical concentration assumptions. Typical uncertainty estimation methods in RL~\citep{osband2016deep,jaksch2010near} assume the applicability of concentration inequalities (for example, by making sub-Gaussian assumptions on the reward and dynamics), to obtain upper or lower-confidence bounds and the canonical amount of over- (under-) estimation is usually given by,  $\mathcal{O}\left(\frac{1}{\sqrt{n(\bs, \mathbf{a})}}\right)$, where $n(\bs, \mathbf{a})$ is the number of times a state-action pair $(\bs, \mathbf{a})$ is observed in the dataset. We can incorporate such behavior in CQL by modifying Equation~\ref{eqn:cql_framework} to update Bellman error weighted by the cardinality of the dataset, $|\mathcal{D}|$, which gives rise to the following effective Q-function update in the tabular setting, without function approximation:
 \begin{equation*}
-    \hat{Q}^{k+1}(\bs, \ba) = \bellman^\pi \hat{Q}^k(\bs, \ba) - \alpha \frac{\mu(\ba|\bs) - \behavior(\ba|\bs)}{n(\bs,\ba)} \rightarrow \bellman^\pi \hat{Q}^k(\bs, \ba) \text{~~as~~} n(\bs, \ba) \rightarrow \infty.
+    \hat{Q}^{k+1}(\bs, \mathbf{a}) = \bellman^\pi \hat{Q}^k(\bs, \mathbf{a}) - \alpha \frac{\mu(\mathbf{a}|\bs) - \behavior(\mathbf{a}|\bs)}{n(\bs,\mathbf{a})} \rightarrow \bellman^\pi \hat{Q}^k(\bs, \mathbf{a}) \text{~~as~~} n(\bs, \mathbf{a}) \rightarrow \infty.
 \end{equation*}
-In the limit of infinite data, i.e. $n(\bs, \ba) \rightarrow \infty$, we find that the amount of underestimation tends to $0$. When only a finite-sized dataset is provided, i.e. $n(\bs, \ba) < N$, for some $N$, we observe that by making certain assumptions, previously used in prior work~\citep{jaksch2010near,osband2016deep} on the concentration properties of the reward value, $r(\bs, \ba)$ and the dynamics function, $\transitions(\bs'|\bs, \ba)$, such as follows:
+In the limit of infinite data, i.e. $n(\bs, \mathbf{a}) \rightarrow \infty$, we find that the amount of underestimation tends to $0$. When only a finite-sized dataset is provided, i.e. $n(\bs, \mathbf{a}) < N$, for some $N$, we observe that by making certain assumptions, previously used in prior work~\citep{jaksch2010near,osband2016deep} on the concentration properties of the reward value, $r(\bs, \mathbf{a})$ and the dynamics function, $\transitions(\bs'|\bs, \mathbf{a})$, such as follows:
 \begin{equation*}
-    ||\hat{r}(\bs, \ba) - r(\bs, \ba)|| \leq \frac{C_r}{\sqrt{n(\bs, \ba)}} ~~~ \text{and} ~~~ ||\hat{\transitions}(\bs'|\bs, \ba) - \transitions(\bs'|\bs, \ba)|| \leq \frac{C_\transitions}{\sqrt{n(\bs, \ba)}}, 
+    ||\hat{r}(\bs, \mathbf{a}) - r(\bs, \mathbf{a})|| \leq \frac{C_r}{\sqrt{n(\bs, \mathbf{a})}} ~~~ \text{and} ~~~ ||\hat{\transitions}(\bs'|\bs, \mathbf{a}) - \transitions(\bs'|\bs, \mathbf{a})|| \leq \frac{C_\transitions}{\sqrt{n(\bs, \mathbf{a})}}, 
 \end{equation*}
-where $C_r$ and $C_\transitions$ are constants, that depend on the concentration properties of the MDP, and by appropriately choosing $\alpha$, i.e. $\alpha = \Omega (n(\bs, \ba))$, such that the learned Q-function still lower-bounds the actual Q-function (by nullifying the possible overestimation that appears due to finite samples), we are still guaranteed a lower bound. 
+where $C_r$ and $C_\transitions$ are constants, that depend on the concentration properties of the MDP, and by appropriately choosing $\alpha$, i.e. $\alpha = \Omega (n(\bs, \mathbf{a}))$, such that the learned Q-function still lower-bounds the actual Q-function (by nullifying the possible overestimation that appears due to finite samples), we are still guaranteed a lower bound. 
 
 % \subsection{Relationship to Policy-Constraint Methods}
 %%SL.5.30: Missing? Delete?
@@ -685,7 +700,7 @@ In this section, we discuss some additional implementation details related to ou
 % but is this more like a detail, that it should come here? or should it still be moved to the variants section...
 We experimented with two ways of implementing CQL, first with a fixed $\alpha$, where we chose $\alpha=5.0$, and second with a varying $\alpha$ chosen via dual gradient-descent. The latter formulation automates the choice of $\alpha$ by introducing a ``budget'' parameter, $\tau$, as shown below:
 \begin{equation}
-    \small{\min_{Q} \textcolor{red}{\max_{\alpha \geq 0}}~ \alpha \left( \E_{\bs \sim d^\behavior(\bs)}\left[\log \sum_{\ba} \exp(Q(\bs, \ba))\!-\!\E_{\ba \sim \behavior(\ba|\bs)}\left[Q(\bs, \ba)\right]\right] - \textcolor{red}{\tau}\right) \!+\!\frac{1}{2}\!\E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!.}
+    \small{\min_{Q} \textcolor{red}{\max_{\alpha \geq 0}}~ \alpha \left( \E_{\bs \sim d^\behavior(\bs)}\left[\log \sum_{\mathbf{a}} \exp(Q(\bs, \mathbf{a}))\!-\!\E_{\mathbf{a} \sim \behavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]\right] - \textcolor{red}{\tau}\right) \!+\!\frac{1}{2}\!\E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q - \bellman^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!.}
     \label{eqn:practical_objective_with_lagrange}
 \end{equation}
 Equation~\ref{eqn:practical_objective_with_lagrange} implies that if the expected difference in Q-values is less than the specified threshold $\tau$, $\alpha$ will adjust to be close to $0$, whereas if the difference in Q-values is higher than the specified threshold, $\tau$, then $\alpha$ is likely to take on high values, and thus more aggressively penalize Q-values. We refer to this version as CQL-Lagrange, and we found that this version drastically outperforms the fixed $\alpha$ version on the more complex AntMazes. 
@@ -696,11 +711,11 @@ For our experiments, across D4RL Gym MuJoCo domains, we choose a fixed value at 
 
 %%SL.5.27: This perhaps should also go into C
 % but this is more like how to compute log-sum-exp in practice
-\textbf{Computing $\log \sum_{\ba} \exp(Q(\bs, \ba)$.} CQL($\mathcal{H}$) uses log-sum-exp in the objective for training the Q-function (Equation~\ref{eqn:practical_objective}). In discrete action domains, we compute the log-sum-exp exactly by invoking the standard \texttt{tf.reduce\_logsumexp()} (or \texttt{torch.logsumexp()}) functions provided by autodiff libraries. In continuous action tasks, CQL($\mathcal{H}$) uses importance sampling to compute this quantity, where in practice, we sampled \textbf{10} action samples at every state $\bs$ from a uniform-at-random $\text{Unif}(\ba)$ and \textbf{10} action samples from the current policy, $\policy(\ba|\bs)$ and used these alongside importance sampling to compute it as follows using $N = 10$ action samples:
+\textbf{Computing $\log \sum_{\mathbf{a}} \exp(Q(\bs, \mathbf{a})$.} CQL($\mathcal{H}$) uses log-sum-exp in the objective for training the Q-function (Equation~\ref{eqn:practical_objective}). In discrete action domains, we compute the log-sum-exp exactly by invoking the standard \texttt{tf.reduce\_logsumexp()} (or \texttt{torch.logsumexp()}) functions provided by autodiff libraries. In continuous action tasks, CQL($\mathcal{H}$) uses importance sampling to compute this quantity, where in practice, we sampled \textbf{10} action samples at every state $\bs$ from a uniform-at-random $\text{Unif}(\mathbf{a})$ and \textbf{10} action samples from the current policy, $\policy(\mathbf{a}|\bs)$ and used these alongside importance sampling to compute it as follows using $N = 10$ action samples:
 \begin{align*}
-    \log \sum_{\ba}\exp (Q(\bs, \ba)) &= \log \left( \frac{1}{2}\sum_{\ba} \exp (Q(\bs, \ba)) + \frac{1}{2} \sum_{\ba} \exp (Q(\bs, \ba)) \right) \\
-    &= \log \left( \frac{1}{2} \E_{\ba \sim \text{Unif}(\ba)}\left[ \frac{\exp (Q(\bs, \ba))}{\text{Unif}(\ba)}\right] + \frac{1}{2} \E_{\ba \sim \policy(\ba|\bs)}\left[ \frac{\exp (Q(\bs, \ba))}{\policy(\ba|\bs)}\right] \right) \\
-    &\approx \log \left( \frac{1}{2N} \sum_{\ba_i \sim \text{Unif}(\ba)}^N \left[ \frac{\exp (Q(\bs, \ba_i))}{\text{Unif}(\ba)}\right] + \frac{1}{2N} \sum_{\ba_i \sim \policy(\ba|\bs)}^N \left[ \frac{\exp (Q(\bs, \ba_i))}{\policy(\ba_i|\bs)}\right] \right).
+    \log \sum_{\mathbf{a}}\exp (Q(\bs, \mathbf{a})) &= \log \left( \frac{1}{2}\sum_{\mathbf{a}} \exp (Q(\bs, \mathbf{a})) + \frac{1}{2} \sum_{\mathbf{a}} \exp (Q(\bs, \mathbf{a})) \right) \\
+    &= \log \left( \frac{1}{2} \E_{\mathbf{a} \sim \text{Unif}(\mathbf{a})}\left[ \frac{\exp (Q(\bs, \mathbf{a}))}{\text{Unif}(\mathbf{a})}\right] + \frac{1}{2} \E_{\mathbf{a} \sim \policy(\mathbf{a}|\bs)}\left[ \frac{\exp (Q(\bs, \mathbf{a}))}{\policy(\mathbf{a}|\bs)}\right] \right) \\
+    &\approx \log \left( \frac{1}{2N} \sum_{\mathbf{a}_i \sim \text{Unif}(\mathbf{a})}^N \left[ \frac{\exp (Q(\bs, \mathbf{a}_i))}{\text{Unif}(\mathbf{a})}\right] + \frac{1}{2N} \sum_{\mathbf{a}_i \sim \policy(\mathbf{a}|\bs)}^N \left[ \frac{\exp (Q(\bs, \mathbf{a}_i))}{\policy(\mathbf{a}_i|\bs)}\right] \right).
 \end{align*}
 On some domains, we observe that choosing higher values of $N$ is better, since it is more effective in covering the space of Q-values and prevents overestimation. We can also choose to incorporate actions sampled from the policy at the next state into the computation of the log-sum-exp, however, this is not something that is necessarily needed.
 
@@ -710,12 +725,14 @@ The other hyperparameters we evaluated on during our preliminary experiments, an
 \begin{itemize}
     \item \textbf{Lagrange threshold $\tau$ and $\alpha$.} For the Gym-MuJoCo tasks, we used $\alpha=5.0$, for the antmaze tasks, we used $\tau=1.0$.
     \item \textbf{Number of gradient steps.} We evaluated our method on varying number of gradient steps. Since CQL generally uses a reduced policy learning rate (1e-4), we trained CQL methods for 1M gradient steps. For a number of the gym tasks (e.g., hopper and walker tasks), we find that CQL is trained in about 500k gradient steps, while for the halfcheetah tasks, they take 1M steps and are still improving. For instance on the halfcheetah-medium-expert dataset, we find that training for longer can give rise to better performance (e.g., $\approx 11k$ in return as compared to $\approx 9k$ as reported. Due to a lack of a proper valdiation error metric for offline Q-learning methods, deciding the number of gradient steps dynamically has been an open problem in offline RL~\citep{levine2020offline}. Different prior methods choose the number of steps differently. For our experiments, we used 1M gradient steps for all D4RL domains, and followed the convention from \citet{agarwal2019optimistic}, to report returns after 5x gradient steps of training for the Atari results in Table~\ref{table:atari_reduced_size}.  
-    \item \textbf{Choice of backup.} Instead of using an actor-critic version of CQL, we can instead also use an approximate max-backup for the Q-function in a continuous control setting. Similar to prior work~\citep{kumar2019stabilizing}, we sample 10 actions from the current policy at the next state $\bs'$, called $\ba_1, \cdots \ba_{10} \sim \policy(\ba'|\bs')$ and generate the target values for the backup using the following equation: $r(\bs, \ba) +  \gamma \max_{\ba_1, \cdots, \ba_{10}} Q(\bs', \ba')$. This is different from the standard actor-critic backup that performs an expectation of the Q-values $Q(\bs', \ba')$ at the next state under the policy's distribution $\policy(\ba'|\bs')$. We used this backup for the Antmaze domains.
+    \item \textbf{Choice of backup.} Instead of using an actor-critic version of CQL, we can instead also use an approximate max-backup for the Q-function in a continuous control setting. Similar to prior work~\citep{kumar2019stabilizing}, we sample 10 actions from the current policy at the next state $\bs'$, called $\mathbf{a}_1, \cdots \mathbf{a}_{10} \sim \policy(\mathbf{a}'|\bs')$ and generate the target values for the backup using the following equation: $r(\bs, \mathbf{a}) +  \gamma \max_{\mathbf{a}_1, \cdots, \mathbf{a}_{10}} Q(\bs', \mathbf{a}')$. This is different from the standard actor-critic backup that performs an expectation of the Q-values $Q(\bs', \mathbf{a}')$ at the next state under the policy's distribution $\policy(\mathbf{a}'|\bs')$. We used this backup for the Antmaze domains.
     \item \textbf{Reward function.} For Antmaze tasks, we found it useful to not utilize a reward function of $0$ and $1$, but rather use shifted and scaled versions of these rewards. We used $-5$ and $5$ as the two levels. This does not leak any form of domain knowledge into the rewards, but rather it enables the Q-function to propagate $+5$ faster into the initial states. On the other hand, a 0/1 reward is unable to propagate +1 into the Q-function at the initial state. To observe this, note that the change in the Q-function at the initial state-action pair due to a +1 at the end of a length 1000 trajectory is $\gamma^1000 \times 1 = 4e-5$, which is negligible. Understanding how the choice of the reward function affects optimization and error propagation in Q-learning is a subject of future work. 
 \end{itemize}
 
 Other hyperparameters, were kept identical to SAC on the D4RL tasks, including the twin Q-function trick, soft-target updates, etc. We did observe that larger the size of the Q-network (3 or 4 hidden layers, compared to 2 hidden layers typically used by SAC), the better the performance.
 In the Atari domain, we based our implementation of CQL on top of the QR-DQN implementation provided by \citet{agarwal2019optimistic}. We did not tune any parameter from the QR-DQN implementation released with the official codebase with \citep{agarwal2019optimistic}.
+
+\iffalse
 
 \section{Ablation Studies}
 \label{app:additional_results}
@@ -823,6 +840,8 @@ walker2d-medium-replay & 1.9 & 11.3 & 10.8 & -0.3 & 0.9 & \textbf{32.6}\\
 \hline
 \end{tabular}
 \end{table}
+
+\fi
 
 
 % Next, we answer question \textbf{(3)}. Table~\ref{table:lagrangian} shows the performance of CQL and CQL-Lagrange on some gym-MuJoCo and AntMaze tasks from D4RL. In all of these tasks, we observe that the Lagrange version (Equation~\ref{eqn:practical_objective_with_lagrange}, which automates the choice of $\alpha$ using dual gradient descent on the CQL regularizer, performs better than the non-Lagrange version (Equation~\ref{eqn:practical_objective}). In some cases, for example, the AntMazes, the difference can be as high as 30\% of the maximum achievable performance. On the gym MuJoCo tasks, we did not observe a large benefit of using the Lagrange version, however, there are some clear benefits, for instance in the setting when learning from hopper-mixed dataset.

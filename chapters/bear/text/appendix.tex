@@ -1,21 +1,17 @@
-\newpage
-\appendix
-\part*{Appendices}
-
 \section{Distribution-Constrained Backup Operator}
 \label{app:constrained_backup}
 In this section, we analyze properties of the constrained Bellman backup operator, defined as:
-\[ \TPi Q(s, a) \defeq \expec \big[ R(s, a) + \gamma \max_{\pi \in \Pi} \expec_{\trans(s' | s, a)}\left[V(s') \right] \big] \]
+\[ \TPi Q(\bs, \mathbf{a}) \defeq \expec \big[ r(\bs, \mathbf{a}) + \gamma \max_{\pi \in \Pi} \expec_{\trans(\bs' | \bs, \mathbf{a})}\left[V(s') \right] \big] \]
 where
-\[V(s) \defeq \max_{\pi \in \Pi} \expec_{\pi}[Q(s, a)].\]
+\[V(\bs) \defeq \max_{\pi \in \Pi} \expec_{\pi}[Q(\bs, \mathbf{a})].\]
 
 Such an operator can be reduced to a standard Bellman backup in a modified MDP. We can construct an MDP $M'$ from the original MDP $M$ as follows:
 
 \begin{itemize}
     \item The state space, discount, and initial state distributions remain unchanged from $M$.
     \item We define a new action set $\mathcal{A}' = \Pi$ to be the choice of policy $\pi$ to execute.  
-    \item We define the new transition distribution $p'$ as taking one step under the chosen policy $\pi$ to execute and one step under the original dynamics $p$: $p'(s'|s, \pi) = E_{\pi}[p(s'|s,a)]$.
-    \item Q-values in this new MDP, $Q^\Pi(s, \pi)$ would, in words, correspond to executing policy $\pi$ for one step and executing the policy which maximizes the future discounted value function in the original MDP $M$ thereafter.   
+    \item We define the new transition distribution $p'$ as taking one step under the chosen policy $\pi$ to execute and one step under the original dynamics $\trans$: $\trans'(\bs'|\bs, \pi) = E_{\pi}[\trans(s'|s,a)]$.
+    \item Q-values in this new MDP, $Q^\Pi(\bs, \pi)$ would, in words, correspond to executing policy $\pi$ for one step and executing the policy which maximizes the future discounted value function in the original MDP $M$ thereafter.   
 \end{itemize}
 
 Under this redefinition, the Bellman operator $\TPi$ is mathematically the same operation as the Bellman operator under $M'$. Thus, standard results from MDP theory carry over - i.e. the existence of a fixed point and convergence of repeated application of $\TPi$ to said fixed point.
@@ -25,16 +21,16 @@ Under this redefinition, the Bellman operator $\TPi$ is mathematically the same 
 In this section, we provide proofs for  Theorem~\ref{thm:avi_bound} and Theorem~\ref{thm:conc_coeff_bound}.
 \begin{theorem}
 \label{thm:avi_bound_proof}
-Suppose we run approximate distribution-constrained value iteration with a set constrained backup $\TPi$. Assume that $\delta(s,a) \ge \max_k |Q_k(s,a) - \TPi Q_{k-1}(s,a)|$ bounds the Bellman error. Then,
-\[\lim_{k \to \infty} \expec_{\rhoinit}[|V_k(s) - V^*(s)|] \le 
-\frac{\gamma}{(1-\gamma)^2}\left[ C(\Pi)\expec_\mu[\max_{\pi \in \Pi} \expec_{\pi}[\projerr(s,a)]] + \frac{1-\gamma}{\gamma}\alpha(\Pi) \right]
+Suppose we run approximate distribution-constrained value iteration with a set constrained backup $\TPi$. Assume that $\delta(\bs, \mathbf{a}) \ge \max_k |Q_k(\bs, \mathbf{a}) - \TPi Q_{k-1}(\bs, \mathbf{a})|$ bounds the Bellman error. Then,
+\[\lim_{k \to \infty} \expec_{\rhoinit}[|V_k(\bs) - V^*(\bs)|] \le 
+\frac{\gamma}{(1-\gamma)^2}\left[ C(\Pi)\expec_\mu[\max_{\pi \in \Pi} \expec_{\pi}[\projerr(\bs, \mathbf{a})]] + \frac{1-\gamma}{\gamma}\alpha(\Pi) \right]
 \]
 \end{theorem}
 \begin{proof}
 We first begin by introducing $\VPi$, the fixed point of $\TPi$. By the triangle inequality, we have:
 \begin{align*}
-\expec_{\rhoinit}[|V_k(s) - V^*(s)|] &= \expec_{\rhoinit}[|V_k(s,a) - \VPi(s) + \VPi(s) - V^*(s)|]\\
-&\le \underbrace{\expec_{\rhoinit}[|V_k(s) - \VPi(s)|]}_{L_1} + \underbrace{\expec_{\rhoinit}[|\VPi(s) - V^*(s)|]}_{L_2}
+\expec_{\rhoinit}[|V_k(\bs) - V^*(\bs)|] &= \expec_{\rhoinit}[|V_k(\bs) - \VPi(\bs) + \VPi(\bs) - V^*(\bs)|]\\
+&\le \underbrace{\expec_{\rhoinit}[|V_k(\bs) - \VPi(\bs)|]}_{L_1} + \underbrace{\expec_{\rhoinit}[|\VPi(\bs) - V^*(\bs)|]}_{L_2}
 \end{align*}
 
 % Now, by iterating $\expec$ and $\max$, we have:
@@ -43,16 +39,16 @@ We first begin by introducing $\VPi$, the fixed point of $\TPi$. By the triangle
 % &\le \expec_{\rhoinit} \big[ \max_{\pi \in \Pi}    
 % \end{align*}
 
-First, we note that $\max_\pi \expec_{\pi}[\delta(s,a)]$ provides an upper bound on the value error:
+First, we note that $\max_\pi \expec_{\pi}[\delta(\bs, \mathbf{a})]$ provides an upper bound on the value error:
 \begin{align*}
-|V_k(s) - \TPi V_{k-1}(s)| &= |\max_\pi \expec_{\pi}[Q_k(s,a)] - \max_\pi \expec_{\pi}[\Tpi Q_{k-1}(s,a)]| \\
-&\le \max_\pi\expec_{\pi}[| Q_k(s,a) - \Tpi Q_{k-1}(s,a)|]\\
-&\le \max_\pi\expec_{\pi}[\projerr(s,a)]
+|V_k(\bs) - \TPi V_{k-1}(\bs)| &= |\max_\pi \expec_{\pi}[Q_k(\bs, \mathbf{a})] - \max_\pi \expec_{\pi}[\Tpi Q_{k-1}(\bs, \mathbf{a})]| \\
+&\le \max_\pi\expec_{\pi}[| Q_k(\mathbf{s}, \mathbf{a}) - \Tpi Q_{k-1}(\bs, \mathbf{a})|]\\
+&\le \max_\pi\expec_{\pi}[\projerr(\bs, \mathbf{a})]
 \end{align*}
 
 We can bound $L_1$ with
 \[
-L_1 \le \frac{2\gamma}{(1-\gamma)^2}[C(\Pi)]\expec_\mu[\max_{\pi \in \Pi} \expec_{\pi}[\delta(s, a)]]
+L_1 \le \frac{2\gamma}{(1-\gamma)^2}[C(\Pi)]\expec_\mu[\max_{\pi \in \Pi} \expec_{\pi}[\delta(\bs, \mathbf{a})]]
 \]
 by direct modification of the proof of Theorem 3 of \citet{farahmand2010error} or Theorem 1 of~\citet{munos2005erroravi} with $k=1$ ($p=1$), but replacing $V^*$  with $\VPi$ and $\backup$ with $\TPi$, as $\TPi$ is a contraction and $\VPi$ is its fixed point.
 An alternative proof involves viewing $\TPi$ as a backup under a modified MDP (see Appendix~\ref{app:constrained_backup}), and directly apply Theorem 1 of~\citet{munos2005erroravi} under this modified MDP. A similar bound also holds true for value iteration with the $\TPi$ operator which can be analysed on similar lines as the above proof and \citet{munos2005erroravi}.
@@ -63,53 +59,52 @@ To bound $L_2$, we provide a simple $\linfnorm$-norm bound, although we could in
 &\le \norminf{\TPi\VPi - \TPi V^*} + \norminf{\TPi\VPi - \backup V^*} \\ 
 &\le \gamma \norminf{\VPi - V^*} + \alpha(\Pi)
 \end{align*}
-Thus, we have $\norminf{\VPi - V^*} \le \frac{\alpha}{1-\gamma}$. Because the maximum is greater than the expectation, $L_2 = \expec_{\rhoinit, \pi}[|\VPi(s) - V^*(s)|] \le \norminf{\VPi - V^*}$.
+Thus, we have $\norminf{\VPi - V^*} \le \frac{\alpha}{1-\gamma}$. Because the maximum is greater than the expectation, $L_2 = \expec_{\rhoinit, \pi}[|\VPi(\bs) - V^*(\bs)|] \le \norminf{\VPi - V^*}$.
 
 Adding $L_1$ and $L_2$ completes the proof.
 \end{proof}
 
 \begin{theorem}
 \label{thm:conc_coeff_proof}
-Assume the data distribution $\mu$ is generated by a behavior policy $\beta$, such that $\mu(s,a) = \mu_\beta(s,a)$. Let $\mu(s)$ be the marginal state distribution under the data distribution. Let us define $\Pieps = \{ \pi ~|~ \pi( a | s) = 0 \text{ whenever } \beta( a | s) < \epsilon \}$. Then, there exists a concentrability coefficient $C(\Pieps)$ is bounded as:
+Assume the data distribution $\mu$ is generated by a behavior policy $\beta$, such that $\mu(\bs, \mathbf{a}) = \mu_\beta(\bs, \mathbf{a})$. Let $\mu(\bs)$ be the marginal state distribution under the data distribution. Let us define $\Pieps = \{ \pi ~|~ \pi( \mathbf{a} | \bs) = 0 \text{ whenever } \beta( \mathbf{a} | \bs) < \epsilon \}$. Then, there exists a concentrability coefficient $C(\Pieps)$ is bounded as:
 \[
 C(\Pi_\epsilon) \leq C(\beta) \cdot \Big(1 + \frac{\gamma}{(1 - \gamma) f(\epsilon)} (1 - \epsilon)\Big)
 \]
-where $f(\epsilon) \defeq \min_{s \in \mathcal{S}, \mu_\Pi(s) > 0} [\mu(s)]$.
+where $f(\epsilon) \defeq \min_{\bs \in \mathcal{S}, \mu_\Pi(\bs) > 0} [\mu(\bs)]$.
 \begin{proof}
 For notational clarity, we refer to $\Pi_\epsilon$ as $\Pi$ in this proof. The term $\mu_\Pi$ is the highest discounted marginal state distribution starting from the initial state distribution $\rho$ and following policies $\pi \in \Pi$. Formally, it is defined as:
 $$ \mu_{\Pi} \defeq \max_{\{\pi_i\}_i :~ \forall~i,~\pi_i \in \Pi} (1 - \gamma) \sum_{m=1}^{\infty} m \gamma^{m-1} \rhoinit P^{\pi_1} \cdots P^{\pi_m} $$
 
 % \[\min_{\pi_1, ... \pi_t \in \Pi} (1-\gamma) \sum_{t=0}^\infty  \gamma^t [\rhoinit P^{\pi_1} ... P^{\pi_t}]\]
 
-Now, we begin the proof of the theorem. We first note, from the definition of $\Pi$, $\forall~s \in \mathcal{S}~\forall~\pi \in \Pi, \pi(a|s) > 0 \implies \beta(a|s) > \epsilon$. This suggests a bound on the total variation distance between $\beta$ and any $\pi \in \Pi$ for all $s \in \mathcal{S}$, $D_{TV}(\beta(\cdot|s) ||\pi(\cdot|s)) \leq 1 - \epsilon$. This means that the marginal state distributions of $\beta$ and $\Pi$, are bounded in total variation distance by: $D_{TV}(\mu_{\beta}|| \mu_{\Pi}) \leq \frac{\gamma}{1 - \gamma} (1 - \epsilon)$, where $\mu_{\Pi}$ is the marginal state distribution as defined above. This can be derived from~\citet{schulman2015trpo}, Appendix B, which bounds the difference in returns of two policies by showing the state marginals between two policies are bounded if their total variation distance is bounded.
+Now, we begin the proof of the theorem. We first note, from the definition of $\Pi$, $\forall~\bs \in \mathcal{S}~\forall~\pi \in \Pi, \pi(\mathbf{a}|\bs) > 0 \implies \beta(\mathbf{a}|\bs) > \epsilon$. This suggests a bound on the total variation distance between $\beta$ and any $\pi \in \Pi$ for all $\bs \in \mathcal{S}$, $D_{TV}(\beta(\cdot|\bs) ||\pi(\cdot|\bs)) \leq 1 - \epsilon$. This means that the marginal state distributions of $\beta$ and $\Pi$, are bounded in total variation distance by: $D_{TV}(\mu_{\beta}|| \mu_{\Pi}) \leq \frac{\gamma}{1 - \gamma} (1 - \epsilon)$, where $\mu_{\Pi}$ is the marginal state distribution as defined above. This can be derived from~\citet{schulman2015trpo}, Appendix B, which bounds the difference in returns of two policies by showing the state marginals between two policies are bounded if their total variation distance is bounded.
 
-Further, the definition of the set of policies $\Pi$ implies that $\forall~s \in \mathcal{S}, \mu_{\Pi}(s) > 0 \implies \mu_{\beta}(s) \geq f(\epsilon)$, where $f(\epsilon) > 0$ is a constant that depends on $\epsilon$ and captures the minimum visitation probability of a state $s \in \mathcal{S}$ when rollouts are executed from the initial state distribution $\rho$ while executing the behaviour policy $\beta(a|s)$, under the constraint that only actions with $\beta(a|s) \geq \epsilon$ are selected for execution in the environment. Combining it with the total variation divergence bound, $\max_s ||\mu_{\beta}(s) - \mu_{\Pi}(s)|| \leq \frac{\gamma}{1 - \gamma} (1 - \epsilon)$, we get that 
-$$\sup_{s \in \mathcal{S}} \frac{\mu_{\Pi}(s)}{\mu_{\beta}(s)} \leq 1 + \frac{\gamma}{(1 - \gamma) f(\epsilon)} (1 - \epsilon)$$
+Further, the definition of the set of policies $\Pi$ implies that $\forall~s \in \mathcal{S}, \mu_{\Pi}(\bs) > 0 \implies \mu_{\beta}(\bs) \geq f(\epsilon)$, where $f(\epsilon) > 0$ is a constant that depends on $\epsilon$ and captures the minimum visitation probability of a state $\bs \in \mathcal{S}$ when rollouts are executed from the initial state distribution $\rho$ while executing the behaviour policy $\beta(\mathbf{a}|\bs)$, under the constraint that only actions with $\beta(\mathbf{a}|\bs) \geq \epsilon$ are selected for execution in the environment. Combining it with the total variation divergence bound, $\max_s ||\mu_{\beta}(\bs) - \mu_{\Pi}(\bs)|| \leq \frac{\gamma}{1 - \gamma} (1 - \epsilon)$, we get that 
+$$\sup_{\bs \in \mathcal{S}} \frac{\mu_{\Pi}(\bs)}{\mu_{\beta}(\bs)} \leq 1 + \frac{\gamma}{(1 - \gamma) f(\epsilon)} (1 - \epsilon)$$
 
-We know that, $C(\Pi) \defeq (1-\gamma)^2\sum_{k=1}^\infty k\gamma^{k-1}c(k)$ is the ratio of the marginal state visitation distribution under the policy iterates when performing backups using the distribution-constrained operator and the data distribution $\mu = \mu_\beta$. Therefore, $$\frac{C(\Pi_\epsilon)}{C(\beta)} \defeq \sup_{s \in \mathcal{S}} \frac{\mu_\Pi(s)}{\mu_\beta(s)} \leq 1 + \frac{\gamma}{(1 - \gamma) f(\epsilon)} (1 - \epsilon) $$
+We know that, $C(\Pi) \defeq (1-\gamma)^2\sum_{k=1}^\infty k\gamma^{k-1}c(k)$ is the ratio of the marginal state visitation distribution under the policy iterates when performing backups using the distribution-constrained operator and the data distribution $\mu = \mu_\beta$. Therefore, $$\frac{C(\Pi_\epsilon)}{C(\beta)} \defeq \sup_{\bs \in \mathcal{S}} \frac{\mu_\Pi(\bs)}{\mu_\beta(\bs)} \leq 1 + \frac{\gamma}{(1 - \gamma) f(\epsilon)} (1 - \epsilon) $$
 \end{proof}
 \end{theorem}
 
-\section{Additional Details Regarding BEAR-QL}
+\section{Additional Details Regarding BEAR}
 \label{app:bearql-more}
 
-In this appendix, we address several remaining points regarding the support matching formulation of BEAR-QL, and further discuss its connections to prior work.
+In this appendix, we address several remaining points regarding the support matching formulation of BEAR, and further discuss its connections to prior work.
 
-% \subsection{Why does support matching make sense intuitively?}
-% -- Often we care about Bellman errors weighted by the inverse policy density -- in that
 \subsection{Why can we choose actions from $\Pieps$, the support of the training distribution, and need not restrict action selection to the policy distribution?}
-In Section~\ref{sec:dist_constrained}, we designed a new distribution-constrained backup and analyzed its properties from an error propagation perspective. Theorems~\ref{thm:avi_bound} and~\ref{thm:conc_coeff_bound} tell us that, if the maximum projection error on all actions within the support of the train distribution is bounded, then the worst-case error incurred is also bounded. That is, we have a bound on \mbox{$\max_{\pi \in \Pieps} \expec_\pi [\delta_k(s, a)]$}. In this section, we provide an intuitive explanation for why action distributions that are very different from the training policy distributions, but still lie in the support of the train distribution, can be chosen without incurring large error. In practice, we use powerful function approximators for Q-learning, such as deep neural networks. That is, $\delta_k(s, a)$ is the Bellman error for one iteration of Q-iteration/Q-learning, which can essentially be viewed as a supervised regression problem with a very expressive function class. In this scenario, we expect a bounded error on the entire support of the training distribution, and we therefore expect approximation error to depend less on the specific density of a datapoint under the data distribution, and more on whether or not that datapoint is within the support of the data distribution. I.e., any point that is within the support would have a comparatively low error, due to the expressivity of the function approximator.
+
+In Section~\ref{sec:dist_constrained}, we designed a new distribution-constrained backup and analyzed its properties from an error propagation perspective. Theorems~\ref{thm:avi_bound} and~\ref{thm:conc_coeff_bound} tell us that, if the maximum projection error on all actions within the support of the train distribution is bounded, then the worst-case error incurred is also bounded. That is, we have a bound on \mbox{$\max_{\pi \in \Pieps} \expec_\pi [\delta_k(\bs, \mathbf{a})]$}. In this section, we provide an intuitive explanation for why action distributions that are very different from the training policy distributions, but still lie in the support of the train distribution, can be chosen without incurring large error. In practice, we use powerful function approximators for Q-learning, such as deep neural networks. That is, $\delta_k(\bs, \mathbf{a})$ is the Bellman error for one iteration of Q-iteration/Q-learning, which can essentially be viewed as a supervised regression problem with a very expressive function class. In this scenario, we expect a bounded error on the entire support of the training distribution, and we therefore expect approximation error to depend less on the specific density of a datapoint under the data distribution, and more on whether or not that datapoint is within the support of the data distribution. I.e., any point that is within the support would have a comparatively low error, due to the expressivity of the function approximator.
 
 Another justification is that, a different version of the Bellman error objective renormalizes the action-distributions to the uniform distribution by applying an inverse behavior policy density weighting. For example, \cite{anots08fitted, antos07value} use this variant of Bellman error: 
-$$Q_{k+1}= {\operatorname{argmin}}_{Q} \sum_{i=1, a_i \sim \beta(\cdot|s_i)}^{N} \frac{1}{\beta\left(a_{i} | s_{i}\right)}\left(Q\left(s_{i}, a_{i}\right)-\left[R{(s, a)}+\gamma \max _{a' \in \mathcal{A}} Q_{k}\left(s_{i+1}, a'\right)\right]\right)^{2}$$
-This implies that this form of Bellman error mainly depends upon the support of the behaviour policy $\beta$ (i.e. the set of action samples sampled from $\beta$ with a high-enough probability which we formally refer to as $\beta(a|s) \geq \epsilon$ in the main text). In a scenario when this form of Bellman error is being minimized, $\delta_k(s, a)$ is defined as
-$$\delta_k(s, a) = \frac{1}{\beta(a|s)} \left| Q_k(s, a) - \backup Q_{k-1}(s, a)\right| $$ 
+$$Q_{k+1}= {\operatorname{argmin}}_{Q} \sum_{i=1, \mathbf{a}_i \sim \beta(\cdot|\bs_i)}^{N} \frac{1}{\beta\left(\mathbf{a}_{i} | \bs_{i}\right)}\left(Q\left(\bs_{i}, \mathbf{a}_{i}\right)-\left[r{(\bs, \mathbf{a})}+\gamma \max _{\mathbf{a}' \in \mathcal{A}} Q_{k}\left(\bs_{i+1}, \mathbf{a}'\right)\right]\right)^{2}$$
+This implies that this form of Bellman error mainly depends upon the support of the behaviour policy $\beta$ (i.e. the set of action samples sampled from $\beta$ with a high-enough probability which we formally refer to as $\beta(\mathbf{a}|\bs) \geq \epsilon$ in the main text). In a scenario when this form of Bellman error is being minimized, $\delta_k(\bs, \mathbf{a})$ is defined as
+$$\delta_k(\bs, \mathbf{a}) = \frac{1}{\beta(\mathbf{a}|\bs)} \left| Q_k(\bs, \mathbf{a}) - \backup Q_{k-1}(\bs, \mathbf{a})\right| $$ 
 The overall error, hence, incurred due to error propagation is expected to be insensitive to distribution change, provided the support of the distribution doesn't change. Therefore, all policies $\pi \in \Pieps$ incur the same amount of propagated error ($|V_k - V_{\Pi}|$) whereas different amount of suoptimality biases -- suggesting the existence of a different policy in $\Pieps$ which propagates the same amount of error while having a lower suboptimality bias. However, in practice, it has been observed that using the inverse density weighting under the behaviour policy doesn't lead to substantially better performance for vanilla RL (not in the setting with purely off-policy, static datasets), so we use the unmodified Bellman error objective.
 
-Both of these justifications indicate that bounded $\delta_k(s, a)$ is reasonable to expect under in-support action distributions.
+Both of these justifications indicate that bounded $\delta_k(\bs, \mathbf{a})$ is reasonable to expect under in-support action distributions.
 
-\subsection{Details on connection between BEAR-QL and distribution-constrained backups}
-Distribution-constrained backups perform maximization over a set of policies $\Pieps$ which is defined as the set of policies that share the support with the behaviour policy. In the BEAR-QL algorithm, $\pi_\phi$ is maximized towards maximizing the expected Q-value for each state under the action distribution defined by it, while staying in-support (through the MMD constraint). The maximization step biases $\pi_\phi$ towards the in-support actions which maximize the current Q-value. By sampling multiple Dirac-delta action distributions -  $\delta_{a_i}$ - and then performing an explicit maximum over them for computing the target is a stochastic approximation to the distribution-constrained operator. What is the importance of training the actor to maximize the expected Q-value? We found empirically that this step is important as without this maximization step and high-dimensional action spaces, it is likely to require many more samples (exponentially more, due to curse of dimensionality) to get the correct action that maximizes the target value while being in-support. This is hard and unlikely, and in some experiments we tried with this variant, we found it to lead to suboptimal solutions. At evaluation time, we use the Q-function as the actor. The same process is followed. Dirac-delta action distribution candidates $\delta_{a_i}$ are sampled, and then the action $a_i$ that is gives the empirical maximum over the Q-function values is the action that is executed in the environment.
+\subsection{Details on connection between BEAR and distribution-constrained backups}
+Distribution-constrained backups perform maximization over a set of policies $\Pieps$ which is defined as the set of policies that share the support with the behaviour policy. In the BEAR-QL algorithm, $\pi_\phi$ is maximized towards maximizing the expected Q-value for each state under the action distribution defined by it, while staying in-support (through the MMD constraint). The maximization step biases $\pi_\phi$ towards the in-support actions which maximize the current Q-value. By sampling multiple Dirac-delta action distributions -  $\delta_{\mathbf{a}_i}$ - and then performing an explicit maximum over them for computing the target is a stochastic approximation to the distribution-constrained operator. What is the importance of training the actor to maximize the expected Q-value? We found empirically that this step is important as without this maximization step and high-dimensional action spaces, it is likely to require many more samples (exponentially more, due to curse of dimensionality) to get the correct action that maximizes the target value while being in-support. This is hard and unlikely, and in some experiments we tried with this variant, we found it to lead to suboptimal solutions. At evaluation time, we use the Q-function as the actor. The same process is followed. Dirac-delta action distribution candidates $\delta_{\mathbf{a}_i}$ are sampled, and then the action $\mathbf{a}_i$ that is gives the empirical maximum over the Q-function values is the action that is executed in the environment.
  
 \subsection{How effective is the $\operatorname{MMD}$ constraint in constraining supports of distributions? }
 \label{app:mmd}
@@ -121,32 +116,32 @@ Figure~\ref{fig:mmd} shows an empirical comparison of $\operatorname{MMD}(P, Q)$
     \centering
     \begin{subfigure}[h]{0.49\textwidth}
         \centering
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/{gaussian_n0.1_k1}.png}
+        \includegraphics[width=0.99\linewidth]{chapters/bear/images/gaussian_n0.1_k1.png}
         \caption{$\mathcal{N}(0, 0.1)$, $\mathcal{U}(-0.1, 0.1)$ }
     \end{subfigure}%
     ~ 
     \begin{subfigure}[h]{0.49\textwidth}
         \centering
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/{gaussian_n1_k1.5}.png}
+        \includegraphics[width=0.99\linewidth]{chapters/bear/images/gaussian_n1_k1.5.png}
         \caption{$\mathcal{N}(0, 1.0)$, $\mathcal{U}(-1.5, 1.5)$  }
     \end{subfigure}
     ~
     \begin{subfigure}[h]{0.49\textwidth}
         \centering
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/{gaussian_n1_k2}.png}
+        \includegraphics[width=0.99\linewidth]{chapters/bear/images/gaussian_n1_k2.png}
         \caption{$\mathcal{N}(0, 1.0)$, $\mathcal{U}(-2.0, 2.0)$  }
     \end{subfigure}
     ~
     \begin{subfigure}[h]{0.49\textwidth}
         \centering
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/{gaussian_n1.0_k4.0}.png}
+        \includegraphics[width=0.99\linewidth]{chapters/bear/images/gaussian_n1.0_k4.0.png}
         \caption{$\mathcal{N}(0, 1.0)$, $\mathcal{U}(-4.0, 4.0)$  }
     \end{subfigure}
     \caption{Comparing $\operatorname{MMD}$ distance between a $1$-d Gaussian distribution ($P$) and itself ($P$), and a uniform distribution over support set of the $P$ and the distribution $P$. The parameters of the Gaussian distribution ($P$) and the uniform distribution being considered are mentioned against each plot. ('Self' refers to $\mmd(P, P)$ and 'Uniform' refers to $\mmd(P, \mathcal{U}(P))$.) Note that for small values of $n \approx 1-10$, the $\mmd$ with the Uniform distribution is slightly lower in magnitude than the $\mmd$ between the distribution  $P$ and itself (sub-figures (a), (b) and (c)). For (d), as the support of this uniform distribution is enlarged, this leads to an increase in the value of $\operatorname{MMD}$ in the uniform approximation case -- which suggests that a near-local minimizer for the $\mmd$ distance can be obtained by making sure that the distribution which is being trained in this process shares the same support as the other given distribution.}
     \label{fig:mmd}
 \end{figure*}
 
-In order to provide a theoretical example, we refer to Example 1 in \citet{gretton2012kernel}, and extend it. First, note that the example argues that a fixed sample size of samples drawn from a distribution $P$, there exists another discrete distribution $Q$ supported on $m^2$ samples from the support set of $P$, such that there atleast is a probability $\left(\begin{array}{c}{m^{2}} \\ {m}\end{array}\right) \frac{m !}{m^{2 m}}>1-e^{-1}>0.63$ that a sample from $Q$ is indeed a sample from $P$ as well. So, with a smaller value of $m$, \textit{no} {2-sample test} will be able to distinguish between $P$ and $Q$. We would also note that this example is exactly the argument that our algorithm build upon. We further extend this example by noting that if $Q$ were rather not completely supported on the support of $P$, then there exists atleast a probability of $\epsilon$ that a sample from $Q$ lies outside the support of $P$. This gives us a lower bound on the value of the $\mmd$ estimator, indicating that the $\mmd$ 2-sample test will be able to detect this distribution due to an irreducible difference of $\epsilon \sqrt{\min_{y \in \text{Extremal(P)}} \mathbb{E}_{x \sim P}[k(x, y)]}$ (where $y$ is an "extremal point" in $P$'s support) in the MMD estimate.             
+% In order to provide a theoretical example, we refer to Example 1 in \citet{gretton2012kernel}, and extend it. First, note that the example argues that a fixed sample size of samples drawn from a distribution $P$, there exists another discrete distribution $Q$ supported on $m^2$ samples from the support set of $P$, such that there atleast is a probability $\left(\begin{array}{c}{m^{2}} \\ {m}\end{array}\right) \frac{m !}{m^{2 m}}>1-e^{-1}>0.63$ that a sample from $Q$ is indeed a sample from $P$ as well. So, with a smaller value of $m$, \textit{no} {2-sample test} will be able to distinguish between $P$ and $Q$. We would also note that this example is exactly the argument that our algorithm build upon. We further extend this example by noting that if $Q$ were rather not completely supported on the support of $P$, then there exists atleast a probability of $\epsilon$ that a sample from $Q$ lies outside the support of $P$. This gives us a lower bound on the value of the $\mmd$ estimator, indicating that the $\mmd$ 2-sample test will be able to detect this distribution due to an irreducible difference of $\epsilon \sqrt{\min_{y \in \text{Extremal(P)}} \mathbb{E}_{x \sim P}[k(x, y)]}$ (where $y$ is an "extremal point" in $P$'s support) in the MMD estimate.             
 % \subsection{MMD and Support Matching of Distributions}
 % One of the well-studied methods for support estimation of a distribution using finite number of samples relies on Kernel PCA. They leverage the \emph{Separating Property} of the Reproducing Kernel Hilbert Sphere (RKHS), where the covariance operator of the embedded data captures properties of the support of the underlying distribution~\cite{}. Very recently, \citet{wang2019random} used support-set estimation of the behaviour policy to design an alternate approach to Inverse Reinforcement Learning that uses support-set estimation of the behaviour policy to provide rewards to an agent that is trained via RL. They argued that random feature matching as in Random Network Distillation~\cite{} can infact, provide a crude approximation to matching 
 
@@ -154,6 +149,8 @@ In order to provide a theoretical example, we refer to Example 1 in \citet{grett
 
 % \subsection{Another version of BEAR-QL}
 % BEAR-QL Algorithm~\ref{algo:bear_ql} constrains the $\pi_\phi$ (the policy/actor) to the set of valid actions determined by the the MMD constraint while still maximizing the Q-value over this set of actions. In principle, one could also apply other design principles here. For example, one such example is as follows: In this version we disentangle the tasks of learning the right set of actions and choosing which action to backup. The first task is performed by learning a parametric distribution $\pi_{set}(\cdot|s)$ which is optimized by minimizing the $\operatorname{MMD}$ distance to the dataset $\dataset$, while also minimizing the variance of the ensemble of Q-functions. The actor $\pi_\phi$ in this case is then learned by using a \textit{clipped importance-sampled policy gradient}. The exact procedure is described below in Algorithm~\ref{alg:actor_critic}.
+
+\iffalse
 
 \begin{algorithm}[H]
 \small
@@ -177,6 +174,8 @@ In order to provide a theoretical example, we refer to Example 1 in \citet{grett
 \end{algorithmic}
 \label{alg:actor_critic}
 \end{algorithm}
+
+\fi
 
 % The update to $\pi_\phi$ is a PPO-style importance sampled policy gradient, where the importance ratio, $\frac{\pi_\phi(a|s)}{\pi_{set}(a|s)}$ indicates how far the current actor $\pi_\phi$ lies from the set-distribution. The clipping on the upper side prevents updates from actions that are less likely to occur in the set and more likely to occur when sampled from the actor $\pi_\phi$. The clipping on lower side makes sure that the actor $\pi_\phi$ is incentivized to choose actions from within the set of actions defined by $\pi_{set}$ and not just ignore the valid set of actions completely. 
 
@@ -205,16 +204,19 @@ In order to provide a theoretical example, we refer to Example 1 in \citet{grett
 
 \section{Additional Experimental Details}
 \label{app:additional_details}
-\paragraph{Data collection} We trained behaviour policies using the Soft Actor-Critic algorithm~\cite{haarnoja2018sac}. In all cases, random data was generated by running a uniform at random policy in the environment. Optimal data was generated by training SAC agents in all 4 domains until convergence to the returns mentioned in Figure~\ref{fig:optimal_random}. Mediocre data was generated by training a policy until the return value marked in each of the plots in Figure~\ref{fig:mediocre}. Each of our datasets contained 1e6 samples. We used the same datasets for evaluating different algorithms to maintain uniformity across results.
 
-\paragraph{Choice of kernels} In our experiments, we found that the choice of the kernel is an important design decision that needs to be made. In general, we found that a Laplacian kernel $k(x, y) = \exp(\frac{-||x - y||}{\sigma})$ worked well in all cases. Gaussian kernel $k(x, y) =\exp(\frac{-||x - y||^2}{2 \sigma^2})$ worked quite well in the case of optimal dataset. For the Laplacian kernel, we chose $\sigma = 10.0$ for Cheetah, Ant and Hopper, and $\sigma=20.0$ for Walker. However, we found that $\sigma=20.0$ worked well for all environments in all settings. For the Gaussian kernel, we chose $\sigma=20.0$ for all settings. Kernels often tend to not provide relevant measurements of distance especially in high-dimensional spaces, so one direction for future work is to design right kernels. We further experimented with a mixture of Laplacian kernel with different bandwidth parameters $\sigma$ ($1.0, 10.0, 50.0$) on Hopper-v2 and Walker2d-v2 where we found that it performs comparably and sometimes is better than a simple Laplacian kernel, probably because it is able to track supports upto different levels of thresholds due to multiple kernels.   
+\paragraph{Data collection.} We trained behavior policies using the Soft Actor-Critic algorithm~\cite{haarnoja2018sac}. In all cases, random data was generated by running a uniform at random policy in the environment. Optimal data was generated by training SAC agents in all 4 domains until convergence to the returns mentioned in Figure~\ref{fig:optimal_random}. Mediocre data was generated by training a policy until the return value marked in each of the plots in Figure~\ref{fig:mediocre}. Each of our datasets contained 1e6 samples. We used the same datasets for evaluating different algorithms to maintain uniformity across results.
 
-\paragraph{More details about the algorithm} At evaluation time, we find that using the greedy maximum of the Q-function over the support set of the behaviour policy (which can be approximated by sampling multiple Dirac-delta policies $\delta_{a_i}$ from the policy $\pi_\phi$ and performing a greedy maximization of the Q-values over these Dirac-delta policies) works best, better than unrolling the learned actor $\pi_\phi$ in the environment. This was also found useful in \cite{fujimoto2018off}. Another detail about the algorithm is deciding which samples to use for computing the $\mmd$ objective. We train a parameteric model $\pi_{data}$ which fits a tanh-Gaussian distribution to $a$ given the states $s$, $\pi_{data}(\cdot|s) = \tanh{\mathcal{N}(\mu(\cdot|s), \sigma(\cdot|s))}$ and then use this to sample a candidate $n$ actions for computing the MMD-distance, meaning that MMD is computed between $a_1, \cdots, a_N \sim \pi_{data}$ and $\pi_\phi$. We find the latter to work better in practice. Also, computing the $\mmd$ distance between actions before applying the tanh transformation work better, and leads to a constraint, that perhaps provides stronger gradient signal -- because tanh saturates very quickly, after which gradients almost vanish. 
+\paragraph{Choice of kernels.} In our experiments, we found that the choice of the kernel is an important design decision that needs to be made. In general, we found that a Laplacian kernel $k(x, y) = \exp(\frac{-||x - y||}{\sigma})$ worked well in all cases. Gaussian kernel $k(x, y) =\exp(\frac{-||x - y||^2}{2 \sigma^2})$ worked quite well in the case of optimal dataset. For the Laplacian kernel, we chose $\sigma = 10.0$ for Cheetah, Ant and Hopper, and $\sigma=20.0$ for Walker. However, we found that $\sigma=20.0$ worked well for all environments in all settings. For the Gaussian kernel, we chose $\sigma=20.0$ for all settings. Kernels often tend to not provide relevant measurements of distance especially in high-dimensional spaces, so one direction for future work is to design right kernels. We further experimented with a mixture of Laplacian kernel with different bandwidth parameters $\sigma$ ($1.0, 10.0, 50.0$) on Hopper-v2 and Walker2d-v2 where we found that it performs comparably and sometimes is better than a simple Laplacian kernel, probably because it is able to track supports upto different levels of thresholds due to multiple kernels.   
 
-\paragraph{Other hyperparameters} Other hyperparameters include the following -- (1) The variance of the Gaussian $\sigma^2$ /(standard deviation of) Laplacian kernel $\sigma$: We tried a variance of 10, 20, and 40. We found that 10 and 20 worked well across Cheetah, Hopper and Ant, and 20 worked well for Walker2d; (2) The learning rate for the Lagrange multiplier was chosen to be 1e-3, and the $\log$ of the Lagrange multiplier was clipped between $[-5, 10]$ to prevent instabilities; (3) For the policy improvement step, we found using average Q works better than min Q for Walker2d. For the baselines, we used BCQ code from the official implementation accompanying~\cite{fujimoto2018off}, TD3 code from the official implementation accompanying~\cite{fujimoto18addressing} and the BC baseline was the VAE-based behaviour cloning baseline also used in \cite{fujimoto2018off}. We evaluated on 10 evaluation episodes (which were separate from the train distribution) after every 1000 iterations and used the average score and the variance for the plots. 
+\paragraph{More details about the algorithm.} At evaluation time, we find that using the greedy maximum of the Q-function over the support set of the behaviour policy (which can be approximated by sampling multiple Dirac-delta policies $\delta_{a_i}$ from the policy $\pi_\phi$ and performing a greedy maximization of the Q-values over these Dirac-delta policies) works best, better than unrolling the learned actor $\pi_\phi$ in the environment. This was also found useful in \cite{fujimoto2018off}. Another detail about the algorithm is deciding which samples to use for computing the $\mmd$ objective. We train a parameteric model $\pi_{data}$ which fits a tanh-Gaussian distribution to $\mathbf{a}$ given the states $\bs$, $\pi_{data}(\cdot|\bs) = \tanh{\mathcal{N}(\mu(\cdot|\bs), \sigma(\cdot|\bs))}$ and then use this to sample a candidate $n$ actions for computing the MMD-distance, meaning that MMD is computed between $\mathbf{a}_1, \cdots, \mathbf{a}_N \sim \pi_{data}$ and $\pi_\phi$. We find the latter to work better in practice. Also, computing the $\mmd$ distance between actions before applying the tanh transformation work better, and leads to a constraint, that perhaps provides stronger gradient signal -- because tanh saturates very quickly, after which gradients almost vanish. 
+
+\paragraph{Other hyperparameters.} Other hyperparameters include the following -- (1) The variance of the Gaussian $\sigma^2$ /(standard deviation of) Laplacian kernel $\sigma$: We tried a variance of 10, 20, and 40. We found that 10 and 20 worked well across Cheetah, Hopper and Ant, and 20 worked well for Walker2d; (2) The learning rate for the Lagrange multiplier was chosen to be 1e-3, and the $\log$ of the Lagrange multiplier was clipped between $[-5, 10]$ to prevent instabilities; (3) For the policy improvement step, we found using average Q works better than min Q for Walker2d. For the baselines, we used BCQ code from the official implementation accompanying~\cite{fujimoto2018off}, TD3 code from the official implementation accompanying~\cite{fujimoto18addressing} and the BC baseline was the VAE-based behaviour cloning baseline also used in \cite{fujimoto2018off}. We evaluated on 10 evaluation episodes (which were separate from the train distribution) after every 1000 iterations and used the average score and the variance for the plots. 
 
 \section{Additional Experimental Results}
 \label{exp:additional_results}
+
+In this section, we provide some extra plots for some extra experiments. In Figure~\ref{fig:q_mc} we provide the difference between learned Q-values and Monte carlo returns of the policy in the environment. In Figure~\ref{fig:q_val_mediocre} we provide the trends of comparisons of Q-values learned by BEAR and BCQ in three environments. 
 
 % \subsection{Plots for Q-values vs monte-carlo returns: Figure~\ref{fig:q_mc}}
 \label{app:q_vs_mc}
@@ -233,7 +235,7 @@ In order to provide a theoretical example, we refer to Example 1 in \citet{grett
         \includegraphics[width=0.99\linewidth]{chapters/bear/images/walker_q_vs_mc.pdf}
         % \caption{}
     \end{subfigure}%
-    \caption{The trend of the difference between the Q-values and Monte-Carlo returns: $Q - MC$ returns for 2 environments. Note that a high value of $Q-MC$ corresponds to more overestimation. In these plots, BEAR-QL is more well behaved than BCQ. In Walker2d-v2, BCQ tends to diverge in the negative direction. In the case of Ant-v2, although roughly the same, the difference between Q values and Monte-carlo returns is slightly lower in the case of BEAR-QL suggestion no risk of overestimation. (This corresponds to medium-quality data.)}
+    \caption{The trend of the difference between the Q-values and Monte-Carlo returns: $Q - MC$ returns for 2 environments. Note that a high value of $Q-MC$ corresponds to more overestimation. In these plots, BEAR-QL is more well behaved than BCQ. In Walker2d-v2, BCQ tends to diverge in the negative direction. In the case of Ant-v2, although roughly the same, the difference between Q values and Monte-carlo returns is slightly lower in the case of BEAR suggestion no risk of overestimation. (This corresponds to medium-quality data.)}
     \label{fig:q_mc}
 \end{figure*}
 
@@ -289,68 +291,69 @@ In order to provide a theoretical example, we refer to Example 1 in \citet{grett
         \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_qval.pdf}
         % \caption{}
     \end{subfigure}%
-    \caption{The trends of Q-values as a function of number of gradient steps taken in case of 3 environments. BCQs Q-values tend to be more unstable (especially in the case of Walker2d, where they diverge in the negative direction) as compared to BEAR-QL. This corresponds to medium-quality data.}
+    \caption{The trends of Q-values as a function of number of gradient steps taken in case of 3 environments. BCQs Q-values tend to be more unstable (especially in the case of Walker2d, where they diverge in the negative direction) as compared to BEAR. This corresponds to medium-quality data.}
     \label{fig:q_val_mediocre}
 \end{figure*}
 
 % \subsection{Plots for KL divergence vs MMD distance}
-In this section, we provide some extra plots for some extra experiments. In Figure~\ref{fig:q_mc} we provide the difference between learned Q-values and Monte carlo returns of the policy in the environment. In Figure~\ref{fig:q_val_mediocre} we provide the trends of comparisons of Q-values learned by BEAR-QL and BCQ in three environments. In Figure~\ref{fig:kl_vs_mmd_single} we compare the performance when using the MMD constraint vs using the KL constraint in the case of three environments. 
-In order to be fair at comparing to MMD, we train a model for the behaviour policy and constrain the KL-divergence to this behaviour policy. (For MMD, we compute MMD using samples from the model of the behaviour policy.) Note that in the case of Half Cheetah with medium-quality data, KL divergence constraint works pretty well, but it fails drastically in the case of Hopper and Walker2d and the Q-values tend to diverge. Figure~\ref{fig:kl_vs_mmd_single} summarizes the trends for 3 environments.
 
-\begin{figure*}[t]
-    \centering
-    \begin{subfigure}[t]{0.31\textwidth}
-        \centering
-        % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_cheetah.pdf}
-        % \caption{}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}[t]{0.31\textwidth}
-        \centering
-        % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_walker_old.pdf}
-        % \caption{}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}[t]{0.31\textwidth}
-        \centering
-        % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_hopper_old.pdf}
-        % \caption{}
-    \end{subfigure}%
-    \caption{Performance Trends (measured in AverageReturn) for Hopper-v2, HalfCheetah-v2 and Walker2d-v2 environments with BEAR-QL algorthm but varying kind of constraint. In general we find that using the KL constraint leads to worse performance. However, in some rare cases (for example, HalfCheetah-v2), the KL constraint learns faster. In general, we find that the KL-constraint often leads to diverging Q-values. This experiment corresponds to medium-quality data.}
-    \label{fig:kl_vs_mmd_single}
-\end{figure*}
+% In Figure~\ref{fig:kl_vs_mmd_single} we compare the performance when using the MMD constraint vs using the KL constraint in the case of three environments. 
+% In order to be fair at comparing to MMD, we train a model for the behavior policy and constrain the KL-divergence to this behaviour policy. (For MMD, we compute MMD using samples from the model of the behaviour policy.) Note that in the case of Half Cheetah with medium-quality data, KL divergence constraint works pretty well, but it fails drastically in the case of Hopper and Walker2d and the Q-values tend to diverge. Figure~\ref{fig:kl_vs_mmd_single} summarizes the trends for 3 environments.
 
-We further study the performance of the KL-divergence in the setting when the KL-divergence is stable. In this setting we needed to perform extensive hyperparameter tuning to find the optimal Lagrange multiplier for the KL-constraint and plain and simple dual descent always gave us an unstable solution with the KL-constraint. Even in this case tuned hyperparameter case, we find that using a KL-constraint is worse than using a MMD-constraint. Trends are summarized in Figure~\ref{fig:tuned_kl}. 
-\begin{figure*}[t]
-    \centering
-    \begin{subfigure}[t]{0.31\textwidth}
-        \centering
-        % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_hopper_again.pdf}
-        % \caption{}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}[t]{0.31\textwidth}
-        \centering
-        % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
-        \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_walker_again.pdf}
-        % \caption{}
-    \end{subfigure}%
-    \caption{Performance Trends (measured in Average Returns) for Hopper-v2 and Walker2d-v2 environments with BEAR-QL algorithm with an extensively tuned KL-constraint and the MMD-constraint from. Note that the MMD-constraint still outperforms the KL-constraint.}
-    \label{fig:tuned_kl}
-\end{figure*}
+% \begin{figure*}[t]
+%     \centering
+%     \begin{subfigure}[t]{0.31\textwidth}
+%         \centering
+%         % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
+%         \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_cheetah.pdf}
+%         % \caption{}
+%     \end{subfigure}%
+%     ~
+%     \begin{subfigure}[t]{0.31\textwidth}
+%         \centering
+%         % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
+%         \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_walker_old.pdf}
+%         % \caption{}
+%     \end{subfigure}%
+%     ~
+%     \begin{subfigure}[t]{0.31\textwidth}
+%         \centering
+%         % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
+%         \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_hopper_old.pdf}
+%         % \caption{}
+%     \end{subfigure}%
+%     \caption{Performance Trends (measured in AverageReturn) for Hopper-v2, HalfCheetah-v2 and Walker2d-v2 environments with BEAR-QL algorthm but varying kind of constraint. In general we find that using the KL constraint leads to worse performance. However, in some rare cases (for example, HalfCheetah-v2), the KL constraint learns faster. In general, we find that the KL-constraint often leads to diverging Q-values. This experiment corresponds to medium-quality data.}
+%     \label{fig:kl_vs_mmd_single}
+% \end{figure*}
 
-As described in Section~\ref{app:bearql-more}, we can achieve a reduced overall error $||V_k(s) - V^*(s)||$, if we use the MMD support-matching constraint alongside importance sampling, i.e. when we multiply the Bellman error with the inverse of the behaviour policy density. Empirically, we tried reweighting the Bellman error by inverse of the fitted behavior policy density, alongside the BEAR-QL algorithm. The trends for two environments and medium-quality data are summarized in Figure~\ref{fig:is}. We found that reweighting the Bellman error wasn't that useful, although in theory, it provides an absolute error reduction as described by Theorem 4.1. We hypothesize that this could be due to the possible reason that when optimizing neural nets using stochastic gradient procedures, importance sampling isn't that beneficial~\citep{byrd19is}.
+% We further study the performance of the KL-divergence in the setting when the KL-divergence is stable. In this setting we needed to perform extensive hyperparameter tuning to find the optimal Lagrange multiplier for the KL-constraint and plain and simple dual descent always gave us an unstable solution with the KL-constraint. Even in this case tuned hyperparameter case, we find that using a KL-constraint is worse than using a MMD-constraint. Trends are summarized in Figure~\ref{fig:tuned_kl}. 
+% \begin{figure*}[t]
+%     \centering
+%     \begin{subfigure}[t]{0.31\textwidth}
+%         \centering
+%         % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
+%         \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_hopper_again.pdf}
+%         % \caption{}
+%     \end{subfigure}%
+%     ~
+%     \begin{subfigure}[t]{0.31\textwidth}
+%         \centering
+%         % \includegraphics[width=0.99\linewidth]{chapters/bear/images/cheetah_mediocre_final.pdf}
+%         \includegraphics[width=0.99\linewidth]{chapters/bear/images/kl_vs_mmd_walker_again.pdf}
+%         % \caption{}
+%     \end{subfigure}%
+%     \caption{Performance Trends (measured in Average Returns) for Hopper-v2 and Walker2d-v2 environments with BEAR-QL algorithm with an extensively tuned KL-constraint and the MMD-constraint from. Note that the MMD-constraint still outperforms the KL-constraint.}
+%     \label{fig:tuned_kl}
+% \end{figure*}
 
-\begin{figure}
-    \centering
-    \includegraphics[scale=0.3]{chapters/bear/images/images_camera_ready/is_ablation.png}
-    \caption{BEAR with importance sampled Bellman error minimization. We find that importance sampling isn't that beneficial in practice.}
-    \label{fig:is}
-\end{figure}
+% As described in Section~\ref{app:bearql-more}, we can achieve a reduced overall error $||V_k(s) - V^*(s)||$, if we use the MMD support-matching constraint alongside importance sampling, i.e. when we multiply the Bellman error with the inverse of the behaviour policy density. Empirically, we tried reweighting the Bellman error by inverse of the fitted behavior policy density, alongside the BEAR-QL algorithm. The trends for two environments and medium-quality data are summarized in Figure~\ref{fig:is}. We found that reweighting the Bellman error wasn't that useful, although in theory, it provides an absolute error reduction as described by Theorem 4.1. We hypothesize that this could be due to the possible reason that when optimizing neural nets using stochastic gradient procedures, importance sampling isn't that beneficial~\citep{byrd19is}.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[scale=0.3]{chapters/bear/images/images_camera_ready/is_ablation.png}
+%     \caption{BEAR with importance sampled Bellman error minimization. We find that importance sampling isn't that beneficial in practice.}
+%     \label{fig:is}
+% \end{figure}
 
 % \subsection{Plots for number of samples used for MMD computation}
 % \begin{figure*}[h]

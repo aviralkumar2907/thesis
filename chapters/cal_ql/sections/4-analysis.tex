@@ -37,7 +37,7 @@ While the offline Q-function initialization obtained from all methods attains a 
 \vspace{-0.25cm}
 \caption{\label{fig:cql_q_value} \footnotesize{\textbf{The evolution of the average Q-value and the success rate of CQL over the course of offline pre-training and online fine-tuning.} Fine-tuning begins at 50K steps. The red-colored part denotes the period of performance recovery which also coincides with the period of Q-value adjustment.}}
 \end{center}
-\vspace{-0.7cm}
+\vspace{-0.9cm}
 \end{wrapfigure}
 \textbf{Why does CQL unlearn initially?} To understand why CQL unlearns initially, we inspect the learned Q-values averaged over the dataset in Figure~\ref{fig:cql_q_value}. Observe that the Q-values learned by CQL in the offline phase are \emph{much} smaller than their ground-truth value (as expected), but these Q-values drastically jump and adjust in scale when fine-tuning begins. In fact, we observe that performance recovery (red segment in Figure~\ref{fig:cql_q_value}) {\em coincides} with a period where the range of Q-values changes to match the true range. This is as expected: as a conservative Q-function experiences new online data, actions much worse than the offline policy on the rollout states appear to attain higher rewards compared to the highly underestimated offline Q-function, which in turn deceives the policy optimizer into unlearning the initial policy. We illustrate this idea visually in Figure~\ref{fig:calql_idea}. Once the Q-function has adjusted and the range of Q-values closely matches the true range, then fine-tuning can proceed normally, after the dip. 
 
@@ -49,7 +49,7 @@ While the offline Q-function initialization obtained from all methods attains a 
 \vspace{-0.18cm}
 Our observations from the preceding discussion motivate two conclusions in regard to the offline Q-initialization for fast fine-tuning: \textbf{(a)} methods that learn \textbf{conservative} Q-functions can attain good asymptotic performance, and \textbf{(b)} if the learned Q-values closely match the range of ground-truth Q-values on the task, then online fine-tuning does not need to devote samples to unlearn and then recover the offline initialization. One approach to formalize this intuition of Q-values lying on a similar scale as the ground-truth Q-function is via the requirement that the conservative Q-values learned by the conservative value estimation method must be lower-bounded by the ground-truth Q-value of a sub-optimal reference policy. This will prevent conservatism from learning overly small Q-values. We will refer to this property as ``calibration'' with respect to the reference policy.
 \begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=-3pt,bottom=2pt]
-\vspace{5mm}
+\vspace{2mm}
 \begin{definition}[Calibration]
 \label{cond:calibration}
 An estimated Q-function ${Q}_\theta^\pi$ for a given policy $\pi$ is said to be calibrated with respect to a reference policy $\mu$ if:

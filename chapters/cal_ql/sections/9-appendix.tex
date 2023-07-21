@@ -1,7 +1,3 @@
-\newpage
-
-\part*{Appendices}
-
 \section{Implementation details of Cal-QL}
 Our algorithm, \methodname\ is illustrated in Algorithm~\ref{alg:practical_alg}. A complete implementation of the functions in python-style is provided in Appendix~\ref{app:calql_algo}.
 
@@ -9,8 +5,8 @@ Our algorithm, \methodname\ is illustrated in Algorithm~\ref{alg:practical_alg}.
 We use $J_Q(\theta)$ to denote the calibrated conservative regularizer for the Q network update:
 \begin{align}
     \label{eqn:calql_training_J}
-    J_Q(\theta):=&\;{{\alpha \underbrace{\left(\mathbb{E}_{\bs \sim \mathcal{D}, \ba \sim \pi} \brac{{\color[HTML]{B85450}{\max \left( Q_\theta(s,a), Q^\mu(s,a) \right)}} } - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Calibrated conservative regularizer }\mathcal{R}(\theta)}}}\\
-    &\;+ \frac{1}{2} {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\bar{Q}(s, a)\right)^2 \right]}.
+    J_Q(\theta):=&\;{{\alpha \underbrace{\left(\mathbb{E}_{\bs \sim \mathcal{D}, \mathbf{a} \sim \pi} \brac{{\color[HTML]{B85450}{\max \left( Q_\theta(s,a), Q^\mu(s,a) \right)}} } - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Calibrated conservative regularizer }\mathcal{R}(\theta)}}}\\
+    &\;+ \frac{1}{2} {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\mathbf{a}r{Q}(s, a)\right)^2 \right]}.
 \end{align}
 
 \begin{center}
@@ -27,13 +23,15 @@ We use $J_Q(\theta)$ to denote the calibrated conservative regularizer for the Q
             \end{equation}
             \State Improve policy $\pi_\phi$ with SAC-style update:
             \begin{equation}
-                \phi_{t} := \phi_{t-1} + \eta_\pi \mathbb{E}_{\bs \sim \mathcal{D}, \ba \sim \pi_\phi(\cdot|\bs)}[Q_\theta(\bs, \ba)\! -\! \log \pi_\phi(\ba|\bs)]
+                \phi_{t} := \phi_{t-1} + \eta_\pi \mathbb{E}_{\bs \sim \mathcal{D}, \mathbf{a} \sim \pi_\phi(\cdot|\bs)}[Q_\theta(\bs, \mathbf{a})\! -\! \log \pi_\phi(\mathbf{a}|\bs)]
             \end{equation}
         \EndFor
     \end{algorithmic}
     \end{algorithm}
 \end{minipage}
 \end{center}
+
+\iffalse
 
 \subsection{Python Implementation}
 \label{app:calql_algo}
@@ -88,6 +86,8 @@ actor_loss.backward()
 actor_optimizer.step()
 \end{python}
 
+\fi
+
 \section{Regret Analysis of \methodname}
 We provide a theoretical version of \methodname\ in Algorithm~\ref{algo:CalQL-thm}. Policy fine-tuning has been studied in different settings~\citep{xie2021policy,song2023hybrid,wagenmaker2022leveraging}. Our analysis largely adopts the settings and results in \citet{song2023hybrid}, with additional changes in Assumption~\ref{assump:conservative-realizability-completeness}, Assumption~\ref{assump:conservative-bilinear-rank}, and Definition~\ref{def:bellman-error-coeff-ref}. Note that the goal of this proof is to demonstrate that
 {\em a pessimistic functional class (Assumption~\ref{assump:conservative-realizability-completeness})} allows one to utilize the offline data efficiently, rather than providing a new analytical technique for regret analysis. See comparisons between Section~\ref{subsec:CalQL-assumptions} and Section~\ref{subsec:HyQ-assumptions}. Note that we use $f$ instead of $Q_\theta$ in the main text to denote the estimated $Q$ function for notation simplicity.
@@ -117,17 +117,17 @@ We provide a theoretical version of \methodname\ in Algorithm~\ref{algo:CalQL-th
 \end{algorithm}
 
 
-\subsection{Preliminaries}
-In this subsection, we follow most of the notations and definitions in~\citet{song2023hybrid}. In particular, we consider the finite horizon cases, where the value function and Q function are defined as:
-\begin{align}
-    V_h^\pi(s) &= \bb E\brac{\sum_{\tau=h}^{H-1}r_\tau|\pi, s_h=s}\\
-    Q_h^\pi(s,a) &= \bb E\brac{\sum_{\tau=h}^{H-1}r_\tau|\pi,s_h=s,a_h=a}.
-\end{align}
-We also define the Bellman operator $\mc T$ such that $\forall f:\mc S\times \mc A$:
-\begin{equation}
-    \mc T f(s,a) = \bb E_{s,a}[R(s,a)] + \bb E_{s^\prime \sim P(s,a)}\max_{a^\prime} f(s^\prime, a^\prime),\;\forall (s,a)\in \mc S\times \mc A,
-\end{equation}
-where $R(s,a)\in \Delta[0,1]$ represents a stochastic reward function.
+% \subsection{Preliminaries}
+% In this subsection, we follow most of the notations and definitions in~\citet{song2023hybrid}. In particular, we consider the finite horizon cases, where the value function and Q function are defined as:
+% \begin{align}
+%     V_h^\pi(s) &= \bb E\brac{\sum_{\tau=h}^{H-1}r_\tau|\pi, s_h=s}\\
+%     Q_h^\pi(s,a) &= \bb E\brac{\sum_{\tau=h}^{H-1}r_\tau|\pi,s_h=s,a_h=a}.
+% \end{align}
+% We also define the Bellman operator $\mc T$ such that $\forall f:\mc S\times \mc A$:
+% \begin{equation}
+%     \mc T f(s,a) = \bb E_{s,a}[R(s,a)] + \bb E_{s^\prime \sim P(s,a)}\max_{a^\prime} f(s^\prime, a^\prime),\;\forall (s,a)\in \mc S\times \mc A,
+% \end{equation}
+% where $R(s,a)\in \Delta[0,1]$ represents a stochastic reward function.
 
 \subsection{Notations}
 \label{appendix:notations}
@@ -189,7 +189,7 @@ The pessimistic realizability and completeness assumption (Assumption~\ref{assum
 
 \begin{align}
     \label{eq:dual-conservative-formulation}
-    \min_\theta  {\alpha \underbrace{\left(\mathbb{E}_{s \sim \mathcal{D}, a \sim \pi} \left[Q_\theta(s,a)\right] - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Conservative regularizer }\mathcal{R}(\theta)}} + \frac{1}{2} {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\bar{Q}(s, a)\right)^2 \right]}.
+    \min_\theta  {\alpha \underbrace{\left(\mathbb{E}_{s \sim \mathcal{D}, a \sim \pi} \left[Q_\theta(s,a)\right] - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Conservative regularizer }\mathcal{R}(\theta)}} + \frac{1}{2} {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\mathbf{a}r{Q}(s, a)\right)^2 \right]}.
 \end{align}
 Since the goal of the conservative regularizer $\mc R(\theta)$ intrinsically wants to enforce
 \begin{equation}
@@ -197,7 +197,7 @@ Since the goal of the conservative regularizer $\mc R(\theta)$ intrinsically wan
 \end{equation}
 where $\pi$ is the training policy and $\pi^e$ is the reference (behavior) policy. One can consider \eqref{eq:dual-conservative-formulation} as the Lagrange duality formulation of the following primal optimization problem:{\small
 \begin{equation}
-    \min_\theta    {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\bar{Q}(s, a)\right)^2 \right]},\;\text{subject to}\; \mathbb{E}_{s \sim \mathcal{D}, a \sim \pi} \left[Q_\theta(s,a)\right] \leq \mathbb{E}_{s\sim \mathcal{D},a\sim\pi^e}\left[Q_\theta(s,a)\right],
+    \min_\theta    {\mathbb{E}_{s, a, s^\prime\sim \mathcal{D}}\left[\left(Q_\theta(s, a) - \bellman^\pi\mathbf{a}r{Q}(s, a)\right)^2 \right]},\;\text{subject to}\; \mathbb{E}_{s \sim \mathcal{D}, a \sim \pi} \left[Q_\theta(s,a)\right] \leq \mathbb{E}_{s\sim \mathcal{D},a\sim\pi^e}\left[Q_\theta(s,a)\right],
 \end{equation}
 }
 where the constraint set is equivalent to Assumption~\ref{assump:conservative-realizability-completeness}. Although Assumption~\ref{assump:conservative-realizability-completeness} directly characterizes the constraint set of the primal form of~\eqref{eq:dual-conservative-formulation} the exact theoretical connection between the pessimistic realizability and the regularized bellman consistency equation is beyond the scope of this work and we would like to leave that for future studies.
@@ -240,17 +240,17 @@ We provide an overview of the proof structure and its dependency on different as
 for the reference policy from $\mu$ in Theorem~\ref{thm:main-thm-informal} to $\pi^\mr{ref}$ (similarly, $d_\mr{ref},V^\mr{ref},C_{\pi^e}^\mr{ref}$ correspond to $d_\mu,V^\mu,C_{\pi^e}^\mu$ in Theorem~\ref{thm:main-thm-informal}) for notation consistency in the proof. Our proof of Theorem~\ref{thm:CalQL-regret-main} largely follows the proof of Theorem 1 of~\citep{song2023hybrid}, and the major changes are caused by Assumption~\ref{assump:conservative-realizability-completeness}, Assumption~\ref{assump:conservative-bilinear-rank}, and Definition~\ref{def:bellman-error-coeff-ref}.
 \begin{proof}
     \label{proof:CalQL-main-thm}
-    Let $\mc E_k $ denote the event that $\Brac{f_0^k(s,a)\leq Q^\mr{ref}(s,a)}$ and $\bar{\mc E}_k $ denote the event that $\Brac{f_0^k(s,a) > Q^\mr{ref}(s,a)}$. Let $V^\mr{ref}(s) = \max_aQ^\mr{ref}(s,a)$, we start by noting that
+    Let $\mc E_k $ denote the event that $\Brac{f_0^k(s,a)\leq Q^\mr{ref}(s,a)}$ and $\mathbf{a}r{\mc E}_k $ denote the event that $\Brac{f_0^k(s,a) > Q^\mr{ref}(s,a)}$. Let $V^\mr{ref}(s) = \max_aQ^\mr{ref}(s,a)$, we start by noting that
 \begin{equation}
     \label{eq:conservative-main-thm-derivation0}
     \begin{split}
         &\sum_{k=1}^KV^{\pi^e}-V^{\pi^{f^k}} = \sum_{k=1}^K\bb E_{s\sim\rho}\brac{V_0^{\pi^e}(s)-V^{\pi^{f^k}}_0(s)}\\
-        =&\;\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{\bar{\mc E}_k}\paren{V_0^{\pi^e}(s)-V^{\mr{ref}}(s)}}}_{\Gamma_0}+\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{\bar{\mc E}_k}\paren{V^{\mr{ref}}(s)-\max_a f_0^k(s,a)}}}_{=0, \text{ by the definition of }\bar{\mc E}_k\text{ and line 9 of Algorithm~\ref{algo:CalQL-thm}}}\\
-        &+\underbrace{\sum_{t=1}^K\bb E_{s\sim\rho}\brac{\indicator{\bar{\mc E}_k}\paren{\max_a f_0^k(s,a)-V^{\pi^{f^k}}_0(s)}}}_{\Gamma_1}+\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{{\mc E}_k}\paren{V_0^{\pi^e}(s)-\max_a f_0^k(s,a)}}}_{\Gamma_2}\\
+        =&\;\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{\mathbf{a}r{\mc E}_k}\paren{V_0^{\pi^e}(s)-V^{\mr{ref}}(s)}}}_{\Gamma_0}+\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{\mathbf{a}r{\mc E}_k}\paren{V^{\mr{ref}}(s)-\max_a f_0^k(s,a)}}}_{=0, \text{ by the definition of }\mathbf{a}r{\mc E}_k\text{ and line 9 of Algorithm~\ref{algo:CalQL-thm}}}\\
+        &+\underbrace{\sum_{t=1}^K\bb E_{s\sim\rho}\brac{\indicator{\mathbf{a}r{\mc E}_k}\paren{\max_a f_0^k(s,a)-V^{\pi^{f^k}}_0(s)}}}_{\Gamma_1}+\underbrace{\sum_{k=1}^K\bb E_{s\sim\rho}\brac{\indicator{{\mc E}_k}\paren{V_0^{\pi^e}(s)-\max_a f_0^k(s,a)}}}_{\Gamma_2}\\
         &+\underbrace{\sum_{t=1}^T\bb E_{s\sim\rho}\brac{\indicator{{\mc E}_k}\paren{\max_a f_0^k(s,a)-V^{\pi^{f^k}}_0(s)}}}_{\Gamma_3}.\\
     \end{split}
 \end{equation}
-Let $K_1 = \sum_{k=1}^K\indicator{f_0^k(s,a)>Q^\mr{ref}(s,a)}$ and $K_2 = \sum_{k=1}^K\indicator{f_0^k(s,a)\leq Q^\mr{ref}(s,a)}$ (or equivalently $K_1 = \sum_{k=1}^K\indicator{\bar{\mc E}_k}$, $K_2=\sum_{k=1}^K\indicator{{\mc E}_k}$). For $\Gamma_0$, we have
+Let $K_1 = \sum_{k=1}^K\indicator{f_0^k(s,a)>Q^\mr{ref}(s,a)}$ and $K_2 = \sum_{k=1}^K\indicator{f_0^k(s,a)\leq Q^\mr{ref}(s,a)}$ (or equivalently $K_1 = \sum_{k=1}^K\indicator{\mathbf{a}r{\mc E}_k}$, $K_2=\sum_{k=1}^K\indicator{{\mc E}_k}$). For $\Gamma_0$, we have
 \begin{equation}
     \label{eq:derivation_gamma0}
     \Gamma_0 = K_2\bb E_{s\sim\rho}\paren{V^{\pi^e}(s)-V^{\mr{ref}}(s)}.
@@ -269,10 +269,10 @@ For $\Gamma_2$, we have
 where $\Deltaoff$ is similarly defined as~\citet{song2023hybrid} (See \eqref{eq:delta-off} of Lemma~\ref{lemma:bellman-error-bound}). Inequality $(i)$ holds because of Lemma~\ref{lemma:perf-diff-comparator}, inequality $(ii)$ holds by the definition of $C_{\pi^e}^\mr{ref}$ (Definition~\ref{def:bellman-error-coeff-ref}), inequality $(iii)$ holds by applying Lemma~\ref{lemma:bellman-error-bound} with the function class satisfying Assumption~\ref{assump:conservative-realizability-completeness}, and Definition~\ref{def:bellman-error-coeff-ref}. Note that the telescoping decomposition technique in the above equation also appears in~\citep{xie2020q,jin2021bellman,du2021bilinear}. Next, we will bound $\Gamma_1+\Gamma_3$:
 \begin{equation}
     \begin{split}
-        \Gamma_1+\Gamma_3  =& \sum_{k=1}^K\paren{\indicator{\mc E_k}+\indicator{\bar{\mc E}_k}}\bb E_{s\sim d_0}\brac{\max_a f_0^k(s,a)-V_0^{\pi^{f^k}}(s)}\\
-        \overset{(i)}{\leq}& \sum_{k=1}^K\paren{\indicator{\mc E_k}+\indicator{\bar{\mc E}_k}}\sum_{h=0}^{H-1}\abs{\bb E_{s,a\sim d_h^{\pi^{f^k}}}\brac{f_h^k(s,a)-\mc T f_{h+1}^k(s,a)}}\\
-        \overset{(ii)}{=}&\sum_{t=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\bar{\mc E}_k}}\sum_{h=0}^{H-1}\abs{\innerprod{X_h(f^k)}{W_h(f^k)}}}\\
-        \overset{(iii)}{\leq}&\sum_{k=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\bar{\mc E}_k}}\sum_{h=0}^{H-1}\norm{X_h(f^k)}{\mb \Sigma^{-1}_{k-1;h}}\sqrt{\Deltaon+\lambda B_W^2}},
+        \Gamma_1+\Gamma_3  =& \sum_{k=1}^K\paren{\indicator{\mc E_k}+\indicator{\mathbf{a}r{\mc E}_k}}\bb E_{s\sim d_0}\brac{\max_a f_0^k(s,a)-V_0^{\pi^{f^k}}(s)}\\
+        \overset{(i)}{\leq}& \sum_{k=1}^K\paren{\indicator{\mc E_k}+\indicator{\mathbf{a}r{\mc E}_k}}\sum_{h=0}^{H-1}\abs{\bb E_{s,a\sim d_h^{\pi^{f^k}}}\brac{f_h^k(s,a)-\mc T f_{h+1}^k(s,a)}}\\
+        \overset{(ii)}{=}&\sum_{t=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\mathbf{a}r{\mc E}_k}}\sum_{h=0}^{H-1}\abs{\innerprod{X_h(f^k)}{W_h(f^k)}}}\\
+        \overset{(iii)}{\leq}&\sum_{k=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\mathbf{a}r{\mc E}_k}}\sum_{h=0}^{H-1}\norm{X_h(f^k)}{\mb \Sigma^{-1}_{k-1;h}}\sqrt{\Deltaon+\lambda B_W^2}},
     \end{split}
 \end{equation}
 where $\Deltaon$ is similarly defined as~\citet{song2023hybrid} (See \eqref{eq:delta-on} of Lemma~\ref{lemma:bellman-error-bound}). Inequality~$(i)$ holds by Lemma~\ref{lemma:perf-diff-online}, equation~$(ii)$ holds by the definition of Bilinear model (\eqref{eq:bilinear-model} in Definition~\ref{def:bilinear-model}), inequality~$(iii)$ holds by Lemma~\ref{lemma:bilinear-upper-bound} and Lemma~\ref{lemma:bellman-error-bound} with the function class satisfying Assumption~\ref{assump:conservative-realizability-completeness}. Using Lemma~\ref{lemma:bound-inverse-cov-norm}, we have that 
@@ -281,13 +281,13 @@ where $\Deltaon$ is similarly defined as~\citet{song2023hybrid} (See \eqref{eq:d
     \label{eq:derivation_gamma13}
     \begin{split}
         &\Gamma_1+\Gamma_3\\
-        \leq&\sum_{k=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\bar{\mc E}_k}}\sum_{h=0}^{H-1}\norm{X_h(f^k)}{\mb \Sigma^{-1}_{k-1;h}}\sqrt{\Deltaon+\lambda B_W^2}}\\
+        \leq&\sum_{k=1}^K\brac{\paren{\indicator{\mc E_k}+\indicator{\mathbf{a}r{\mc E}_k}}\sum_{h=0}^{H-1}\norm{X_h(f^k)}{\mb \Sigma^{-1}_{k-1;h}}\sqrt{\Deltaon+\lambda B_W^2}}\\
         \overset{(i)}{\leq} &H\sqrt{2d\log\paren{1+\frac{K_1B_X^2}{\lambda d}}\cdot(\Deltaon+\lambda B_W^2)\cdot K_1}+H\sqrt{2d_\mr{ref}\log\paren{1+\frac{K_2B_X^2}{\lambda d_\mr{ref}}}\cdot(\Deltaon+\lambda B_W^2)\cdot K_2}\\
         \overset{(ii)}{\leq} &H\paren{\sqrt{2d\log\paren{1+\frac{K_1}{ d}}\cdot(\Deltaon+B_X^2 B_W^2)\cdot K_1}+\sqrt{2d_\mr{ref}\log\paren{1+\frac{K_2}{d_\mr{ref}}}\cdot(\Deltaon+B_X^2 B_W^2)\cdot K_2}},
     \end{split}
 \end{equation}
 }
-where the first part of inequality $(i)$ holds by the assumption that the underlying MDPs have bellman rank $d$ (Definition~\ref{def:bilinear-model}) when $\bar{\mc E}_k$ happens, and the second part of inequality $(i)$ holds by the assumption 
+where the first part of inequality $(i)$ holds by the assumption that the underlying MDPs have bellman rank $d$ (Definition~\ref{def:bilinear-model}) when $\mathbf{a}r{\mc E}_k$ happens, and the second part of inequality $(i)$ holds by the assumption 
 that $\mc C_\mr{ref}$ has bilinear rank $d_\mr{ref}$ (Assumption~\ref{assump:conservative-bilinear-rank}) $\mc C_\mr{ref}$ has bellman rank $d_\mr{ref}$ when $\mc E_k$ happens. Inequality $(ii)$ holds by plugging in $\lambda = B_X^2$. Substituting \eqref{eq:derivation_gamma0}, inequality~\ref{eq:derivation_gamma2}, and inequality \eqref{eq:derivation_gamma13} into \eqref{eq:conservative-main-thm-derivation0}, we have 
 {\small
 \begin{equation}
@@ -325,6 +325,8 @@ Setting $\moff = K,\mon=1$ in the above equation completes the proof, we have
 \end{equation}
 where the last inequality holds because $K_1,K_2\leq K$, which completes the proof.
 \end{proof}
+
+\iffalse
 
 \section{Key Results of HyQ~\citep{song2023hybrid}}
 In this section, we restate the major theoretical results of Hy-Q~\citep{song2023hybrid} for completeness. 
@@ -524,6 +526,8 @@ where we define $f_H(s,a)=0,\forall (s,a)$.
     where we define $\mb \Sigma_{k;h}:=\sum_{\tau=1}^kX_h(f^\tau)X_h(f^\tau)^T+\lambda \mb I$ and we assume $\lambda\geq B_X^2$ holds $\forall k\in[K]$.
 \end{lemma}
 
+\fi
+
 
 \section{Environment Details}
 \label{appendix:env_details}
@@ -569,7 +573,7 @@ We used the standard hyperparameters for SAC as derived from the original implem
 \caption{CQL, \methodname\ Hyperparameters}
 \label{table:hyper_all_cql} 
 \scalebox{0.80}{
-\begin{tabular}{p{3.cm} p{2.cm} p{2.cm}  p{2.cm}  p{2.5cm}}
+\begin{tabular}{c|c|c|c|c} % p{3.cm} p{2.cm} p{2.cm}  p{2.cm}  p{2.5cm}}
   \toprule
     \textbf{Hyperparameters} & \textbf{Adroit} & \textbf{Kitchen}  & \textbf{Antmaze} & \textbf{Manipulation}\\         
   \midrule
@@ -595,7 +599,7 @@ We used the standard hyperparameters for SAC as derived from the original implem
 \caption{IQL Hyperparameters}
 \label{table:hyper_all_iql} 
 \scalebox{0.80}{
-\begin{tabular}{p{3.cm} p{2.cm} p{2.cm}  p{2.cm}  p{2.5cm}}
+\begin{tabular}{c|c|c|c|c} % {p{3.cm} p{2.cm} p{2.cm}  p{2.cm}  p{2.5cm}}
   \toprule
     \textbf{Hyperparameters} & \textbf{Adroit} & \textbf{Kitchen}  & \textbf{Antmaze} & \textbf{Manipulation}\\         
   \midrule
@@ -619,7 +623,7 @@ We used the standard hyperparameters for SAC as derived from the original implem
 
 \begin{figure}[h]
 \begin{center}
-\centerline{\includegraphics[width=0.45\textwidth]{figs-sample/iql-beta.pdf}}
+\centerline{\includegraphics[width=0.45\textwidth]{chapters/cal_ql/figs-sample/iql-beta.pdf}}
 
 \caption{\label{fig:beta_ablation}\footnotesize{\textbf{Abalation on IQL's online temperature values}: The change in the temperature $\beta$ used in online fine-tuning phase has little to no effect on the sample efficiency.}}
 \end{center}
@@ -630,7 +634,7 @@ We used the standard hyperparameters for SAC as derived from the original implem
 \begin{figure}[h]
 
 \begin{center}
-\centerline{\includegraphics[width=0.8\textwidth]{figs-sample/iql-analysis-final.png}}
+\centerline{\includegraphics[width=0.8\textwidth]{chapters/cal_ql/figs-sample/iql-analysis-final.png}}
 
 \caption{\label{fig:cql_iql_finetune_app}\footnotesize{\textbf{IQL and CQL:} Step 0 on the x-axis is the performance after offline pre-training. Observe while CQL suffers from initial policy unlearning, IQL improves slower throughout fine-tuning.}}
 
@@ -638,7 +642,6 @@ We used the standard hyperparameters for SAC as derived from the original implem
 \vspace{-0.9cm}
 
 \end{figure}
-
 
 In this section, we aim to highlight some potential reasons behind the slow improvement of other methods in our empirical analysis experiment in Section~\ref{sec:empirical_analysis}, and specifically, we use IQL for the analysis. We first swept over the temperature $\beta$ values used in the online fine-tuning phase for IQL, which controls the constraint on how closely the learned policy should match the behavior policy. As shown in Figure~\ref{fig:beta_ablation}, the change in the temperature $\beta$ has little to no effect on the sample efficiency. Another natural hypothesis is that IQL improves slowly because we are not making enough updates per unit of data collected by the environment. To investigate this, we ran IQL with \textbf{(a)} five times as many gradient steps per step of data collection ($\text{UTD}=5$), and \textbf{(b)} with a more aggressive policy update. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(a)} does not improve the asymptotic performance of IQL, although it does improve CQL meaning that there is room for improvement on this task by making more gradient updates. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(b)} often induces policy unlearning, similar to the failure mode in CQL. These two observations together indicate that a policy constraint approach can slow down learning asymptotically, and we cannot increase the speed by making more aggressive updates as this causes the policy to find erroneously optimistic out-of-distribution actions, and unlearn the policy learned from offline data. 
 
@@ -649,7 +652,7 @@ In this section, we aim to highlight some potential reasons behind the slow impr
 \begin{wrapfigure}{r}{0.3\columnwidth}
 \vspace{-0.9cm}
 \begin{center}
-\includegraphics[width=0.9\linewidth]{figs-sample/kitchen-analysis.png}
+\includegraphics[width=0.9\linewidth]{chapters/cal_ql/figs-sample/kitchen-analysis.png}
 \vspace{-0.2cm}
 \caption{\footnotesize{The performance of \methodname\ using a neural net approximator for the reference value function is comparable to using the Monte-Carlo return.}}
 \label{fig:kitchen-regress}
@@ -660,17 +663,18 @@ In this section, we aim to highlight some potential reasons behind the slow impr
 In our experiments, we compute the reference value functions using Monte-Carlo return estimates. However, this may not be available in all tasks. How does \methodname\ behave when reference value functions must be estimated using the offline dataset itself? To answer this, we ran an experiment on the \texttt{kitchen} domain, where instead of using an estimate for $Q^\mu$ based on the Monte-Carlo return, we train a neural network function approximator $Q^\mu_\theta$ to approximate $Q^\mu$ via supervised regression on to Monte-Carlo return, which is then utilized by \methodname. 
 Observe in Figure \ref{fig:kitchen-regress}, that the performance of \methodname\ largely remains unaltered. This implies as long as we can obtain a reasonable function approximator to estimate the Q-function of the reference policy (in this case, the behavior policy), errors in the reference Q-function do not affect the performance of \methodname\ significantly.
 
-\section{Initial Unlearning of CQL on Multiple Tasks}
+\vspace{-0.2cm}
+\section{Initial Unlearning of CQL During Online Fine-Tuning}
 \label{app:cql_dip_zoom_in}
-\begin{figure}[b]
+\vspace{-0.2cm}
+\begin{figure}[h]
 \vspace{-0.5cm}
-
 \begin{center}    
-{\includegraphics[clip,width=1\linewidth]{figs-sample/kitchen-cog-zoom-in.pdf}} {\includegraphics[clip,width=0.75\linewidth]{figs-sample/adroit-zoom-in.pdf}}
+{\includegraphics[clip,width=1.0\linewidth]{chapters/cal_ql/figs-sample/kitchen-cog-zoom-in.pdf}} {\includegraphics[clip,width=0.75\linewidth]{chapters/cal_ql/figs-sample/adroit-zoom-in.pdf}}
 \end{center}
 \vspace{-0.45cm}
 \caption{\label{fig:dip_zoom} \footnotesize{While CQL experiences initial unlearning, \methodname\ effectively mitigates it and quickly recovers its performance.}}
-\vspace{-0.6cm}
+\vspace{-0.4cm}
 \end{figure}
 In this section, we show the learning curves of CQL and \methodname\ from Figure~\ref{fig:all_tasks} and zoom in on the x-axis to provide a clearer visualization of CQL's initial unlearning in the Franka Kitchen, Adroit, and the visual-manipulation domains. As depicted in Figure~\ref{fig:dip_zoom}, it is evident across all tasks that while CQL experiences initial unlearning, \methodname\ can effectively mitigate it and quickly recovers its performance. Regarding the Antmaze domain, as we discussed in section~\ref{subsec:diagonistic}, CQL does not exhibit initial unlearning since the default dataset has a high coverage of data. However, we can observe a similar phenomenon if we narrow down the dataset distribution (as shown in Figure~\ref{fig:ant-narrow}).
 
@@ -681,9 +685,9 @@ In this section, we show the learning curves of CQL and \methodname\ from Figure
 
 \section{Discussion of Policy Unlearning in Fine-Tuning}
 
-In this section, we provide another explanation for the performance drop shown in Figure~\ref{fig:cql_q_value} following the tabular setting. Specifically, in Section~\ref{subsec:reward-bias}, we show that running bellman iteration w.r.t. the CQL objective function~\eqref{eqn:cql_training} will converge to another Q-values w.r.t. a different (or biased) reward function $r^\pi_{\alpha,\beta}=r(\bs,\ba) - \alpha\brac{ \frac{\pi(\ba|\bs)}{\pi_\beta(\ba|\bs)} - 1 }$, where $\alpha$ is the regularizer of the CQL objective, and $\pi_\beta$ is the behavior policy. Note that this estimate only becomes unbiased when $\pi=\pi_\beta$.
+In this section, we provide another explanation for the performance drop shown in Figure~\ref{fig:cql_q_value} following the tabular setting. Specifically, in Section~\ref{subsec:reward-bias}, we show that running bellman iteration w.r.t. the CQL objective function~\eqref{eqn:cql_training} will converge to another Q-values w.r.t. a different (or biased) reward function $r^\pi_{\alpha,\beta}=r(\bs,\mathbf{a}) - \alpha\brac{ \frac{\pi(\mathbf{a}|\bs)}{\pi_\beta(\mathbf{a}|\bs)} - 1 }$, where $\alpha$ is the regularizer of the CQL objective, and $\pi_\beta$ is the behavior policy. Note that this estimate only becomes unbiased when $\pi=\pi_\beta$.
 
-In the fine-tuning phase, suppose we are using the CQL objective with another behavior policy $\pi_{\beta^\prime}$ and $\alpha^\prime$, then the Bellman operator will converge to a Q-value w.r.t. another (biased) reward function $r^\pi_{\alpha^\prime,\beta^\prime}=r(\bs,\ba) - \alpha^\prime\brac{ \frac{\pi(\ba|\bs)}{\pi_{\beta^\prime}(\ba|\bs)} - 1 }$. In Theorem~\ref{thm:mixing-dip-main}, we provide an if and only if condition under which the Q-values in the fine-tuning phase remain unchanged. But since the condition in Theorem~\ref{thm:mixing-dip-main} is generally hard to satisfy. Hence, it may lead to a performance difference gap in the fine-tuning phase in terms of the Q-values, as observed in Figure~\ref{fig:cql_q_value}.
+In the fine-tuning phase, suppose we are using the CQL objective with another behavior policy $\pi_{\beta^\prime}$ and $\alpha^\prime$, then the Bellman operator will converge to a Q-value w.r.t. another (biased) reward function $r^\pi_{\alpha^\prime,\beta^\prime}=r(\bs,\mathbf{a}) - \alpha^\prime\brac{ \frac{\pi(\mathbf{a}|\bs)}{\pi_{\beta^\prime}(\mathbf{a}|\bs)} - 1 }$. In Theorem~\ref{thm:mixing-dip-main}, we provide an if and only if condition under which the Q-values in the fine-tuning phase remain unchanged. But since the condition in Theorem~\ref{thm:mixing-dip-main} is generally hard to satisfy. Hence, it may lead to a performance difference gap in the fine-tuning phase in terms of the Q-values, as observed in Figure~\ref{fig:cql_q_value}.
 
 \subsection{Bellman Consistency Equation of CQL}
  
@@ -694,10 +698,10 @@ To analyze policy unlearning with conservative methods at the beginning of onlin
 \begin{align}
 \label{eq:cql-bellman-consistency}
 \footnotesize{
-    Q^\pi(\bs, \ba) = \left(\mathcal{B}^\pi Q^\pi \right)(\bs, \ba) - \alpha \left[ \frac{\pi(\ba|\bs)}{\pi_\beta(\ba|\bs)} - 1 \right].}
+    Q^\pi(\bs, \mathbf{a}) = \left(\mathcal{B}^\pi Q^\pi \right)(\bs, \mathbf{a}) - \alpha \left[ \frac{\pi(\mathbf{a}|\bs)}{\pi_\beta(\mathbf{a}|\bs)} - 1 \right].}
 \end{align}
 By expanding $\mc B^\pi$, Equation~\ref{eq:cql-bellman-consistency} can also be interpreted as running standard Q-iteration in an MDP with a pessimistic reward function, which depends upon the learned policy $\pi$, the behavior policy $\pi_\beta$ induced by the dataset, and the coefficient $\alpha$ from Equation~\ref{eqn:cql_training}:
-$r^\pi_{\alpha,\beta}(\bs,\ba) = r(\bs,\ba) - \alpha\brac{ \frac{\pi(\ba|\bs)}{\pi_\beta(\ba|\bs)} - 1 }$. This means that once online fine-tuning commences with a new regularizer $\alpha$, and a new behavior policy $\pi_{\beta^\prime}$ induced by online data added to the buffer, the pessimistic reward function $r^\pi_{\alpha,\beta}$ may {\em bias towards} $r^\pi_{\alpha^\prime,\beta^\prime}$. Hence, the policy improvement on the resulting Q-function with the online data may simply not lead to any policy improvement on the ground-truth reward function. We will first provide a condition such that the pessimistic Q-function is invariant to such reward bias during the online fine-tuning, and then show how our approach alleviates the reward bias.
+$r^\pi_{\alpha,\beta}(\bs,\mathbf{a}) = r(\bs,\mathbf{a}) - \alpha\brac{ \frac{\pi(\mathbf{a}|\bs)}{\pi_\beta(\mathbf{a}|\bs)} - 1 }$. This means that once online fine-tuning commences with a new regularizer $\alpha$, and a new behavior policy $\pi_{\beta^\prime}$ induced by online data added to the buffer, the pessimistic reward function $r^\pi_{\alpha,\beta}$ may {\em bias towards} $r^\pi_{\alpha^\prime,\beta^\prime}$. Hence, the policy improvement on the resulting Q-function with the online data may simply not lead to any policy improvement on the ground-truth reward function. We will first provide a condition such that the pessimistic Q-function is invariant to such reward bias during the online fine-tuning, and then show how our approach alleviates the reward bias.
 
 
 \paragraph{Performance difference during fine-tuning.} 

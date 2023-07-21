@@ -1,0 +1,42 @@
+\documentclass[../thesis.tex]{subfiles}
+
+\usepackage{wrapfig}
+\usepackage{cite}
+% \usepackage{natbib}
+% \usepackage[round]{natbib}
+
+\begin{document}
+
+% \blfootnote{This chapter is based on \cite{fu2019diagnosing}, published at ICML 2019, which is joint work with Justin Fu, Matthew Soh, and Sergey Levine.}
+
+% \input{chapters/bear/text/abstract.tex}
+
+% \input{chapters/bear/text/introduction.tex}
+% \input{chapters/bear/text/related.tex}
+% \input{chapters/bear/text/background.tex}
+% \input{chapters/bear/text/method.tex}
+% \input{chapters/bear/text/experiments.tex}
+% \input{chapters/bear/text/conclusions.tex}
+
+% Q-learning methods are a common class of algorithms used in reinforcement learning (RL). However, their behavior with function approximation, especially with neural networks, is poorly understood theoretically and empirically. In this work, we aim to experimentally investigate potential issues in Q-learning, by means of a "unit testing" framework where we can utilize oracles to disentangle sources of error. 
+% Specifically, we investigate questions related to function approximation, sampling error and nonstationarity, and where available, verify if trends found in oracle settings hold true with deep RL methods.
+% We find that large neural network architectures have many benefits with regards to learning stability; offer several practical compensations for overfitting; and develop a novel sampling method based on explicitly compensating for function approximation error that yields fair improvement on high-dimensional continuous control domains. 
+
+% \vspace{-0.4cm}
+% \begin{AIbox}{\large{\textbf{Abstract}}}
+% \vspace{4mm}
+% In this chapter, we seek to understand challenges in the offline RL problem setting. To this end, we empirically study the behavior of off-policy RL methods when only training on a static, offline dataset. In principle, off-policy RL methods such as those based on approximate dynamic programming should succeed at leveraging experience collected from prior policies for sample-efficient learning. However, as we illustrate in this chapter, in practice, commonly used off-policy methods based on Q-learning and actor-critic are incredibly sensitive to \emph{both} the dataset distribution and quantity. Building on the insights from our empirical observations, we identify two main issues with learning value functions in the offline setting: \emph{distributional shift} and \emph{sampling error}. Later, we also demonstrate that these challenges also inhibit performance for other classes of off-policy RL methods such as model-based approaches. Finally, in subsequent chapters, we develop techniques to handle distributional shift, progressing towards reliable and easy-to-use offline RL algorithms.  
+% \vspace{2mm}
+% \end{AIbox}
+    
+% \input{chapters/diagnosing_q/sections/1_introduction.tex}
+% % \input{chapters/diagnosing_q/sections/3_background.tex}
+% \input{chapters/diagnosing_q/sections/4_setup.tex}
+% % \input{chapters/diagnosing_q/sections/5_approx.tex}
+% \input{chapters/diagnosing_q/sections/8_weighting_distributions.tex}
+% \input{chapters/diagnosing_q/sections/6_sampling.tex}
+% \input{chapters/diagnosing_q/sections/7_nonstationarity.tex}
+\input{chapters/diagnosing_q/sections/appendix.tex}
+ 
+
+\end{document}

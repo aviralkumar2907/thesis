@@ -1,80 +1,78 @@
-\appendix
-\part*{Appendices}
-%
 \section{Additional Experiments}
-In this section, we present additional experiments compared to the method of \citet{trabucco2021conservative}), present some additional results obtained by jointly optimizing multiple applications (Appendix~\ref{app:additional_experiments_multi}), provide an analysis of the designed accelerators (Appendix~\ref{app:analysis}) and finally, discuss how our trained conservative surrogate can be used with a different evaluation time constraint (Appendix~\ref{app:transfer}).
+In this section, we present additional experiments compared to the method of \citet{trabucco2021conservative}, present some additional results obtained by jointly optimizing multiple applications (Appendix~\ref{app:additional_experiments_multi}), provide an analysis of the designed accelerators (Appendix~\ref{app:analysis}) and finally, discuss how our trained conservative surrogate can be used with a different evaluation time constraint (Appendix~\ref{app:transfer}).
 
 \subsection{Comparison to Other Baseline Methods}
 \label{app:additional_experiments}
-\niparagraph{Comparison to COMs.} 
-%
-In this section, we perform a comparative evaluation of \primemethodname\ to the COMs method~\citep{trabucco2021conservative}. 
-%
-Like several offline reinforcement learning algorithms~\citep{kumar2020conservative}, our method, \primemethodname\, and COMs are based on the key idea of learning a conservative surrogate of the desired objective function, such that it does not overestimate the value of unseen data points, which prevents the optimizer from finding accelerators that appear promising under the learned model but are not actually promising under the actual objective. 
-%
-The key differences between our method and COMs are:
-%
-\textbf{(1)} \primemethodname\ uses an evolutionary optimizer ($\mathrm{Opt}(\cdot)$) for negative sampling compared to gradient ascent of COMs, which can be vastly beneficial in discrete design spaces as our results show empirically,
-%
-\textbf{(2)} \primemethodname\ can explicitly learn from infeasible data points provided to the algorithm, while COMs does not have a mechanism to incorporate the infeasible points into the learning of surrogate.
-%
-To further assess the importance of these differences in practice, we run COMs on three tasks from Table~\ref{table:results_single_task}, and present a comparison our method, COMs, and Standard method in Table~\ref{table:coms_vs_prime}.
-%
-The ``Standard'' method represents a surrogate model without utilizing any infeasible points.
-%
-On average, \primemethodname\ outperforms COMs by 1.17$\times$ (up to 1.24$\times$ in \msix).
 
-\begin{table}[H]
-\small
-\centering
-\vspace*{0.1cm}
-\caption{Optimized objective values (i.e., latency in milliseconds) obtained by \primemethodname\ and COMs~\citep{trabucco2021conservative} when optimizing over single applications (MobilenetV2, MobilenetV3 and \msix), extending Table~\ref{table:results_single_task}. Note that \primemethodname\ outperforms COMs. However, COMs improves over baseline ``Standard'' method (last column).}
-\label{table:coms_vs_prime}
-\resizebox{0.8\textwidth}{!}{
-\begin{tabular}{l||l||l||l}
-\toprule
-\textbf{Application}&\textbf{\primemethodname~}\textbf{(Ours)}&\textbf{COMs}&\textbf{Standard}\\\midrule
-MobileNetV2&\textbf{207.43}&251.58&374.52\\\hline
-MobileNetV3&\textbf{454.30}&485.66&575.75\\\hline
-\msix&\textbf{131.46}&163.94&180.24\\\bottomrule
-\CC \textbf{Geomean of \primemethodname's Improvement}&\CC~\texttt{\textbf{1.0$\times$}}&\CC~\texttt{\textbf{1.17$\times$}}&\CC~\texttt{\textbf{1.46$\times$}}\\
-\bottomrule
-\end{tabular}
-}
-\vspace{-0.1cm}
-\end{table}
+% \paragraph{Comparison to COMs.} 
+% %
+% In this section, we perform a comparative evaluation of \primemethodname\ to the COMs method~\citep{trabucco2021conservative}. 
+% %
+% Like several offline reinforcement learning algorithms~\citep{kumar2020conservative}, our method, \primemethodname\, and COMs are based on the key idea of learning a conservative surrogate of the desired objective function, such that it does not overestimate the value of unseen data points, which prevents the optimizer from finding accelerators that appear promising under the learned model but are not actually promising under the actual objective. 
+% %
+% The key differences between our method and COMs are:
+% %
+% \textbf{(1)} \primemethodname\ uses an evolutionary optimizer ($\mathrm{Opt}(\cdot)$) for negative sampling compared to gradient ascent of COMs, which can be vastly beneficial in discrete design spaces as our results show empirically,
+% %
+% \textbf{(2)} \primemethodname\ can explicitly learn from infeasible data points provided to the algorithm, while COMs does not have a mechanism to incorporate the infeasible points into the learning of surrogate.
+% %
+% To further assess the importance of these differences in practice, we run COMs on three tasks from Table~\ref{table:results_single_task}, and present a comparison our method, COMs, and Standard method in Table~\ref{table:coms_vs_prime}.
+% %
+% The ``Standard'' method represents a surrogate model without utilizing any infeasible points.
+% %
+% On average, \primemethodname\ outperforms COMs by 1.17$\times$ (up to 1.24$\times$ in \msix).
 
-\niparagraph{Comparison to generative offline MBO methods.} 
-%
-We provide a comparison between \primemethodname\ and prior offline MBO methods based on generative models~\citep{kumar2019model}. 
-%
-We evaluate model inversion networks (MINs)~\citep{kumar2019model} on our accelerator data. However, we were unable to train a discrete
-%
-\begin{wrapfigure}{r}{0.3\textwidth}
-    \vspace{-0.1in}
-    \includegraphics[width=\linewidth]{chapters/prime/figs/latent.png}
-    \vspace{-0.1in}
-\end{wrapfigure}
- objective-conditioned GAN model to 0.5 discriminator accuracy on our offline dataset, and often observed a collapse of the discriminator.
-%
-As a result, we trained a $\delta-$VAE~\citep{razavi2019preventing}, conditioned on the objective function (i.e., latency).
-%
-A standard VAE~\citep{kingma2013auto} suffered from posterior collapse and thus informed our choice of utilizing a $\delta-$VAE. 
-%
-The latent space of a trained objective-conditioned $\delta-$VAE corresponding to accelerators on a held-out validation dataset (not used for training) is visualized in the t-SNE plot in the figure on the right.
-%
-This is a 2D t-SNE of the accelerators configurations (\S Table~\ref{tab:arch_params}). 
-%
-The color of a point denotes the latency value of the corresponding accelerator configuration, partitioned into three bins. 
-%
-Observe that while we would expect these objective conditioned models to disentangle accelerators with different objective values in the latent space, the models we trained did not exhibit such a structure, which will hamper optimization.
-%
-While our method \primemethodname\ could also benefit from a generative optimizer (i.e., by using a generative optimizer in place of $\mathrm{Opt}(\cdot)$ with a conservative surrogate), we leave it for future work to design effective generative optimizers on the accelerator manifold.
+% \begin{table}[H]
+% \small
+% \centering
+% \vspace*{0.1cm}
+% \caption{Optimized objective values (i.e., latency in milliseconds) obtained by \primemethodname\ and COMs~\citep{trabucco2021conservative} when optimizing over single applications (MobilenetV2, MobilenetV3 and \msix), extending Table~\ref{table:results_single_task}. Note that \primemethodname\ outperforms COMs. However, COMs improves over baseline ``Standard'' method (last column).}
+% \label{table:coms_vs_prime}
+% \resizebox{0.8\textwidth}{!}{
+% \begin{tabular}{l||l||l||l}
+% \toprule
+% \textbf{Application}&\textbf{\primemethodname~}\textbf{(Ours)}&\textbf{COMs}&\textbf{Standard}\\\midrule
+% MobileNetV2&\textbf{207.43}&251.58&374.52\\\hline
+% MobileNetV3&\textbf{454.30}&485.66&575.75\\\hline
+% \msix&\textbf{131.46}&163.94&180.24\\\bottomrule
+% \CC \textbf{Geomean of \primemethodname's Improvement}&\CC~\texttt{\textbf{1.0$\times$}}&\CC~\texttt{\textbf{1.17$\times$}}&\CC~\texttt{\textbf{1.46$\times$}}\\
+% \bottomrule
+% \end{tabular}
+% }
+% \vspace{-0.1cm}
+% \end{table}
+
+% \paragraph{Comparison to generative offline MBO methods.} 
+% %
+% We provide a comparison between \primemethodname\ and prior offline MBO methods based on generative models~\citep{kumar2019model}. 
+% %
+% We evaluate model inversion networks (MINs)~\citep{kumar2019model} on our accelerator data. However, we were unable to train a discrete
+% %
+% \begin{wrapfigure}{r}{0.3\textwidth}
+%     \vspace{-0.1in}
+%     \includegraphics[width=\linewidth]{chapters/prime/figs/latent.png}
+%     \vspace{-0.1in}
+% \end{wrapfigure}
+% objective-conditioned GAN model to 0.5 discriminator accuracy on our offline dataset, and often observed a collapse of the discriminator.
+% %
+% As a result, we trained a $\delta-$VAE~\citep{razavi2019preventing}, conditioned on the objective function (i.e., latency).
+% %
+% A standard VAE~\citep{kingma2013auto} suffered from posterior collapse and thus informed our choice of utilizing a $\delta-$VAE. 
+% %
+% The latent space of a trained objective-conditioned $\delta-$VAE corresponding to accelerators on a held-out validation dataset (not used for training) is visualized in the t-SNE plot in the figure on the right.
+% %
+% This is a 2D t-SNE of the accelerators configurations (\S Table~\ref{tab:arch_params}). 
+% %
+% The color of a point denotes the latency value of the corresponding accelerator configuration, partitioned into three bins. 
+% %
+% Observe that while we would expect these objective conditioned models to disentangle accelerators with different objective values in the latent space, the models we trained did not exhibit such a structure, which will hamper optimization.
+% %
+% While our method \primemethodname\ could also benefit from a generative optimizer (i.e., by using a generative optimizer in place of $\mathrm{Opt}(\cdot)$ with a conservative surrogate), we leave it for future work to design effective generative optimizers on the accelerator manifold.
 
 
-\niparagraph{Comparison to P3BO.}
+\paragraph{Comparison to P3BO.}
 %
-We perform a comparison against P3BO method, the state-of-the-arts online method in biology~\citep{p3bo:arxiv:2020}.
+We perform a comparison against P3BO, a state-of-the-art online method in biological sequence design~\citep{p3bo:arxiv:2020}.
 %
 On average, \primemethodname\ outperforms the P3BO method by 2.5$\times$ (up to 8.7$\times$ in U-Net).
 %
@@ -118,18 +116,11 @@ t-RNN Enc&\textbf{130.67}&1139.48\\\bottomrule
 %
 
 
+
 \subsection{Learned Surrogate Model Reuse for Accelerator Design}
 \label{app:additional_experiments_multi}
 %
-Extending our results in Table~\ref{table:results_multi_task}, we present another variant of optimizing accelerators jointly for multiple applications.
-%
-In that scenario, the learned surrogate model is reused to architect an accelerator for a subset of applications used for training.
-%
-We train a contextual conservative surrogate on the variants of MobileNet (Table~\ref{tab:models}) as discussed in Section~\ref{sec:method}, but generated optimized designs by only optimizing the average surrogate on only two variants of MobileNet (MobileNetEdgeTPU and MobileNetV2). 
-%
-This tests the ability of our approach \primemethodname\ to provide a general contextual conservative surrogates, that can be trained \textit{only once} and optimized multiple times with respect to different subsets of applications.  
-%
-Observe in Table~\ref{table:results_edge_v2}, \primemethodname\ architects high-performing accelerator configurations (better than the best point in the dataset by 3.29$\times$ -- last column) while outperforming the online optimization methods by 7\%.
+Extending our results in Table~\ref{table:results_multi_task}, we present another variant of optimizing accelerators jointly for multiple applications. In that scenario, the learned conservative model is reused to architect an accelerator for a subset of applications used for training. We train a contextual conservative model on the variants of MobileNet (Table~\ref{tab:models}) as discussed in Section~\ref{sec:method}, but generated optimized designs by only optimizing the average surrogate on only two variants of MobileNet (MobileNetEdgeTPU and MobileNetV2). This tests the ability of our approach \primemethodname\ to provide a general contextual conservative surrogates, that can be trained \textit{only once} and optimized multiple times with respect to different subsets of applications. Observe in Table~\ref{table:results_edge_v2}, \primemethodname\ architects high-performing accelerator configurations (better than the best point in the dataset by 3.29$\times$ -- last column) while outperforming the online optimization methods by 7\%.
 %
 \begin{table}[t!]
 \small
@@ -147,9 +138,29 @@ Observe in Table~\ref{table:results_edge_v2}, \primemethodname\ architects high-
 \end{tabular}
 }
 \end{table}
+
+
 %
 \subsection{Learned Surrogate Model Reuse under Different Design Constraint}
 \label{app:transfer}
+
+\begin{table}[t!]
+    \small
+    \renewcommand{\arraystretch}{1.2}
+    \centering
+    \caption{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to MobileNetEdgeTPU under chip area budget constraint 18~mm$^2$ reusing the already learned model by our method for MobileNetEdgeTPU (shown in Table~\ref{table:results_single_task}). Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\primemethodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\primemethodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that \primemethodname\ improves over the best in the dataset by 12\%, outperforms the best online optimization method by 4.4\%. The best accelerator configuration is highlighted in bold.}
+    \label{table:results_edge_18}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l||l||l|l||l|l|l||l}
+    \toprule
+    &\multicolumn{3}{c||}{\textbf{\primemethodname}}& &\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
+    \textbf{Applications}&\textbf{All}& \textbf{-Opt}&\textbf{-Infeasible}&\textbf{Standard}& \textbf{Bayes Opt}&\textbf{Evolutionary}&\textbf{$\mathcal{D}$ (Best in Training)}\\\midrule
+    MobileNetEdgeTPU, Area $\leq$ 18~mm$^2$&\textbf{315.15}&433.81&351.22&470.09&331.05&329.13&354.13\\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{table}
+    %
 %
 We also test the robustness of our approach in handling variable constraints at test-time such as different chip area budget.
 %
@@ -167,23 +178,9 @@ Note that, when the design constraint changes, online methods generally need to 
 %
 This would impose additional overhead in terms of total simulation time (\S~Figure~\ref{fig:convergence_time} and Figure~\ref{fig:convergence_time_seven_models}). However, the results in Table~\ref{table:results_edge_18} shows that our learned surrogate model can be reused under different test-time design constraint eliminating additional queries to the simulator.
 %
-\begin{table}[t!]
-\small
-\renewcommand{\arraystretch}{1.2}
-\centering
-\caption{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to MobileNetEdgeTPU under chip area budget constraint 18~mm$^2$ reusing the already learned model by our method for MobileNetEdgeTPU (shown in Table~\ref{table:results_single_task}). Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\primemethodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\primemethodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that \primemethodname\ improves over the best in the dataset by 12\%, outperforms the best online optimization method by 4.4\%. The best accelerator configuration is highlighted in bold.}
-\label{table:results_edge_18}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{l||l||l|l||l|l|l||l}
-\toprule
-&\multicolumn{3}{c||}{\textbf{\primemethodname}}& &\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
-\textbf{Applications}&\textbf{All}& \textbf{-Opt}&\textbf{-Infeasible}&\textbf{Standard}& \textbf{Bayes Opt}&\textbf{Evolutionary}&\textbf{$\mathcal{D}$ (Best in Training)}\\\midrule
-MobileNetEdgeTPU, Area $\leq$ 18~mm$^2$&\textbf{315.15}&433.81&351.22&470.09&331.05&329.13&354.13\\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-%
+
+
+
 \subsection{Analysis of Designed Accelerators}
 \label{app:analysis}
 %
@@ -260,6 +257,7 @@ Favoring larger on-chip memory comes at the expense of lower compute power in th
 %
 \mfour is an interesting case where both compute power and on-chip memory is favored by the model (6.23~MB model parameters and 3,471,920,128 number of compute operations). This is the reason that the latency of this model on both accelerators, designed by our method and the Evolutionary method, are comparable (400.88~ms in \primemethodname\ vs. 406.28~ms in the online method).
 
+
 \subsection{Comparison with Online Methods in Zero-Shot Setting}
 \label{sec:app_zero_shot}
 %
@@ -271,18 +269,21 @@ For the area constraint 29~mm$^2$ and 100~mm$^2$, the Evolutionary algorithm red
 %
 In the second experiment in which we \emph{unfairly} allow the evolutionary algorithm to continue optimizing on the target application, the Evolutionary algorithm suggests worse designs than Table~\ref{table:zero_shot} (e.g. 29~mm$^2$: 1127.64~$\rightarrow$~1181.66 and 100~mm$^2$: 861.69~$\rightarrow$~861.66).
 %
+
+
 \subsection{\primemethodname\ Ablation Study}
 \label{sec:appx_ablation}
-% Add table and talk.
-\input{tables/ablation_study.tex}
+
+\input{chapters/prime/tables/ablation_study.tex}
+
 Here we ablate over variants of our method: (1) $\mathrm{Opt}$ was not used for negative sampling (``\primemethodname-$\mathrm{Opt}$'' in Table~\ref{table:appx_results_single_task}) (2)  infeasible points were not used (``\primemethodname-Infeasible'' in Table~\ref{table:appx_results_single_task}).
 %
 As shown in Table~\ref{table:appx_results_single_task}, the variants of our method generally performs worse compared to the case when both negative sampling and infeasible data points are utilized in training the surrogate model.
 
-\subsection{\review{Comparison with Human-Engineered Accelerators}}
+\subsection{{Comparison with Human-Engineered Accelerators}}
 \label{app:human_engineered}
 %
-\review{In this section, we compare the optimized accelerator design found by \primemethodname\ that is targeted towards single applications to the manually optimized EdgeTPU design~\citep{yazdanbakhsh2021evaluation,edgetpu:arxiv:2020}.
+{In this section, we compare the optimized accelerator design found by \primemethodname\ that is targeted towards single applications to the manually optimized EdgeTPU design~\citep{yazdanbakhsh2021evaluation,edgetpu:arxiv:2020}.
 %
 EdgeTPU accelerators are primarily optimized towards running applications in image classification, particularly, MobileNetV2,  MobileNetV3 and MobileNetEdgeTPU.
 %
@@ -291,7 +292,7 @@ The goal of this comparison is to present the potential benefit of \primemethodn
 For this comparison, we utilize an area constraint of 27~mm$^2$ and a DRAM bandwidth of 25 Gbps, to match the specifications of the EdgeTPU accelerator.}
 %
 
-\review{Table~\ref{table:edgetpu_comparison} shows the summary of results in two sections, namely ``Latency'' and ``Chip Area''. The first and second under each section show the results for \primemethodname\ and EdgeTPU, respectively.
+{Table~\ref{table:edgetpu_comparison} shows the summary of results in two sections, namely ``Latency'' and ``Chip Area''. The first and second under each section show the results for \primemethodname\ and EdgeTPU, respectively.
 %
 The final column for each section shows the improvement of the design suggested by \primemethodname\ over EdgeTPU.
 %
@@ -324,7 +325,9 @@ t-RNN Enc&130.45&1545.07&11.84$\times$&19.87&27&1.36$\times$\\\bottomrule
 \end{table}
 %
 
-\subsection{\review{Zero-Shot Results on All Applications}}
+
+
+\subsection{{Zero-Shot Results on All Applications}}
 \review{In this section, we present the results of zero-shot optimization from Table~\ref{table:zero_shot} on all the nine applications we study in the paper (i.e., test applications = all nine models: MobileNet (EdgeTPU, V2, V3), \msix, \mfive, \mfour, t-RNN (Enc and Dec), and U-Net). We investigate this for two sets of training applications and two different area budgets. As shown in Table~\ref{table:zero_shot_all}, we find that \primemethodname\ does perform well compared to the online evolutionary method.}
 
 \begin{table*}[t]
@@ -352,12 +355,12 @@ MobileNet~(EdgeTPU,V2,V3), \mfour, \mfive, \msix, t-RNN Enc&100~mm$^2$&(\textbf{
 \end{table*}
 
 
-\subsection{\review{Different Train and validation Splits}}
-\review{In the main paper, we used the worst 80\% of the feasible points in the training dataset for training and used the remaining 20\% of the points for cross-validation using our strategy based on Kendall's rank correlation. In this section, we explore some alternative training-validation split strategies to see how they impact the results. To do so, we consider two alternative strategies: \textbf{(1)} training on 95\% of the worst designs, validation on top 5\% of the designs, and \textbf{(2)} training on the top 80\% of the designs and validation on the worst 20\% of the designs. We apply these strategies to MobileNetEdgeTPU, \msix and t-RNN Enc models from Table~\ref{table:results_single_task}, and present a comparative evaluation in Table~\ref{table:train_val_split} below.}
+\subsection{{Different Train and Validation Splits}}
+{In the main paper, we used the worst 80\% of the feasible points in the training dataset for training and used the remaining 20\% of the points for cross-validation using our strategy based on Kendall's rank correlation. In this section, we explore some alternative training-validation split strategies to see how they impact the results. To do so, we consider two alternative strategies: \textbf{(1)} training on 95\% of the worst designs, validation on top 5\% of the designs, and \textbf{(2)} training on the top 80\% of the designs and validation on the worst 20\% of the designs. We apply these strategies to MobileNetEdgeTPU, \msix and t-RNN Enc models from Table~\ref{table:results_single_task}, and present a comparative evaluation in Table~\ref{table:train_val_split} below.}
 
-\review{\textbf{Results.} As shown in Table~\ref{table:train_val_split}, we find that cross-validating using the best 5\% of the points in the dataset led to a reduced latency (298.50 $\rightarrow$ 273.30) on MobileNetEdgeTPU, and retained the same performance on \msix. However, it increased the latency on t-RNN Enc (130.67 $\rightarrow$ 137.45). This indicates at the possibility that while top 5\% of the datapoints can provide a better signal for cross-validation in some cases, this might also hurt performance if the size of the 5\% dataset becomes extremely small (as in the case of t-RNN Enc, the total dataset size is much smaller than either MobileNetEdgeTPU or \msix).}
+{\textbf{Results.} As shown in Table~\ref{table:train_val_split}, we find that cross-validating using the best 5\% of the points in the dataset led to a reduced latency (298.50 $\rightarrow$ 273.30) on MobileNetEdgeTPU, and retained the same performance on \msix. However, it increased the latency on t-RNN Enc (130.67 $\rightarrow$ 137.45). This indicates at the possibility that while top 5\% of the datapoints can provide a better signal for cross-validation in some cases, this might also hurt performance if the size of the 5\% dataset becomes extremely small (as in the case of t-RNN Enc, the total dataset size is much smaller than either MobileNetEdgeTPU or \msix).}
 
-\review{The strategy of cross-validating using the worst 20\% of the points hurt performance on \msix and t-RNN Enc, which is perhaps as expected, since the worst 20\% of the points may not be indicative of the best points found during optimization. However, while it improves performance on the MobileNetEdgeTPU application compared to the split used in the main paper but it is still worse than using the top 5\% of the points for validation.}
+{The strategy of cross-validating using the worst 20\% of the points hurt performance on \msix and t-RNN Enc, which is perhaps as expected, since the worst 20\% of the points may not be indicative of the best points found during optimization. However, while it improves performance on the MobileNetEdgeTPU application compared to the split used in the main paper but it is still worse than using the top 5\% of the points for validation.}
 %
 \begin{table}[H]
 \small
@@ -466,15 +469,14 @@ The hyperparameters for training the conservative surrogate in Equations~\ref{eq
     \vspace{-0.1cm}
 \end{table}
 
-\vspace{0.05cm}
 \subsubsection{\review{Details of Firefly Used for Our Online Evolutionary Method}}
 \label{app:online_opt_details}
 
 \review{In this section, we discuss some details for firefly optimization used in the online evolutionary method.}
 
-\review{\textbf{Stopping criterion:} We stopped the firefly optimization when the latency of the best design found did not improve over the previous 1000 iterations, but we also made sure to run firefly optimization for at least 8000 iterations, to make sure that both the online and offline methods match in terms of the data budget. We also provide the convergence curves for firefly optimization on various single-application problems from Table~\ref{table:results_single_task} in Figure~\ref{fig:convergence_curves}.}
+{\textbf{Stopping criterion:} We stopped the firefly optimization when the latency of the best design found did not improve over the previous 1000 iterations, but we also made sure to run firefly optimization for at least 8000 iterations, to make sure that both the online and offline methods match in terms of the data budget. We also provide the convergence curves for firefly optimization on various single-application problems from Table~\ref{table:results_single_task} in Figure~\ref{fig:convergence_curves}.}
 
-\review{\textbf{What happens if we run firefly optimization for longer?} We also experimented with running the evolutionary methods for longer (i.e., 32k simulator accesses compared to 8k), to check if this improves the performance of the evolutionary approach. As shown in Table~\ref{table:online_budget}, we find that while this procedure does improve performance in some cases, the performance does not improve much beyond 8k steps. This indicates that there is a possibility that online methods can perform better than \primemethodname\ if they are run for many more optimization iterations against the simulator, but they may not be as data-efficient as \primemethodname.}
+{\textbf{What happens if we run firefly optimization for longer?} We also experimented with running the evolutionary methods for longer (i.e., 32k simulator accesses compared to 8k), to check if this improves the performance of the evolutionary approach. As shown in Table~\ref{table:online_budget}, we find that while this procedure does improve performance in some cases, the performance does not improve much beyond 8k steps. This indicates that there is a possibility that online methods can perform better than \primemethodname\ if they are run for many more optimization iterations against the simulator, but they may not be as data-efficient as \primemethodname.}
 
 \begin{table*}[t!]
 \small
@@ -497,33 +499,34 @@ t-RNN Enc&29~mm$^2$&130.67&865.07&865.07\\\bottomrule
 \end{table*}
 %
 
-\review{\textbf{Hyperparameter tuning for firefly:} Since the online optimization algorithms we run have access to querying the simulator over the course of training, we can simply utilize the value of the latest proposed design as a way to perform early stopping and hyperparameter tuning. A na\"ive way to perform hyperparameter tuning for such evolutionary methods is to run the algorithm for multiple rounds with multiple hyperparameters, however this is compute and time intensive. Therefore, we adopted a dynamic hyperparameter tuning strategy. Our implementation of the firefly optimizer tunes hyperparameters by scoring a set of hyperparameters based on its best performance over a sliding window of $T$ data points. This allows us to adapt to the best hyperparameters on the fly, within the course of optimization, effectively balancing the number of runs that need to be run in the simulator and hyperparameter tuning.}
+{\textbf{Hyperparameter tuning for firefly:} Since the online optimization algorithms we run have access to querying the simulator over the course of training, we can simply utilize the value of the latest proposed design as a way to perform early stopping and hyperparameter tuning. A na\"ive way to perform hyperparameter tuning for such evolutionary methods is to run the algorithm for multiple rounds with multiple hyperparameters, however this is compute and time intensive. Therefore, we adopted a dynamic hyperparameter tuning strategy. Our implementation of the firefly optimizer tunes hyperparameters by scoring a set of hyperparameters based on its best performance over a sliding window of $T$ data points. This allows us to adapt to the best hyperparameters on the fly, within the course of optimization, effectively balancing the number of runs that need to be run in the simulator and hyperparameter tuning.}
 \review{This dynamic hyperparameter tuning strategy requires some initial coverage of the hyperparameter space before hyperparameter tuning begins, and therefore, this tuning begins only after $750$ datapoints. 
 After this initial phase, every $T = 50$ iterations, the parameters $\gamma$ and $\beta_0$ are updated via an evolutionary scoring strategy towards their best value.}
 
-\review{\textbf{Discussion of t-RNN Enc and t-RNN Dec}. Finally, we discuss the results of the evolutionary approach on the t-RNN Enc and t-RNN Dec tasks, for which the convergence plots are shown in Figures~\ref{fig:conv_rnn_dec} and \ref{fig:conv_enc}. Observe that the best solution found by this optimization procedure converges quite quickly in this case (with about 1000 iterations) and the evolutionary method, despite the dynamic hyperparameter tuning is unable to find a better solution. We hypothesize that this is because the performance of a local optimization method may suffer heavily due to the poor landscape of the objective function, and it may get stuck if it continuously observes only infeasible points over the course of optimization.}
+{\textbf{Discussion of t-RNN Enc and t-RNN Dec}. Finally, we discuss the results of the evolutionary approach on the t-RNN Enc and t-RNN Dec tasks, for which the convergence plots are shown in Figures~\ref{fig:conv_rnn_dec} and \ref{fig:conv_enc}. Observe that the best solution found by this optimization procedure converges quite quickly in this case (with about 1000 iterations) and the evolutionary method, despite the dynamic hyperparameter tuning is unable to find a better solution. We hypothesize that this is because the performance of a local optimization method may suffer heavily due to the poor landscape of the objective function, and it may get stuck if it continuously observes only infeasible points over the course of optimization.}
 
 \begin{figure}[ht]
 \centering
-\subfloat[MobileNetEdgeTPU]{\label{fig:conv_edge}\includegraphics[width=0.32\linewidth]{figs/convergence/mobilenetedge.pdf}}
-\subfloat[MobileNetV2]{\label{fig:conv_v2}\includegraphics[width=0.32\linewidth]{figs/convergence/mobilenetv2.pdf}}
-\subfloat[MobileNetV3]{\label{fig:conv_v3}\includegraphics[width=0.32\linewidth]{figs/convergence/mobilenetv3.pdf}}\\
+\subfloat[MobileNetEdgeTPU]{\label{fig:conv_edge}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/mobilenetedge.pdf}}
+\subfloat[MobileNetV2]{\label{fig:conv_v2}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/mobilenetv2.pdf}}
+\subfloat[MobileNetV3]{\label{fig:conv_v3}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/mobilenetv3.pdf}}\\
 %
-\subfloat[\mfour]{\label{fig:conv_m4}\includegraphics[width=0.32\linewidth]{figs/convergence/m4.pdf}}
-\subfloat[\mfive]{\label{fig:conv_m5}\includegraphics[width=0.32\linewidth]{figs/convergence/m5.pdf}}
-\subfloat[\msix]{\label{fig:conv_m6}\includegraphics[width=0.32\linewidth]{figs/convergence/m6.pdf}}\\
+\subfloat[\mfour]{\label{fig:conv_m4}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/m4.pdf}}
+\subfloat[\mfive]{\label{fig:conv_m5}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/m5.pdf}}
+\subfloat[\msix]{\label{fig:conv_m6}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/m6.pdf}}\\
 %
-\subfloat[U-Net]{\label{fig:conv_unet}\includegraphics[width=0.32\linewidth]{figs/convergence/unet.pdf}}
-\subfloat[t-RNN Dec]{\label{fig:conv_rnn_dec}\includegraphics[width=0.32\linewidth]{figs/convergence/rnn-dec.pdf}}
-\subfloat[t-RNN Enc]{\label{fig:conv_enc}\includegraphics[width=0.32\linewidth]{figs/convergence/rnn-enc.pdf}}
+\subfloat[U-Net]{\label{fig:conv_unet}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/unet.pdf}}
+\subfloat[t-RNN Dec]{\label{fig:conv_rnn_dec}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/rnn-dec.pdf}}
+\subfloat[t-RNN Enc]{\label{fig:conv_enc}\includegraphics[width=0.32\linewidth]{chapters/prime/figs/convergence/rnn-enc.pdf}}
 \caption{\review{Optimization behavior of Firefly optimizer (Online Evolutionary). Observe that the optimization procedure converges and plateaus very quickly (at least 1000 iterations in advance) and hence we stop at 8000 iterations. In the case of t-RNN Enc and t-RNN Dec, we find that the evolutionary algorithm performs poorly and we suspect this is because it saturates quite quickly to a suboptimal solution and is unable to escape. This is also evident from Figures~\ref{fig:conv_rnn_dec} and \ref{fig:conv_enc}, where we observe that online optimization plateaus the fastest for these RNN applications. }}
 \label{fig:convergence_curves} 
 % \vspace{-0.5cm}
 \end{figure}
 
-\subsubsection{\review{Exact Hyperparameters Found By Our Cross-Validation Strategy}}
 
-\review{In this section, we present the exact hyperparameters found by our cross-validation strategy discussed in Section~\ref{sec:method}. To recap, our offline cross-validation strategy finds the early stopping checkpoint and selects the values of $\alpha$ and $\beta$ in Equation~\ref{eqn:final_training} that attain the highest rank correlation on a held-out validation set consisting of top 20\% of the dataset feasible samples. The values of $\alpha$, $\beta$ and checkpoint selected for the experiments in Table 3, Table 4, Table 5 and 6 are shown in Table~\ref{table:hparams}.} 
+\subsubsection{{Exact Hyperparameters Found By Our Cross-Validation Strategy}}
+
+{In this section, we present the exact hyperparameters found by our cross-validation strategy discussed in Section~\ref{sec:method}. To recap, our offline cross-validation strategy finds the early stopping checkpoint and selects the values of $\alpha$ and $\beta$ in Equation~\ref{eqn:final_training} that attain the highest rank correlation on a held-out validation set consisting of top 20\% of the dataset feasible samples. The values of $\alpha$, $\beta$ and checkpoint selected for the experiments in Table 3, Table 4, Table 5 and 6 are shown in Table~\ref{table:hparams}.} 
 
 
 \begin{table*}[t!]
@@ -587,12 +590,13 @@ Despite this limitation, \primemethodname\ successfully finds more efficient acc
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.7\textwidth]{figs/tsne/tsne-overlap.pdf}
+    \includegraphics[width=0.7\textwidth]{chapters/prime/figs/tsne/tsne-overlap.pdf}
     \caption{tSNE plot of the joint dataset and randomly sampled infeasible data points. The blue points show the accelerator configurations that are jointly feasible for all the applications. The highlighted point with red star shows the best design proposed by \primemethodname\. The rest of the points show the infeasible points.}
     \label{fig:tsne_overlap}
     \vspace{-0.1in}
 \end{figure}
 %
+
 
 \subsection{Dataset Sensitivity to Accelerator Parameters}
 \label{sec:app_ds_sensitivity}
@@ -627,7 +631,7 @@ ShiDianNao-style dataflow accelerator is an output-stationary accelerator.
 %
 \begin{figure}[t!]
 \centering
-    \includegraphics[width=0.35\linewidth]{figs/accelerator/shidian.pdf}
+    \includegraphics[width=0.35\linewidth]{chapters/prime/figs/accelerator/shidian.pdf}
     \caption{Overview of ShiDianNao dataflow accelerator. This dataflow accelerators exhibits an output-stationary dataflow where it keeps the partial results stationary within each processing elements (PEs).}
     \label{fig:shi_dla}
     \vspace{-0.1in} 
@@ -650,11 +654,11 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
     \centering
     %
     \subfloat[]{
-    \includegraphics[width=0.45\textwidth]{figs/dataset/dist.pdf}
+    \includegraphics[width=0.45\textwidth]{chapters/prime/figs/dataset/dist.pdf}
     \label{fig:appx_ds_dist}}
     %
     \subfloat[]{
-    \includegraphics[width=0.45\textwidth]{figs/dataset/core-memory.pdf}
+    \includegraphics[width=0.45\textwidth]{chapters/prime/figs/dataset/core-memory.pdf}
     \label{fig:appx_ds_memory}}
     \caption{The (a) histogram of infeasible (orange bar with large score values)/feasible (blue bars) data points and (b) the sensitivity of runtime to the size of core memory for the MobileNetEdgeTPU~\citep{efficientnet:2020} dataset.} 
     \label{fig:appx_ds}
@@ -690,7 +694,7 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.45\textwidth]{figs/tsne/tsne_infeasible.pdf}
+    \includegraphics[width=0.45\textwidth]{chapters/prime/figs/tsne/tsne_infeasible.pdf}
     \caption{tSNE plot of the infeasible and feasible hardware accelerator designs. Note that feasible designs (shown in blue) are embedded in a sea of infeasible designs (shown in red), which makes this a challenging domain for optimization methods.}
     \label{fig:tsne_infeasible}
     \vspace{-0.1in}
@@ -698,7 +702,7 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.4\textwidth]{figs/results/overestimation.pdf}
+    \includegraphics[width=0.4\textwidth]{chapters/prime/figs/results/overestimation.pdf}
     \caption{To verify if the overestimation hypothesis--that optimizing an accelerator against a na\"ive standard surrogate model is likely to find optimizers that appear promising under the learned model, but do not actually attain low-latency values--in our domain, we plot a calibration plot of the top accelerator designs found by optimizing a na\"ively trained standard surrogate model. In the scatter plot, we represent each accelerator as a point with its x-coordinate equal to the actual latency obtained by running this accelerator design in the simulator and the y-coordinate equal to the predicted latency under the learned surrogate. Note that for a large chunk of designs, the predicted latency is much smaller than their actual latency (i.e., these designs lie beneath the $y=x$ line in the plot above). This means that optimizing designs under a na\"ive surrogate model is prone to finding designs that appear overly promising (i.e., attain lower predicted latency values), but are not actually promising. This confirms the presence of the overestimation hypothesis on our problem domain.}
     \label{fig:cali_plot}
     \vspace{-0.1in}
@@ -706,8 +710,8 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.4\textwidth]{figs/overestimation_prime.pdf}
-    \includegraphics[width=0.4\textwidth]{figs/zoomed_in.pdf}
+    \includegraphics[width=0.4\textwidth]{chapters/prime/figs/overestimation_prime.pdf}
+    \includegraphics[width=0.4\textwidth]{chapters/prime/figs/zoomed_in.pdf}
     \caption{\review{Plot showing the calibration plot of the predicted (y-axis) and actual latencies (x-axis) of accelerators found by \primemethodname. Compared to Figure~\ref{fig:cali_plot}, observe that all the acclerator configurations lie above $y=x$, meaning that \primemethodname\ predicts a higher latency (y-axis) compared to the actual latency. This means that \primemethodname\ does not think that accelerators that attain high-latency values under the simulator, are actually good.  We also provide a zoomed-in version of the plot on the right, which shows that there are accelerators do have meaningfully distinct latency predictions under \primemethodname. Observe in the zoomed-in plot that the designs that attain small predicted latencies also perform relatively better under the actual latency compared to the designs that attain larger predicted latency of $\sim$ 14000-16000 under the \primemethodname\ surrogate. Optimizing against \primemethodname\ is still effective because optimization just needs relative correctness of values, not absolutely correct latency predictions.}}
     \label{fig:overestimation_prime_plot}
     \vspace{-0.1in}
@@ -715,7 +719,7 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
 
 % \newpage
 
-\section{\review{Subset of Applications for Good Zero-Shot Performance}}
+\section{{Subset of Applications for Good Zero-Shot Performance}}
 %
 \begin{table*}[t]
 \small
@@ -738,29 +742,29 @@ We also note that while the method proposed in~\citep{kao2020confuciux} treats t
 % \vspace{-0.2cm}
 \end{table*}
 %
-\review{In this section, we present the results of an ablation study with the goal to identify a subset of applications such that training on data from only these applications yields good zero-shot performance across all the nine applications studied in this work.
+{In this section, we present the results of an ablation study with the goal to identify a subset of applications such that training on data from only these applications yields good zero-shot performance across all the nine applications studied in this work.
 %
 Since we cannot train \primemethodname\ for every subset of applications because the space of subsets of all applications is exponentially large, we utilized some heuristics in devising the subset of applications we would train on, with the goal to make interesting observations that allow us to devise rough guidelines for performing application selection.}
 
-\review{\textbf{Our heuristic for devising subsets of applications:} Building on the intuition that applications with very different compute to memory ratios (shown in Table~\ref{tab:compute_memory_ratio}) may require different accelerator designs -- for example, if our goal is to run a compute-intensive application, we likely need an accelerator design with more compute units -- we study two subsets of training applications: \textbf{(1)} MobileNetV2, MobileNetV3, \msix, \mfive, and \textbf{(2)} MobileNetV2, MobilenetV3, \mfive, t-RNN Enc.
+{\textbf{Our heuristic for devising subsets of applications:} Building on the intuition that applications with very different compute to memory ratios (shown in Table~\ref{tab:compute_memory_ratio}) may require different accelerator designs -- for example, if our goal is to run a compute-intensive application, we likely need an accelerator design with more compute units -- we study two subsets of training applications: \textbf{(1)} MobileNetV2, MobileNetV3, \msix, \mfive, and \textbf{(2)} MobileNetV2, MobilenetV3, \mfive, t-RNN Enc.
 %
 Note that, these two combinations only differ in whether some RNN application was used in training or not.
 %
 As shown in Table~\ref{tab:compute_memory_ratio}, the t-RNN applications admit a very different compute to memory ratio, for instance, while this ratio is $5.68e-4$ for t-RNN Enc and t-RNN Dec, it is much different $\sim 0.01-0.2$ for other models MobileNetEdgeTPU, MobileNetV2, MobileNetV3, \mfive, and \msix. This means that likely t-RNN Enc and Dec will require different kinds of accelerators for good performance compared to the other applications.}
 
-\review{\textbf{Results:} We present the performance of zero-shot evaluating the designed accelerator obtained by training on combinations \textbf{(1)} and \textbf{(2)}, and also the accelerator obtained by training on \textbf{(3)} seven applications from Table~\ref{table:zero_shot} in Table~\ref{table:zero_shot_all_2} as reference. We make some key takeaways from the results: 
+{\textbf{Results:} We present the performance of zero-shot evaluating the designed accelerator obtained by training on combinations \textbf{(1)} and \textbf{(2)}, and also the accelerator obtained by training on \textbf{(3)} seven applications from Table~\ref{table:zero_shot} in Table~\ref{table:zero_shot_all_2} as reference. We make some key takeaways from the results: 
 }
 \begin{itemize}
     \item The performance of both configuration \textbf{(1)} and training with seven applications (\textbf{(3)}, last row of Table~\ref{table:zero_shot_all_2}) are similar.
     \item In case \textbf{(2)}, when the training applications consist of four applications in which one application is t-RNN Enc, with drastically different compute to memory ratio (Table~\ref{tab:compute_memory_ratio}), the performance on an average across all applications becomes slightly worse (compare the performance in \textbf{(2)} vs \textbf{(3)}).
 \end{itemize}
 
-\review{\textbf{Conclusion and guidance on selecting good applications:} The above results indicate that only a few applications (e.g., four applications in case \textbf{(1)}) can be enough for good performance on all nine applications. While this set may not be not minimal, it is certainly a much smaller set compared to the nine applications considered.
+{\textbf{Conclusion and guidance on selecting good applications:} The above results indicate that only a few applications (e.g., four applications in case \textbf{(1)}) can be enough for good performance on all nine applications. While this set may not be not minimal, it is certainly a much smaller set compared to the nine applications considered.
 Adding an RNN application in case \textbf{(2)} increases latency in compared to case \textbf{(1)}, because t-RNN Enc likely admits a very different optimal accelerator compared to the other applications due to a very different compute/memory ratio, which in turn skews the generalization of the surrogate learned by \primemethodname\ when trained only on this limited set of four applications. However, when seven applications are provided in case \textbf{(3)}, even when the set of training applications includes t-RNN, its contribution on the \primemethodname\ surrogate is reduced since many other compute intensive applications are also provided in the training set and the resulting accelerator performs well.}
 %
 
-\review{\textbf{Practitioner guidance:} The primary practitioner guidance we can conclude here is that \emph{the models used for training must be representative of the overall distribution of the target models that we want to zero-shot generalize to}. Since a number of our applications are compute intensive, we were able to simply utilize set \textbf{(1)} to attain good performance on all the applications. On the other hand, in case \textbf{(2)}, when the t-RNN Enc application was over-represented -- while seven of nine applications we considered were primarily compute intensive, one out of four applications we used for training in case \textbf{(2)} were memory intensive -- this hurt performance on the overall set.
+{\textbf{Practitioner guidance:} The primary practitioner guidance we can conclude here is that \emph{the models used for training must be representative of the overall distribution of the target models that we want to zero-shot generalize to}. Since a number of our applications are compute intensive, we were able to simply utilize set \textbf{(1)} to attain good performance on all the applications. On the other hand, in case \textbf{(2)}, when the t-RNN Enc application was over-represented -- while seven of nine applications we considered were primarily compute intensive, one out of four applications we used for training in case \textbf{(2)} were memory intensive -- this hurt performance on the overall set.
 %
 Therefore, we believe that ensuring that the training subset of applications is adequately aligned with the overall set of applications in terms of compute/memory ratio statistic is imperative for favorable zero-shot performance.}
 
-\review{\textbf{For a practitioner deciding between zero-shot generalization and additional data collection}, it may make sense to test if the target application admits a similar value of the compute to memory ratio as an already existing application. If it does, then the practitioner might be able to utilize the zero-shot generalization, as is indicated with the good performance of case \textbf{(1)}, whereas if the compute/memory ratio is heavily different from any seen application, zero-shot generalization to the target application may be worse. Finally, making sure that the training applications adequately reflect the compute/memory ratio statistic for the overall target set is important.}
+{\textbf{For a practitioner deciding between zero-shot generalization and additional data collection}, it may make sense to test if the target application admits a similar value of the compute to memory ratio as an already existing application. If it does, then the practitioner might be able to utilize the zero-shot generalization, as is indicated with the good performance of case \textbf{(1)}, whereas if the compute/memory ratio is heavily different from any seen application, zero-shot generalization to the target application may be worse. Finally, making sure that the training applications adequately reflect the compute/memory ratio statistic for the overall target set is important.}

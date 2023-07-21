@@ -34,7 +34,7 @@ This gives rise to our final objective:
     - \textcolor{blue}{\beta \E_{\rvx'_i \sim \mathcal{D}_{\text{infeasible}}}\left[ f_\theta(\rvx'_i) \right]}
 \end{equation}
 
-\subsection{Optimizing Multiple Applications and Zero-Shot Accelerator Design}
+\subsection{Optimizing Multiple Applications and Zero-Shot Design}
 %
 One of the central benefits of an offline learning approach is that it enables learning powerful models that generalize over the space of applications, potentially being effective for new unseen application domains. In our experiments, we evaluate \primemethodname\ on designing accelerators for multiple applications denoted as $k=1, \cdots, K$, jointly or for a novel unseen application. In this case, we utilized a dataset $\mathcal{D} = \{\mathcal{D}_1, \cdots, \mathcal{D}_K\}$, where each $\mathcal{D}_k$ consists of a set of accelerator designs, annotated with the latency value and the feasibility criterion for a given application $k$. While there are a few overlapping designs in different parts of the dataset annotated for different applications, most of the designs only appear in one part. To train a single conservative model $f_\theta(\cdot)$ for multiple applications, we extend the training procedure in Equation~\ref{eqn:final_training} to incorporate \textit{context vectors} $\rvc_k \in \mathbb{R}^d$ for various applications driven by a list of application properties in Table~\ref{tab:models}. A context vector is akin to a state in the context of full sequential reinforcement learning. 
 

@@ -1,13 +1,11 @@
 
 
 \begin{table}[t]
-\captionsetup{font=small}
 \vspace{5pt}
 \centering
 \caption{\label{table:appx_results_single_task}{Optimized objective values (i.e., latency in milliseconds) obtained by various methods for the task of learning accelerators specialized to a given application. Lower latency/runtime is better. From left to right: our method, our method without negative sampling (``\primemethodname-$\mathrm{Opt}$'') and without utilizing infeasible points (``\primemethodname-Infeasible''), standard surrogate (``Standard''), online Bayesian optimization (``Bayes Opt''), online evolutionary algorithm (``Evolutionary'') and the best design in the training dataset. Note that, in all the applications \primemethodname\ improves over the best in the dataset, outperforms online optimization methods in 7/9 applications and the complete version of \primemethodname\ generally performs best. The best accelerator designs are in bold.}}
-\renewcommand{\arraystretch}{1.2}
-\fontsize{7}{7}\selectfont
-\begin{tabular}{l||r|r|r||r||r|r||r}
+% \renewcommand{\arraystretch}{1.2}
+\resizebox{1.0\textwidth}{!}{\begin{tabular}{l||r|r|r||r||r|r||r}
 \hline
 &\multicolumn{3}{c||}{\textbf{\primemethodname}}&&\multicolumn{2}{c||}{\textbf{Online Optimization}}&\\\cline{2-4}\cline{6-7}
 \textbf{Application}&\textbf{All}& \textbf{-Opt}&\textbf{-Infeasible}&\textbf{Standard}&\textbf{Bayes Opt}&\textbf{Evolutionary}&\textbf{$\mathcal{D}$ (Best in Training)}\\\midrule
@@ -20,7 +18,7 @@ MobileNetV3&\textbf{454.30}&489.45&483.96&575.75&534.15&501.27&938.41\\\hline
 U-Net&\textbf{740.27}&740.27&765.59&763.10&872.23&791.64&1333.18\\\hline
 t-RNN Dec&\textbf{132.88}&172.06&135.47&136.20&771.11&770.93&890.22\\\hline
 t-RNN Enc&\textbf{130.67}&134.84&137.28&150.21&865.07&865.07&584.70\\\bottomrule
-\end{tabular}
+\end{tabular}}
 \normalsize
-\vspace{-16pt}
+% \vspace{-16pt}
 \end{table}
