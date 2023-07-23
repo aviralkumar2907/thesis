@@ -261,47 +261,30 @@ by
 A dissertation submitted in partial satisfaction
 of the\\
 \vspace{12pt}
-requirements for the degree of
-
+requirements for the degree of\\
 \vspace{12pt}
-
-{\@degree} 
+{\@degree}\\ 
 \vspace{12pt}
-
-in
-
+in\\
 \vspace{12pt}
-
-{\@field}\
-
+{\@field}\\
 \vspace{12pt}
-
-in the
-
+in the\\
 \vspace{12pt}
-
-Graduate Division
-
+Graduate Division\\
 \vspace{12pt}
-
-of the
-
+of the\\
 \vspace{12pt}
-
 University of California, Berkeley
-
-\vspace{48pt}
+\vspace{36pt}
 
 Committee in charge:
 
-\vspace{12pt}
+\vspace{6pt}
 
 {\@chair}, Chair\\
-
 {\@othermemberA}\\
-
 {\@othermemberB}\\
-
 \ifnum \@numberofmembers > 3
 {\@othermemberC}\\
 \fi
@@ -339,7 +322,7 @@ Committee in charge:
 \setcounter{page}{2}
 \null\vfill
 \begin{center}
-\fmfont The dissertation of {\@author}, titled {\@title}, is approved: \\
+\fmfont The dissertation of {\@author}, titled \\ {\@title},\\ is approved: \\
 \end{center}
 \vspace{.25in}
 \begin{center}
