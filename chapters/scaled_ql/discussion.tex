@@ -1,0 +1,20 @@
+\vspace{-0.2cm}
+\section{Discussion}
+\label{sec:discussion}
+\vspace{-0.2cm}
+
+This work shows, for the first time, that offline Q-learning can scale to high-capacity models trained on large, diverse datasets. As we hoped, by scaling up capacity, we unlocked analogous trends to those observed in vision and NLP. We found that scaled QL trains policies that exceed the average dataset performance and prior methods, especially when the dataset does not contain expert trajectories. Furthermore, by training a large-capacity model on diverse tasks, we show that Q-learning is sufficient to recover general-purpose representations that enable rapid learning of novel tasks. Although we detailed an approach that is sufficient to scale Q-learning, this is by no means optimal. The scale of the experiments limited the number of alternatives we could explore, and we expect that future work will greatly improve performance. % Given the strong performance of transformers, we suspect that offline Q-learning with a transformer architecture is a promising future direction. 
+For example, contrary to DT~\citep{lee2022multi}, we did not use data augmentation in our experiments, which we believe can provide significant benefits. While we did a preliminary attempt to perform online fine-tuning on an entirely new game~($\textsc{SpaceInvaders}$), we found that this did not work well for any of the pretrained representations~(see Figure~\ref{fig:lr_curves_online_ft}). Addressing this is an important direction for future work. We speculate that this challenge is related to designing methods for learning better exploration from offline data, which is not required for offline fine-tuning. We refer the reader to the appendix for further discussion of future work. Overall, we believe that scaled QL could serve as a starting point for RL-trained foundation models.
+% Finally, in line with \citet{agarwal2022beyond}, we plan to release our pre-trained models, which we hope would enable subsequent methods to build upon.
+
+
+% \section*{Author Contributions}
+% \vspace{-0.2cm}
+
+% AK conceived and led the project, developed scaled QL, decided and ran most of the experiments. RA discussed the experiment design and project direction, helped set up and debug the training pipeline, took the lead on setting up and running the MAE baseline and the online fine-tuning experiments. XG helped with design choices for some experiments. GT advised the project and ran baseline DT experiments. SL advised the project and provided valuable suggestions. AK, RA, GT, SL all contributed to writing and editing the paper.
+
+\vspace{-0.3cm}
+\section*{Acknowledgements}
+\vspace{-0.3cm}
+
+We thank several members of the Google Brain team for their help, support and feedback on this paper. We thank Dale Schuurmans, Dibya Ghosh, Ross Goroshin, Marc Bellemare and Aleksandra Faust for informative discussions. We thank Sherry Yang, Ofir Nachum, and Kuang-Huei Lee for help with the multi-game decision transformer codebase; Anurag Arnab for help with the Scenic ViT codebase. We thank Zoubin Ghahramani and Douglas Eck for leadership support.  

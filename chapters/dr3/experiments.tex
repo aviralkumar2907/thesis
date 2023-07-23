@@ -1,12 +1,12 @@
 
 
 \vspace{-0.2cm}
-\section{Experimental Evaluation of \methodname}
+\subsection{Experimental Evaluation of \drmethodname}
 \label{sec:experiments}
 \vspace{-0.2cm}
-% The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of our practical approach, \methodname, in addressing regularization challenges.
-%%SL.10.2: I wonder if some readers might question whether our experiments really verify that it *requires* explicit regularization. We could say rather it aims to understand whether feature co-adaptation is a major issue empirically or something. But it actually doesn't look like the experiments do that at all, and only focus on DR3? In that case, we could simply say: Our experiments aim to evaluate the extent to which \methodname improves performance in offline RL in practice, as well as to study its effect on rank collapse and how it compares to the more costly but more accurate regularizer suggested by our theoretical analysis, which requires estimating $\Sigma_M^\star$. (or something along these lines)
-Our experiments aim to evaluate the extent to which \methodname\ improves performance in offline RL in practice, and to study its effect on prior observations of rank collapse. To this end, we investigate if \methodname\ improves offline RL performance and stability on three offline RL benchmarks: Atari 2600 games with discrete actions~\citep{agarwal2019optimistic}, continuous control tasks from D4RL~\citep{fu2020d4rl}, and image-based robotic manipulation tasks~\citep{singh2020cog}.
+% The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of our practical approach, \drmethodname, in addressing regularization challenges.
+%%SL.10.2: I wonder if some readers might question whether our experiments really verify that it *requires* explicit regularization. We could say rather it aims to understand whether feature co-adaptation is a major issue empirically or something. But it actually doesn't look like the experiments do that at all, and only focus on DR3? In that case, we could simply say: Our experiments aim to evaluate the extent to which \drmethodname improves performance in offline RL in practice, as well as to study its effect on rank collapse and how it compares to the more costly but more accurate regularizer suggested by our theoretical analysis, which requires estimating $\Sigma_M^\star$. (or something along these lines)
+Our experiments aim to evaluate the extent to which \drmethodname\ improves performance in offline RL in practice, and to study its effect on prior observations of rank collapse. To this end, we investigate if \drmethodname\ improves offline RL performance and stability on three offline RL benchmarks: Atari 2600 games with discrete actions~\citep{agarwal2019optimistic}, continuous control tasks from D4RL~\citep{fu2020d4rl}, and image-based robotic manipulation tasks~\citep{singh2020cog}.
 Following prior work~\citep{fu2020d4rl, gulcehre2020rl}, we evaluate DR3 in terms of final offline RL performance after a given number of iterations. Additionally, we report \emph{training stability}, which is important in practice as offline RL does not admit cheap validation of trained policies for model selection.
 % Prior work has generally disregarded this metric, reporting results either after a hand-selected number of gradient steps~\citep[\textit{e.g.,}][]{wu2019behavior,fu2020d4rl,kumar2020conservative}, or the maximum performance  during training (i.e., oracle model selection)~\citep{agarwal2019optimistic, gulcehre2020rl}.
 %%SL.9.29: if short on space, can cut the sentences below and merge the next paragraph with this one
@@ -24,10 +24,10 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 
 % \begin{figure*}[h]
 %     \centering
-%     \includegraphics[width=\linewidth]{figures/atari_new/Median_cql_penalty.pdf}
-%     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
-%     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_cql_penalty.pdf}
-%     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_cql_penalty.pdf}
+%     \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Median_cql_penalty.pdf}
+%     \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Mean_cql_penalty.pdf}
+%     % \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Capped_Mean_cql_penalty.pdf}
 %     \vspace{-0.65cm}
 %     \caption{Behavior Normalized Scores across 17 Atari games. We use Interquartile mean~(IQM).}
 %     \label{fig:atari_5_percent}
@@ -39,7 +39,7 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 %     \centering
 %     \includegraphics[width=\linewidth]{atari/norm_3_games_cql_rem.pdf}
 %     \vspace{-0.65cm}
-%     \caption{In addition to minimizing unnormalized similarities~($\simunnorm(\bs, \ba, \bs')$), \methodname\ attains much lower normalized similarities as compared to CQL and REM. The results are shown for training with 5\% DQN replay dataset averaged over 5 seeds.}\label{fig:atari_3_cosine}
+%     \caption{In addition to minimizing unnormalized similarities~($\simunnorm(\bs, \ba, \bs')$), \drmethodname\ attains much lower normalized similarities as compared to CQL and REM. The results are shown for training with 5\% DQN replay dataset averaged over 5 seeds.}\label{fig:atari_3_cosine}
 %     \vspace{-0.5cm}
 % \end{figure}
 
@@ -48,7 +48,7 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 %     \centering
 %     \includegraphics[width=\linewidth]{atari/5_percent_res_100.pdf}
 %     \vspace{-0.65cm}
-%     \caption{Evaluation performance of offline REM and CQL with and without \methodname\ on the 5\% DQN replay dataset~\citep{agarwal2019optimistic}. Note that the data collected during evaluation is not provided to offline agents during training. The horizontal line shows the average performance of the trajectories in entire DQN replay dataset. \methodname\ substantially improves the performance of CQL and REM as well as prevents the decay in performance of REM with more gradient updates on \textsc{Seaquest} and \textsc{Asterix}. For \textsc{Pong}, training for longer~(12.5 million updates) results in improved score for REM + \methodname\ over REM.}
+%     \caption{Evaluation performance of offline REM and CQL with and without \drmethodname\ on the 5\% DQN replay dataset~\citep{agarwal2019optimistic}. Note that the data collected during evaluation is not provided to offline agents during training. The horizontal line shows the average performance of the trajectories in entire DQN replay dataset. \drmethodname\ substantially improves the performance of CQL and REM as well as prevents the decay in performance of REM with more gradient updates on \textsc{Seaquest} and \textsc{Asterix}. For \textsc{Pong}, training for longer~(12.5 million updates) results in improved score for REM + \drmethodname\ over REM.}
 %     \label{fig:atari_5_percent}
 % \end{figure*}
 
@@ -62,7 +62,7 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 % \toprule
 % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
 % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% & (17 games) & CQL & CQL + \methodname & CQL & CQL + \methodname \\
+% & (17 games) & CQL & CQL + \drmethodname & CQL & CQL + \drmethodname \\
 % \midrule
 % 1\% replay &  Median & 43.3 & \textbf{71.0} & 73.2 & \textbf{96.3} \\
 % (uniformly sampled) & Mean & 50.7 & \textbf{60.9} & 74.4 & \textbf{84.6}  \\
@@ -196,14 +196,14 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 
 % \begin{table*}[t]
 %     \centering
-%     \caption{Normalized returns on sub-sampled Atari DQN replay datasets~\citep{agarwal2019optimistic}. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}. When combined with REM, we used a coefficient of $\alpha = 0.001$ to show the robustness of \methodname\ across different datasets. \color{red}{Merge the two tables somehow to save space.}}
+%     \caption{Normalized returns on sub-sampled Atari DQN replay datasets~\citep{agarwal2019optimistic}. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}. When combined with REM, we used a coefficient of $\alpha = 0.001$ to show the robustness of \drmethodname\ across different datasets. \color{red}{Merge the two tables somehow to save space.}}
 %     \label{tab:rem_res}
 %     \vspace{0.2cm}
 % \begin{tabular}{cccccc}
 % \toprule
 % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
 % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % \midrule
 % 1\% replay &  Median & 4.7 & \textbf{19.3} & 25.5 & \textbf{42.5} \\
 % (uniformly sampled) & Mean & -1.8 & \textbf{47.2} &  72.4 & \textbf{100.2}  \\
@@ -284,13 +284,13 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 
 % \begin{table*}[t]
 %     \centering
-%     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
+%     \caption{\small{Performance of REM, REM + \drmethodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
 %     \label{tab:rem_res}
 %     \vspace{0.2cm}
 % \begin{tabular}{cccccc}
 % \toprule
 % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % \midrule
 % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
 %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
@@ -372,13 +372,13 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 
 % \begin{table*}[t]
 %     \centering
-%     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
+%     \caption{\small{Performance of REM, REM + \drmethodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
 %     \label{tab:rem_res}
 %     \vspace{0.2cm}
 % \begin{tabular}{cccccc}
 % \toprule
 % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % \midrule
 % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
 %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
@@ -395,47 +395,47 @@ We expect that a stable method that does not unlearn with more gradient steps, s
 % \begin{wrapfigure}{r}{0.57\textwidth}
 %     \centering
 %     \vspace{-5pt}
-%     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-%     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_rem_penalty.pdf}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
 %     \vspace{-0.25in}
-%     \caption{\small{\textbf{Average normalized performance across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different datasets. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance than CQL. As recommended by \citet{agarwal2021precipice}, we report interquartile Mean (IQM) with stratified bootstrap 95\% CIs as shaded regions.}}
+%     \caption{\small{\textbf{Average normalized performance across 17 Atari games for REM + \drmethodname\ (top), CQL + \drmethodname\ (bottom)} over the course of training with different datasets. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \drmethodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \drmethodname\ attains higher performance than CQL. As recommended by \citet{agarwal2021precipice}, we report interquartile Mean (IQM) with stratified bootstrap 95\% CIs as shaded regions.}}
 %     \label{fig:atari_all_combined}
 %     \vspace{-0.45cm}
 % \end{wrapfigure}
-\textbf{{Offline RL on Atari 2600 games.}} We compare \methodname\ to prior offline RL methods on a set of offline Atari datasets of varying sizes and quality, akin to \citet{agarwal2019optimistic, kumar2021implicit}. We evaluated on three datasets: \textbf{(1)} 1\% and 5\% samples drawn uniformly at random from DQN replay; \textbf{(2)} a dataset with more suboptimal data consisting of the first 10\% samples observed by an online DQN. Following \citet{agarwal2021precipice}, we report the interquartile mean~(IQM) normalized scores across 17 games over the course of training in Figure~\ref{fig:atari_all_combined} and report the IQM average performance in Table~\ref{tab:cql_res}. Observe that combining \methodname\ with modern offline RL methods (CQL, REM) attains the best final and average performance across the 17 Atari games tested on, directly improving upon prior methods
-across all the datasets. When \methodname\ is used in conjunction with REM, it prevents {severe} unlearning and performance degradation with more training. CQL + \methodname\ improves by \textbf{20\%} over CQL on final performance and attains \textbf{25\%} better average performance. {While DR3 is not unequivocally ``stable'', as its performance also degrades relative to the peak it achieves (Figure~\ref{fig:atari_all_combined}), it is more stable relative to base offline RL algorithms.} We also compare \methodname\ to the $\mathrm{srank}(\Phi)$ penalty proposed to counter rank collapse~\citep{kumar2021implicit}. Directly taking median normalized score improvements reported by \citet{kumar2021implicit}, CQL + \methodname\ improves by over \textbf{2x} (31.5\%) over na\"ive CQL relative to the srank penalty~(14.1\%), indicating DR3's efficacy.
-% this $\text{srank}$ penalty only attains a median improvement of 14.1\% over na\"ive CQL, whereas CQL + \methodname\ attains a median improvement of \textbf{31.5\%} over CQL. Thus, CQL + \methodname\ improves by over \textbf{2x} relative to the srank penalty, indicating DR3's efficacy.
-% This indicates that by directly addressing the adverse impacts of implicit regularization, \methodname\ can substantially improve upon prior methods that only address its symptoms.  
+\textbf{{Offline RL on Atari 2600 games.}} We compare \drmethodname\ to prior offline RL methods on a set of offline Atari datasets of varying sizes and quality, akin to \citet{agarwal2019optimistic, kumar2021implicit}. We evaluated on three datasets: \textbf{(1)} 1\% and 5\% samples drawn uniformly at random from DQN replay; \textbf{(2)} a dataset with more suboptimal data consisting of the first 10\% samples observed by an online DQN. Following \citet{agarwal2021precipice}, we report the interquartile mean~(IQM) normalized scores across 17 games over the course of training in Figure~\ref{fig:atari_all_combined} and report the IQM average performance in Table~\ref{tab:cql_res}. Observe that combining \drmethodname\ with modern offline RL methods (CQL, REM) attains the best final and average performance across the 17 Atari games tested on, directly improving upon prior methods
+across all the datasets. When \drmethodname\ is used in conjunction with REM, it prevents {severe} unlearning and performance degradation with more training. CQL + \drmethodname\ improves by \textbf{20\%} over CQL on final performance and attains \textbf{25\%} better average performance. {While DR3 is not unequivocally ``stable'', as its performance also degrades relative to the peak it achieves (Figure~\ref{fig:atari_all_combined}), it is more stable relative to base offline RL algorithms.} We also compare \drmethodname\ to the $\mathrm{srank}(\Phi)$ penalty proposed to counter rank collapse~\citep{kumar2021implicit}. Directly taking median normalized score improvements reported by \citet{kumar2021implicit}, CQL + \drmethodname\ improves by over \textbf{2x} (31.5\%) over na\"ive CQL relative to the srank penalty~(14.1\%), indicating DR3's efficacy.
+% this $\text{srank}$ penalty only attains a median improvement of 14.1\% over na\"ive CQL, whereas CQL + \drmethodname\ attains a median improvement of \textbf{31.5\%} over CQL. Thus, CQL + \drmethodname\ improves by over \textbf{2x} relative to the srank penalty, indicating DR3's efficacy.
+% This indicates that by directly addressing the adverse impacts of implicit regularization, \drmethodname\ can substantially improve upon prior methods that only address its symptoms.  
 
-%Notably, REM performs similar to a random policy in terms of average performance on the 1\%  setting, which is significantly improved by \methodname.
+%Notably, REM performs similar to a random policy in terms of average performance on the 1\%  setting, which is significantly improved by \drmethodname.
 %%SL.2.1: I think we can cut this last sentence, and instead focus on the more positive takeaways.
 
-% To evaluate whether the improvements from \methodname\ stem from penalizing unnormalized similarities $\simunnorm(\bs, \ba, \bs')$, we also compare \methodname\ to penalizing (1) $\simnorm(\bs, \ba, \bs')$, or (2) feature norms~($\|\phi(\bs)\|_2$) on the 5\% dataset on 5 games. The full results, shown in Appendix~\ref{}, confirms that both of these penalties perform substantially worse than \methodname, aligned with our theoretical analysis about effectiveness of \methodname~(Section~\ref{sec:method_analysis}).
+% To evaluate whether the improvements from \drmethodname\ stem from penalizing unnormalized similarities $\simunnorm(\bs, \ba, \bs')$, we also compare \drmethodname\ to penalizing (1) $\simnorm(\bs, \ba, \bs')$, or (2) feature norms~($\|\phi(\bs)\|_2$) on the 5\% dataset on 5 games. The full results, shown in Appendix~\ref{}, confirms that both of these penalties perform substantially worse than \drmethodname, aligned with our theoretical analysis about effectiveness of \drmethodname~(Section~\ref{sec:method_analysis}).
 
 %%SL.2.1: This last phrase is without context. What question is it trying to answer? What is the motivation? Start with a sentence of motivation or a question, then evidence, then answer. Something like: Is [whatever] true? To answer this question, we can [do something]. The full results, shown in [where], indicate [something]. This suggests that [something].
 \begin{wrapfigure}{r}{0.42\textwidth}
 \small \begin{center}
 \vspace{-30pt}
-\includegraphics[width=0.99\linewidth]{figures/close_open_grasp (1).png}
-\includegraphics[width=0.99\linewidth]{figures/pickplace_open_grasp.png}
+\includegraphics[width=0.99\linewidth]{chapters/dr3/figures/close_open_grasp.png}
+\includegraphics[width=0.99\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 \vspace{-20pt}
 \end{center}
 \end{wrapfigure}
-\textbf{{Offline RL on robotic manipulation from}} \textbf{{images.}} Next, we aim to evaluate the efficacy of \methodname\ on two image-based robotic manipulation tasks~\citep{singh2020cog}~(visualized on the right) that require composition of skills (e.g., opening a drawer, closing a drawer, picking an obstructive object, placing an object, etc.) over extended horizons using only a sparse 0-1 reward. 
-As shown in Figure~\ref{fig:cog_figure}, combining \methodname\ with COG improves over COG.
+\textbf{{Offline RL on robotic manipulation from}} \textbf{{images.}} Next, we aim to evaluate the efficacy of \drmethodname\ on two image-based robotic manipulation tasks~\citep{singh2020cog}~(visualized on the right) that require composition of skills (e.g., opening a drawer, closing a drawer, picking an obstructive object, placing an object, etc.) over extended horizons using only a sparse 0-1 reward. 
+As shown in Figure~\ref{fig:cog_figure}, combining \drmethodname\ with COG improves over COG.
 
 \begin{table}[t]
     \centering
 \fontsize{8}{8}\selectfont
     \centering
     \vspace{-0.2cm}
-    \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \methodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
+    \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \drmethodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
     \label{tab:cql_res}
     \vspace{-0.1cm}
 \begin{tabular}{lcccc}
 \toprule
 % \multirow{2}{*}{\textbf{Data}}  & \multicolumn{4}{c}{\textbf{Stability performance}} \\
-Data & CQL & CQL + \methodname & REM & REM + \methodname \\
+Data & CQL & CQL + \drmethodname & REM & REM + \drmethodname \\
 \midrule
 1\%   & 43.7~\ss{(39.6, 48.6)} & \textbf{56.9}~\ss{(52.5, 61.2)} & 4.0~\ss{(3.3, 4.8)} & \textbf{16.5}~\ss{(14.5, 18.6)}  \\
 \midrule
@@ -451,27 +451,27 @@ Data & CQL & CQL + \methodname & REM & REM + \methodname \\
 % \vspace{-pt}
 \centering
 \begin{minipage}{.4\textwidth}
-% \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
-% \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
-% \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
-% \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
+% \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
+% \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
+% \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
+% \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
 % \vspace{-10pt}
-\includegraphics[width=0.96\linewidth]{figures/cog_plots.pdf}
+\includegraphics[width=0.96\linewidth]{chapters/dr3/figures/cog_plots.pdf}
 \vspace{-0.2cm}
-\caption{\footnotesize{\textbf{Performance of \methodname\ + COG} on two manipulation tasks using only 5\% and 25\% of the data used by \citet{singh2020cog} to make these more challenging.
-COG + \methodname\  outperforms COG in training and attains higher average and final performance.}}
+\caption{\footnotesize{\textbf{Performance of \drmethodname\ + COG} on two manipulation tasks using only 5\% and 25\% of the data used by \citet{singh2020cog} to make these more challenging.
+COG + \drmethodname\  outperforms COG in training and attains higher average and final performance.}}
 \label{fig:cog_figure}
 \end{minipage}~~\vline~~
 \begin{minipage}{.56\textwidth}
     \centering
     % \vspace{-0.1in}
-    \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-    \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+    \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_rem_penalty.pdf}
+    \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
     \vspace{-0.25in}
-    \caption{\footnotesize{\textbf{Normalized performance across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)}. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance than CQL. We report IQM with  95\% stratified bootstrap CIs~\citep{agarwal2021precipice}}.}
+    \caption{\footnotesize{\textbf{Normalized performance across 17 Atari games for REM + \drmethodname\ (top), CQL + \drmethodname\ (bottom)}. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \drmethodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \drmethodname\ attains higher performance than CQL. We report IQM with  95\% stratified bootstrap CIs~\citep{agarwal2021precipice}}.}
     \label{fig:atari_all_combined}
 \end{minipage}
-\vspace{-0.5cm}
+\vspace{-0.2cm}
 \end{figure}
 
 
@@ -480,14 +480,14 @@ COG + \methodname\  outperforms COG in training and attains higher average and f
 % % \vspace{-pt}
 % \small \begin{center}
 % % \vspace{-10pt}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
-% \includegraphics[width=0.5\linewidth]{figures/cog_plots.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
+% \includegraphics[width=0.5\linewidth]{chapters/dr3/figures/cog_plots.pdf}
 % \end{center}
 % \vspace{-15pt}
-% \caption{\small{\textbf{Performance of \methodname\ + COG} on four robotic manipulation settings with different amounts of data. As is visible, COG + \methodname\ always outperforms COG and attains higher average and final performance.}}
+% \caption{\small{\textbf{Performance of \drmethodname\ + COG} on four robotic manipulation settings with different amounts of data. As is visible, COG + \drmethodname\ always outperforms COG and attains higher average and final performance.}}
 % \vspace{-5pt}
 % \label{fig:cog_figure}
 % \end{figure}
@@ -499,10 +499,10 @@ COG + \methodname\  outperforms COG in training and attains higher average and f
 %     \begin{minipage}{.5\textwidth}
 %     \centering
 %     \vspace{-0.01in}
-%     \includegraphics[width=0.99\linewidth]{figures/rank_trends_dr3_dqn.pdf}
-%     % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/rank_trends_dr3_dqn.pdf}
+%     % \includegraphics[width=\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 %     \vspace{-0.2in}
-%     \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \methodname\ alleviates rank collapse observed by \citet{kumar2021implicit}, without explicitly aiming to. Effective rank measures the number of directions with significant singular values~(Appendix~\ref{app:rank_collapse_is_gone}).}}}
+%     \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \drmethodname\ alleviates rank collapse observed by \citet{kumar2021implicit}, without explicitly aiming to. Effective rank measures the number of directions with significant singular values~(Appendix~\ref{app:rank_collapse_is_gone}).}}}
 %     \label{fig:iup_is_fixed}
 %     \vspace{-0.25in}
 %     \end{minipage}~~\vline~~
@@ -512,13 +512,13 @@ COG + \methodname\  outperforms COG in training and attains higher average and f
 %     \vspace{-0.05in}
 %     \fontsize{8}{8}\selectfont
 %     \centering
-%     \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \methodname\ after 2M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 4 seeds. This is training for \textbf{6x} longer compared to CQL defaults. Observe that CQL + \methodname\ outperforms CQL at 2M steps, indicating is efficacy in inducing stability. %``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.
+%     \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \drmethodname\ after 2M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 4 seeds. This is training for \textbf{6x} longer compared to CQL defaults. Observe that CQL + \drmethodname\ outperforms CQL at 2M steps, indicating is efficacy in inducing stability. %``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.
 %     }}
 %     \label{tab:cql_d4rl}
 %     \vspace{-0.1in}
 %     \begin{tabular}{@{}lrr@{}}
 %     \toprule
-%     {\textbf{D4RL (-v0) Task}} & CQL & CQL + \methodname \\
+%     {\textbf{D4RL (-v0) Task}} & CQL & CQL + \drmethodname \\
 %     \midrule
 %     \texttt{kitchen-mixed} & 14.6 $\pm$ 20.5 & \textbf{37.0 $\pm$ 8.0} \\
 %     \texttt{kitchen-partial} & 29.6 $\pm$ 19.6 & \textbf{43.5 $\pm$ 1.9}  \\
@@ -538,13 +538,13 @@ COG + \methodname\  outperforms COG in training and attains higher average and f
 % % \vspace{-0.8cm}
 % \fontsize{8}{8}
 % \centering
-% \caption{\small{Performance of CQL, CQL + \methodname\ after 2M (twice as long as prior work) gradient steps with a learning rate of 3e-4 for the Q-function averaged over 4 seeds. We also find that CQL + \methodname\ outperforms CQL at 2M steps, and is comparable to CQL when evaluated at 1M steps, which was the protocol followed originally. ``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.}}
+% \caption{\small{Performance of CQL, CQL + \drmethodname\ after 2M (twice as long as prior work) gradient steps with a learning rate of 3e-4 for the Q-function averaged over 4 seeds. We also find that CQL + \drmethodname\ outperforms CQL at 2M steps, and is comparable to CQL when evaluated at 1M steps, which was the protocol followed originally. ``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.}}
 % \label{tab:cql_d4rl}
 % \small{
 % % \vspace{0.2cm}
 % \begin{tabular}{l||r|r}
 % \toprule
-% {\textbf{D4RL (-v0) Task}} & CQL & \textbf{CQL + \methodname} \\
+% {\textbf{D4RL (-v0) Task}} & CQL & \textbf{CQL + \drmethodname} \\
 % \midrule
 % \texttt{kitchen-mixed} & 14.58 $\pm$ 20.49 & \textbf{37.04 $\pm$ 8.04} \\
 % \texttt{kitchen-partial} & 29.63 $\pm$ 19.58 & \textbf{43.54 $\pm$ 1.90}  \\
@@ -560,17 +560,19 @@ COG + \methodname\  outperforms COG in training and attains higher average and f
 % \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the antmaze and kitchen domains in D4RL~\citep{fu2020d4rl}. To assess if \methodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\methodname\ for \textbf{6x} longer: 2M steps with 3x higher learning rate. %This is different from prior works~\citep{kumar2020conservative} that report performance at the end of 1M steps.
-% Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL ({statistical significance shown in Appendix~\ref{app:significance}}). {We show that CQL + DR3 also outperforms base CQL in terms of performance and stability on MuJoCo tasks previously studied in \citet{kumar2021implicit} in Appendix~\ref{app:mujoco}.} 
+% \textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the antmaze and kitchen domains in D4RL~\citep{fu2020d4rl}. To assess if \drmethodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\drmethodname\ for \textbf{6x} longer: 2M steps with 3x higher learning rate. %This is different from prior works~\citep{kumar2020conservative} that report performance at the end of 1M steps.
+% Observe in Table~\ref{tab:cql_d4rl}, that CQL + \drmethodname\ outperforms CQL ({statistical significance shown in Appendix~\ref{app:significance}}). {We show that CQL + DR3 also outperforms base CQL in terms of performance and stability on MuJoCo tasks previously studied in \citet{kumar2021implicit} in Appendix~\ref{app:mujoco}.} 
 % %%SL.10.2: I don't see how "indicating the ability to train for more gradient steps" follows from these results -- where is the evidence for this? did you change the number of steps? Also, this section appears to violate what you said before about reporting stability: you said that stability = average over iterations, but here you are not reporting it. If this is how it is, then maybe revise the beginning of the experiments section, which makes a really big deal out of this stability metric. I *think* what you mean is that training for 2M steps evaluates stability better than 1M steps, but critical readers will just say you cherry-picked the number of steps that makes your method look good.
-% Further, we also compare the effect of adding \methodname\ to BRAC~\citep{wu2019behavior}.
+% Further, we also compare the effect of adding \drmethodname\ to BRAC~\citep{wu2019behavior}.
 % %%SL.10.2: such as BRAC, or just BRAC?
-% \methodname\ applied on BRAC improves final median normalized score performance by \textbf{13.8}  and stability by \textbf{8.1} across 15 MuJoCo tasks. Numbers for BRAC can be found in Table~\ref{tab:brac}.
+% \drmethodname\ applied on BRAC improves final median normalized score performance by \textbf{13.8}  and stability by \textbf{8.1} across 15 MuJoCo tasks. Numbers for BRAC can be found in Table~\ref{tab:brac}.
 % %%AK: unfortunately this table is in the Appendix.
 
-\textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the antmaze-v2 domain in D4RL~\citep{fu2020d4rl}. To assess if \methodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\methodname\ for \textbf{9x} longer: 2M and 3M steps with 3x higher learning rate. This is different from prior works~\citep{fu2020d4rl} that report performance at the end of 1M steps.
-Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL ({statistical significance shown in Appendix~\ref{app:significance}}), indicating that DR3 significantly improves CQL. We also evalute DR3 on kitchen domains in D4RL in Appendix~\ref{app:significance}, where we also find that DR3 improves CQL. Finally, we also compare CQL+DR3 and CQL in terms of performance and stability on MuJoCo tasks previously studied in \citet{kumar2021implicit} in Appendix~\ref{app:mujoco}. These tasks are constructed by uniformly subsampling transitions from the full-replay-v2 MuJoCo datasets in D4RL and are much harder than the typical Gym-MuJoCo tasks from \citet{fu2020d4rl} because succeeding on these tasks critically relies on estimating accurate Q-values for out-of-sample actions and all actions at certain states are out-of-sample. As shown in Appendix~\ref{app:mujoco}, CQL+DR3 is significantly more stable, and does not unlearn with more training, unlike CQL whose performance degrades very quickly. We also evaluate DR3 in conjunction with BRAC~\citep{wu2019behavior}, a policy constraint method, and find that BRAC+DR3 improves over BRAC in \textbf{13.8} median normalized performance (Table~\ref{tab:brac}).
-% \textbf{These results} indicate that \methodname\ is a versatile explicit regularizer that improves performance and stability of a wide range of offline RL methods. 
+\iffalse
+
+\textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the antmaze-v2 domain in D4RL~\citep{fu2020d4rl}. To assess if \drmethodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\drmethodname\ for \textbf{9x} longer: 2M and 3M steps with 3x higher learning rate. This is different from prior works~\citep{fu2020d4rl} that report performance at the end of 1M steps.
+Observe in Table~\ref{tab:cql_d4rl}, that CQL + \drmethodname\ outperforms CQL ({statistical significance shown in Appendix~\ref{app:significance}}), indicating that DR3 significantly improves CQL. We also evalute DR3 on kitchen domains in D4RL in Appendix~\ref{app:significance}, where we also find that DR3 improves CQL. Finally, we also compare CQL+DR3 and CQL in terms of performance and stability on MuJoCo tasks previously studied in \citet{kumar2021implicit} in Appendix~\ref{app:mujoco}. These tasks are constructed by uniformly subsampling transitions from the full-replay-v2 MuJoCo datasets in D4RL and are much harder than the typical Gym-MuJoCo tasks from \citet{fu2020d4rl} because succeeding on these tasks critically relies on estimating accurate Q-values for out-of-sample actions and all actions at certain states are out-of-sample. As shown in Appendix~\ref{app:mujoco}, CQL+DR3 is significantly more stable, and does not unlearn with more training, unlike CQL whose performance degrades very quickly. We also evaluate DR3 in conjunction with BRAC~\citep{wu2019behavior}, a policy constraint method, and find that BRAC+DR3 improves over BRAC in \textbf{13.8} median normalized performance (Table~\ref{tab:brac}).
+% \textbf{These results} indicate that \drmethodname\ is a versatile explicit regularizer that improves performance and stability of a wide range of offline RL methods. 
 
 \begin{table*}[t]
     % \begin{table}[t]
@@ -578,12 +580,12 @@ Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL ({s
     % \vspace{-0.25cm}
     \fontsize{8}{8}\selectfont
     \centering
-    \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \methodname\ after 2M and 3M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 3 seeds. This is training for \textbf{6x} and \textbf{9x} longer compared to CQL defaults. Observe that CQL + \methodname\ outperforms CQL at 2M and 3M steps, indicating is efficacy in preventing unlearning. We present the statistical significance of these results in Appendix~\ref{app:significance}.}}
+    \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \drmethodname\ after 2M and 3M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 3 seeds. This is training for \textbf{6x} and \textbf{9x} longer compared to CQL defaults. Observe that CQL + \drmethodname\ outperforms CQL at 2M and 3M steps, indicating is efficacy in preventing unlearning. We present the statistical significance of these results in Appendix~\ref{app:significance}.}}
     \label{tab:cql_d4rl}
     \vspace{-0.1in}
     \begin{tabular}{@{}l|rr||rr@{}}
     \toprule
-    {\textbf{D4RL Task}} & \textbf{CQL} (2M) & \textbf{CQL + \methodname} (2M) & \textbf{CQL} (3M) & \textbf{CQL + \methodname} (3M)  \\
+    {\textbf{D4RL Task}} & \textbf{CQL} (2M) & \textbf{CQL + \drmethodname} (2M) & \textbf{CQL} (3M) & \textbf{CQL + \drmethodname} (3M)  \\
     \midrule
     % \texttt{kitchen-mixed} & 14.6 $\pm$ 20.5 & \textbf{37.0 $\pm$ 8.0} \\
     % \texttt{kitchen-partial} & 29.6 $\pm$ 19.6 & \textbf{43.5 $\pm$ 1.9}  \\
@@ -600,15 +602,16 @@ Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL ({s
     \vspace{-0.4cm}
     \end{table*}
 
+\fi
 
 
 % \begin{wrapfigure}{r}{0.57\textwidth}
 % \small \begin{center}
 % \vspace{-0.3in}
-% \includegraphics[width=0.99\linewidth]{figures/rank_trends_dr3_dqn.pdf}
-% % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
+% \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/rank_trends_dr3_dqn.pdf}
+% % \includegraphics[width=\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 % \vspace{-0.1in}
-% \caption{\small{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \methodname\ clearly alleviates rank collapse, without explicitly aiming to.}}}
+% \caption{\small{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \drmethodname\ clearly alleviates rank collapse, without explicitly aiming to.}}}
 % \label{fig:iup_is_fixed}
 % \end{center}
 % \vspace{-0.25in}
@@ -616,14 +619,15 @@ Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL ({s
 \begin{figure}[h]
     \centering
     \vspace{-0.1in}
-    \includegraphics[width=0.8\linewidth]{figures/rank_trends_dr3_dqn.pdf}
-    % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
+    \includegraphics[width=0.8\linewidth]{chapters/dr3/figures/rank\_trends\_dr3\_dqn.pdf}
+    % \includegraphics[width=\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
     \vspace{-0.1in}
-    \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \methodname\ alleviates rank collapse, without explicitly aiming to.}}}
+    \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \drmethodname\ alleviates rank collapse, without explicitly aiming to.}}}
     \label{fig:iup_is_fixed}
-    \vspace{-0.1in}
+    % \vspace{-0.1in}
 \end{figure}
-\textbf{{{DR3 does not suffer from rank collapse.}}} Prior work~\citep{kumar2021implicit} has shown that implicit regularization can lead to a rank collapse issue in TD-learning, preventing Q-networks from using full capacity. To see if \methodname\ addresses the rank collapse issue, we follow \citet{kumar2021implicit} and plot the effective rank of learned features with DR3 in Figure~\ref{fig:iup_is_fixed} {(DQN, REM in Appendix~\ref{app:rank_collapse_is_gone})}. 
+
+\textbf{{{DR3 does not suffer from rank collapse.}}} Prior work~\citep{kumar2021implicit} has shown that implicit regularization can lead to a rank collapse issue in TD-learning, preventing Q-networks from using full capacity. To see if \drmethodname\ addresses the rank collapse issue, we follow \citet{kumar2021implicit} and plot the effective rank of learned features with DR3 in Figure~\ref{fig:iup_is_fixed} {(DQN, REM in Appendix~\ref{app:rank_collapse_is_gone})}. 
 %%AK: removed definition in the interest of space
 % Effective rank of a matrix $\bM \in  \mathbb{R}^{n \times d}, n > d$ for a given threshold $\delta$ is given by: $\mathrm{srank}_\delta(\bM) = \min \{k: \frac{\sum_{i=1}^k \sigma_i(\bM)}{\sum_{i=1}^d \sigma_i(\bM)} \geq 1 - \delta \}$, where $\{\sigma_i(\bM)\}$ denotes the singular values of $\bM$ arranged in decreasing order. 
 While the value of the effective rank decreases during training with na\"ive bootstrapping, {we find that rank of DR3 features typically does not collapse}, despite no explicit term encouraging this. 
@@ -634,30 +638,31 @@ Finally, we test the robustness/sensitivity of each layer in the learned Q-netwo
 \begin{figure}[t]
 \small \begin{center}
 \vspace{-0.2cm}
-\includegraphics[width=0.6\linewidth]{figures_iclr/different_penalty.pdf}
+\includegraphics[width=0.6\linewidth]{chapters/dr3/figures_iclr/different_penalty.pdf}
 \vspace{-10pt}
 \caption{\label{fig:other_penalty_main} \footnotesize{Comparing  DR3 for our simplifying choice of $M$, and $M$ induced by label noise, {with base CQL and DQN algorithms}. Note that both of these penalties when applied over CQL improve performance.}}
 \end{center}
-\vspace{-0.2in}
+% \vspace{-0.2in}
 \end{figure}
+
 \textbf{Comparing explicit regularizers for different choices of noise covariance $M$.} Finally, we investigate the behavior of different implicit regularizers derived via two choices of $M$ in Equation~\ref{eqn:regularizer} and the corresponding explicit regularizers. While the explicit regularizer we use in practice is a simplifying choice that works well, another choice of $M$ is the covariance matrix induced by label noise, which requires explicit computation of $\Sigma_M^*$.
 %%SL.10.2: This is very important. But I also don't like the weasel words here. We are trying to say that \Sigma_M = I is just another "choice". But critical readers will see right through this. It's not another choice, it's a hack to make it easy to implement, and we should just admit this. It's OK to present an interpretation of it as just another choice for M too, but we should definitely not attempt to hide that it's a hack. Just admit it's a hack, and say we use it because it works well, otherwise reviewers will believe the paper is being deceptive.
 Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer for our simplifying choice is not worse than the different choice of $M$}. This justifies utilizing our simplified, heuristic choice of setting $\Sigma_M^* = I$ in practice. Results on five Atari games are shown in Appendix~\ref{app:theory_practice_gap}.       
-% Since \methodname\ is directly derived as a way to mitigate the undesirable effect of implicit regularization of the TD update, utilizing it directly address the rank collapse issue as compared to a penalty artificially created to tackle ths phenomenon.
-% \textbf{Data-Efficient online RL.} Finally, we evaluate the performance of \methodname\ on ``data-efficient'' online RL tasks from the Atari-100K benchmark~\citep{kaiser2019model,van2019use}, where the goal is learn a peformant policy as quickly as possible. On these tasks, we apply \methodname\ on data-efficient rainbow (DER)~\citep{van2018deep}, and compare the final performance at 100k environment steps.
+% Since \drmethodname\ is directly derived as a way to mitigate the undesirable effect of implicit regularization of the TD update, utilizing it directly address the rank collapse issue as compared to a penalty artificially created to tackle ths phenomenon.
+% \textbf{Data-Efficient online RL.} Finally, we evaluate the performance of \drmethodname\ on ``data-efficient'' online RL tasks from the Atari-100K benchmark~\citep{kaiser2019model,van2019use}, where the goal is learn a peformant policy as quickly as possible. On these tasks, we apply \drmethodname\ on data-efficient rainbow (DER)~\citep{van2018deep}, and compare the final performance at 100k environment steps.
 %%AK: we need to also measure equivalent of average?
 
 
 % \begin{table}[h]
 % \fontsize{8}{8}
 % \centering
-% \caption{Performance of \methodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}. Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training.}
+% \caption{Performance of \drmethodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}. Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training.}
 % \label{tab:brac}
 % \vspace{0.2cm}
 % \begin{tabular}{ccccc}
 % \toprule
 % \multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Final Performance} \\
-% & BRAC & BRAC + \methodname & BRAC & BRAC + \methodname \\
+% & BRAC & BRAC + \drmethodname & BRAC & BRAC + \drmethodname \\
 % \midrule
 % %('True', '0.1', '2')
 % halfcheetah-exp & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
@@ -695,20 +700,20 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % comparable on most tasks, and improvements on a few tasks. Antmaze and mujoco similar.
 % \begin{figure*}[t]
 %     \centering
-%     \includegraphics[width=\linewidth]{figures/Normalized Regret.pdf}
+%     \includegraphics[width=\linewidth]{chapters/dr3/figures/Normalized Regret.pdf}
 %     \vspace{-0.65cm}
 %     \caption{Normalized regret on harder benchmark offline policy evaluations tasks in the DOPE benchmark~\citep{fu2021benchmarks}. Lower regret is better. We report the mean over 5 seeds and SEM. We use the benchmark numbers for IS and DICE from~\citep{fu2021benchmarks}.}
 %     \label{fig:fqe}
 % \end{figure*}
 
 % \vspace{-8pt}
-% \section{Experimental Evaluation of \methodname}
+% \section{Experimental Evaluation of \drmethodname}
 % \label{sec:experiments}
 % \vspace{-8pt}
-% % The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of our practical approach, \methodname, in addressing regularization challenges.
-% %%SL.10.2: I wonder if some readers might question whether our experiments really verify that it *requires* explicit regularization. We could say rather it aims to understand whether feature co-adaptation is a major issue empirically or something. But it actually doesn't look like the experiments do that at all, and only focus on DR3? In that case, we could simply say: Our experiments aim to evaluate the extent to which \methodname improves performance in offline RL in practice, as well as to study its effect on rank collapse and how it compares to the more costly but more accurate regularizer suggested by our theoretical analysis, which requires estimating $\Sigma_M^\star$. (or something along these lines)
-% Our experiments aim to evaluate the extent to which \methodname\ improves performance in offline RL in practice, and to study its effect on prior observations of rank collapse and how it compares to the more costly regularizer suggested by our analysis, which requires estimating $\Sigma_M^\star$. To this end, we investigate if \methodname\ improves offline RL performance and stability on three offline RL benchmarks: Atari 2600 games with discrete actions~\citep{agarwal2019optimistic}, continuous control tasks from D4RL~\citep{fu2020d4rl}, and image-based robotic manipulation tasks~\citep{singh2020cog}.
-% % Additionally, we present experiments to understand the effects of \methodname\ on the features learned by the Q-network and verify if it does indeed make TD learning behave like supervised learning.
+% % The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of our practical approach, \drmethodname, in addressing regularization challenges.
+% %%SL.10.2: I wonder if some readers might question whether our experiments really verify that it *requires* explicit regularization. We could say rather it aims to understand whether feature co-adaptation is a major issue empirically or something. But it actually doesn't look like the experiments do that at all, and only focus on DR3? In that case, we could simply say: Our experiments aim to evaluate the extent to which \drmethodname improves performance in offline RL in practice, as well as to study its effect on rank collapse and how it compares to the more costly but more accurate regularizer suggested by our theoretical analysis, which requires estimating $\Sigma_M^\star$. (or something along these lines)
+% Our experiments aim to evaluate the extent to which \drmethodname\ improves performance in offline RL in practice, and to study its effect on prior observations of rank collapse and how it compares to the more costly regularizer suggested by our analysis, which requires estimating $\Sigma_M^\star$. To this end, we investigate if \drmethodname\ improves offline RL performance and stability on three offline RL benchmarks: Atari 2600 games with discrete actions~\citep{agarwal2019optimistic}, continuous control tasks from D4RL~\citep{fu2020d4rl}, and image-based robotic manipulation tasks~\citep{singh2020cog}.
+% % Additionally, we present experiments to understand the effects of \drmethodname\ on the features learned by the Q-network and verify if it does indeed make TD learning behave like supervised learning.
 % %%SL.9.29: can probably cut this last sentence
 
 
@@ -731,10 +736,10 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 
 % % \begin{figure*}[h]
 % %     \centering
-% %     \includegraphics[width=\linewidth]{figures/atari_new/Median_cql_penalty.pdf}
-% %     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_cql_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_cql_penalty.pdf}
+% %     \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Median_cql_penalty.pdf}
+% %     \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
+% %     % \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Mean_cql_penalty.pdf}
+% %     % \includegraphics[width=\linewidth]{chapters/dr3/figures/atari_new/Capped_Mean_cql_penalty.pdf}
 % %     \vspace{-0.65cm}
 % %     \caption{Behavior Normalized Scores across 17 Atari games. We use Interquartile mean~(IQM).}
 % %     \label{fig:atari_5_percent}
@@ -746,7 +751,7 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % %     \centering
 % %     \includegraphics[width=\linewidth]{atari/norm_3_games_cql_rem.pdf}
 % %     \vspace{-0.65cm}
-% %     \caption{In addition to minimizing unnormalized similarities~($\simunnorm(\bs, \ba, \bs')$), \methodname\ attains much lower normalized similarities as compared to CQL and REM. The results are shown for training with 5\% DQN replay dataset averaged over 5 seeds.}\label{fig:atari_3_cosine}
+% %     \caption{In addition to minimizing unnormalized similarities~($\simunnorm(\bs, \ba, \bs')$), \drmethodname\ attains much lower normalized similarities as compared to CQL and REM. The results are shown for training with 5\% DQN replay dataset averaged over 5 seeds.}\label{fig:atari_3_cosine}
 % %     \vspace{-0.5cm}
 % % \end{figure}
 
@@ -755,7 +760,7 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % %     \centering
 % %     \includegraphics[width=\linewidth]{atari/5_percent_res_100.pdf}
 % %     \vspace{-0.65cm}
-% %     \caption{Evaluation performance of offline REM and CQL with and without \methodname\ on the 5\% DQN replay dataset~\citep{agarwal2019optimistic}. Note that the data collected during evaluation is not provided to offline agents during training. The horizontal line shows the average performance of the trajectories in entire DQN replay dataset. \methodname\ substantially improves the performance of CQL and REM as well as prevents the decay in performance of REM with more gradient updates on \textsc{Seaquest} and \textsc{Asterix}. For \textsc{Pong}, training for longer~(12.5 million updates) results in improved score for REM + \methodname\ over REM.}
+% %     \caption{Evaluation performance of offline REM and CQL with and without \drmethodname\ on the 5\% DQN replay dataset~\citep{agarwal2019optimistic}. Note that the data collected during evaluation is not provided to offline agents during training. The horizontal line shows the average performance of the trajectories in entire DQN replay dataset. \drmethodname\ substantially improves the performance of CQL and REM as well as prevents the decay in performance of REM with more gradient updates on \textsc{Seaquest} and \textsc{Asterix}. For \textsc{Pong}, training for longer~(12.5 million updates) results in improved score for REM + \drmethodname\ over REM.}
 % %     \label{fig:atari_5_percent}
 % % \end{figure*}
 
@@ -769,7 +774,7 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % \toprule
 % % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
 % % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% % & (17 games) & CQL & CQL + \methodname & CQL & CQL + \methodname \\
+% % & (17 games) & CQL & CQL + \drmethodname & CQL & CQL + \drmethodname \\
 % % \midrule
 % % 1\% replay &  Median & 43.3 & \textbf{71.0} & 73.2 & \textbf{96.3} \\
 % % (uniformly sampled) & Mean & 50.7 & \textbf{60.9} & 74.4 & \textbf{84.6}  \\
@@ -903,14 +908,14 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 
 % % \begin{table*}[t]
 % %     \centering
-% %     \caption{Normalized returns on sub-sampled Atari DQN replay datasets~\citep{agarwal2019optimistic}. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}. When combined with REM, we used a coefficient of $\alpha = 0.001$ to show the robustness of \methodname\ across different datasets. \color{red}{Merge the two tables somehow to save space.}}
+% %     \caption{Normalized returns on sub-sampled Atari DQN replay datasets~\citep{agarwal2019optimistic}. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}. When combined with REM, we used a coefficient of $\alpha = 0.001$ to show the robustness of \drmethodname\ across different datasets. \color{red}{Merge the two tables somehow to save space.}}
 % %     \label{tab:rem_res}
 % %     \vspace{0.2cm}
 % % \begin{tabular}{cccccc}
 % % \toprule
 % % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
 % % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% % & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % % \midrule
 % % 1\% replay &  Median & 4.7 & \textbf{19.3} & 25.5 & \textbf{42.5} \\
 % % (uniformly sampled) & Mean & -1.8 & \textbf{47.2} &  72.4 & \textbf{100.2}  \\
@@ -991,13 +996,13 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 
 % % \begin{table*}[t]
 % %     \centering
-% %     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
+% %     \caption{\small{Performance of REM, REM + \drmethodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
 % %     \label{tab:rem_res}
 % %     \vspace{0.2cm}
 % % \begin{tabular}{cccccc}
 % % \toprule
 % % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% % & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % % \midrule
 % % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
 % %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
@@ -1079,13 +1084,13 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 
 % % \begin{table*}[t]
 % %     \centering
-% %     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
+% %     \caption{\small{Performance of REM, REM + \drmethodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
 % %     \label{tab:rem_res}
 % %     \vspace{0.2cm}
 % % \begin{tabular}{cccccc}
 % % \toprule
 % % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
+% % & (17 games) & REM & REM + \drmethodname & REM & REM + \drmethodname \\
 % % \midrule
 % % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
 % %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
@@ -1102,47 +1107,47 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % \begin{wrapfigure}{r}{0.57\textwidth}
 % %     \centering
 % %     \vspace{-5pt}
-% %     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-% %     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+% %     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_rem_penalty.pdf}
+% %     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
 % %     \vspace{-0.25in}
-% %     \caption{\small{\textbf{Average normalized performance across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different datasets. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance than CQL. As recommended by \citet{agarwal2021precipice}, we report interquartile Mean (IQM) with stratified bootstrap 95\% CIs as shaded regions.}}
+% %     \caption{\small{\textbf{Average normalized performance across 17 Atari games for REM + \drmethodname\ (top), CQL + \drmethodname\ (bottom)} over the course of training with different datasets. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \drmethodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \drmethodname\ attains higher performance than CQL. As recommended by \citet{agarwal2021precipice}, we report interquartile Mean (IQM) with stratified bootstrap 95\% CIs as shaded regions.}}
 % %     \label{fig:atari_all_combined}
 % %     \vspace{-0.45cm}
 % % \end{wrapfigure}
-% \textbf{{Offline RL on Atari 2600 games.}} We compare \methodname\ to prior offline RL methods on a set of offline Atari datasets of varying sizes and quality, akin to \citet{agarwal2019optimistic, kumar2021implicit}. We evaluated on three datasets: \textbf{(1)} 1\% and 5\% samples drawn uniformly at random from DQN replay; \textbf{(2)} a dataset with more suboptimal data consisting of the first 10\% samples observed by an online DQN. Following \citet{agarwal2021precipice}, we report the interquartile mean~(IQM) normalized scores across 17 games over the course of training in Figure~\ref{fig:atari_all_combined} and report the IQM average performance in Table~\ref{tab:cql_res}. Observe that combining \methodname\ with modern offline RL methods (CQL, REM) attains the best final and average performance across the 17 Atari games tested on, directly improving upon prior methods
-% across all the datasets. When \methodname\ is used in conjunction with REM, it prevents unlearning and performance degradation with more training. CQL + \methodname\ improves by \textbf{20\%} over CQL on final performance and attains \textbf{25\%} better average performance. We also compare \methodname\ to the $\mathrm{srank}(\Phi)$ penalty proposed to counter rank collapse~\citep{kumar2021implicit}. Directly taking median normalized score improvements reported by \citet{kumar2021implicit}, CQL + \methodname\ improves by over \textbf{2x} (31.5\%) over na\"ive CQL relative to the srank penalty~(14.1\%), indicating DR3's efficacy.
-% % this $\text{srank}$ penalty only attains a median improvement of 14.1\% over na\"ive CQL, whereas CQL + \methodname\ attains a median improvement of \textbf{31.5\%} over CQL. Thus, CQL + \methodname\ improves by over \textbf{2x} relative to the srank penalty, indicating DR3's efficacy.
-% % This indicates that by directly addressing the adverse impacts of implicit regularization, \methodname\ can substantially improve upon prior methods that only address its symptoms.  
+% \textbf{{Offline RL on Atari 2600 games.}} We compare \drmethodname\ to prior offline RL methods on a set of offline Atari datasets of varying sizes and quality, akin to \citet{agarwal2019optimistic, kumar2021implicit}. We evaluated on three datasets: \textbf{(1)} 1\% and 5\% samples drawn uniformly at random from DQN replay; \textbf{(2)} a dataset with more suboptimal data consisting of the first 10\% samples observed by an online DQN. Following \citet{agarwal2021precipice}, we report the interquartile mean~(IQM) normalized scores across 17 games over the course of training in Figure~\ref{fig:atari_all_combined} and report the IQM average performance in Table~\ref{tab:cql_res}. Observe that combining \drmethodname\ with modern offline RL methods (CQL, REM) attains the best final and average performance across the 17 Atari games tested on, directly improving upon prior methods
+% across all the datasets. When \drmethodname\ is used in conjunction with REM, it prevents unlearning and performance degradation with more training. CQL + \drmethodname\ improves by \textbf{20\%} over CQL on final performance and attains \textbf{25\%} better average performance. We also compare \drmethodname\ to the $\mathrm{srank}(\Phi)$ penalty proposed to counter rank collapse~\citep{kumar2021implicit}. Directly taking median normalized score improvements reported by \citet{kumar2021implicit}, CQL + \drmethodname\ improves by over \textbf{2x} (31.5\%) over na\"ive CQL relative to the srank penalty~(14.1\%), indicating DR3's efficacy.
+% % this $\text{srank}$ penalty only attains a median improvement of 14.1\% over na\"ive CQL, whereas CQL + \drmethodname\ attains a median improvement of \textbf{31.5\%} over CQL. Thus, CQL + \drmethodname\ improves by over \textbf{2x} relative to the srank penalty, indicating DR3's efficacy.
+% % This indicates that by directly addressing the adverse impacts of implicit regularization, \drmethodname\ can substantially improve upon prior methods that only address its symptoms.  
 
-% %Notably, REM performs similar to a random policy in terms of average performance on the 1\%  setting, which is significantly improved by \methodname.
+% %Notably, REM performs similar to a random policy in terms of average performance on the 1\%  setting, which is significantly improved by \drmethodname.
 % %%SL.2.1: I think we can cut this last sentence, and instead focus on the more positive takeaways.
 
-% % To evaluate whether the improvements from \methodname\ stem from penalizing unnormalized similarities $\simunnorm(\bs, \ba, \bs')$, we also compare \methodname\ to penalizing (1) $\simnorm(\bs, \ba, \bs')$, or (2) feature norms~($\|\phi(\bs)\|_2$) on the 5\% dataset on 5 games. The full results, shown in Appendix~\ref{}, confirms that both of these penalties perform substantially worse than \methodname, aligned with our theoretical analysis about effectiveness of \methodname~(Section~\ref{sec:method_analysis}).
+% % To evaluate whether the improvements from \drmethodname\ stem from penalizing unnormalized similarities $\simunnorm(\bs, \ba, \bs')$, we also compare \drmethodname\ to penalizing (1) $\simnorm(\bs, \ba, \bs')$, or (2) feature norms~($\|\phi(\bs)\|_2$) on the 5\% dataset on 5 games. The full results, shown in Appendix~\ref{}, confirms that both of these penalties perform substantially worse than \drmethodname, aligned with our theoretical analysis about effectiveness of \drmethodname~(Section~\ref{sec:method_analysis}).
 
 % %%SL.2.1: This last phrase is without context. What question is it trying to answer? What is the motivation? Start with a sentence of motivation or a question, then evidence, then answer. Something like: Is [whatever] true? To answer this question, we can [do something]. The full results, shown in [where], indicate [something]. This suggests that [something].
 % \begin{wrapfigure}{r}{0.42\textwidth}
 % \small \begin{center}
 % \vspace{-15pt}
-% \includegraphics[width=0.99\linewidth]{figures/close_open_grasp (1).png}
-% \includegraphics[width=0.99\linewidth]{figures/pickplace_open_grasp.png}
+% \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/close_open_grasp (1).png}
+% \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 % \vspace{-20pt}
 % \end{center}
 % \end{wrapfigure}
-% \textbf{{Offline RL on robotic manipulation from}} \textbf{{images.}} Next, we aim to evaluate the efficacy of \methodname\ on two image-based robotic manipulation tasks~\citep{singh2020cog}~(visualized on the right) that require composition of skills (e.g., opening a drawer, closing a drawer, picking an obstructive object, placing an object, etc.) over extended horizons using only a sparse 0-1 reward. 
-% As shown in Figure~\ref{fig:cog_figure}, combining \methodname\ with COG not only improves over COG, but also learns faster and attains a better average performance.
+% \textbf{{Offline RL on robotic manipulation from}} \textbf{{images.}} Next, we aim to evaluate the efficacy of \drmethodname\ on two image-based robotic manipulation tasks~\citep{singh2020cog}~(visualized on the right) that require composition of skills (e.g., opening a drawer, closing a drawer, picking an obstructive object, placing an object, etc.) over extended horizons using only a sparse 0-1 reward. 
+% As shown in Figure~\ref{fig:cog_figure}, combining \drmethodname\ with COG not only improves over COG, but also learns faster and attains a better average performance.
 
 % \begin{table}[t]
 %     \centering
 % \fontsize{8}{8}\selectfont
 %     \centering
 %     \vspace{-0.1cm}
-%     \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \methodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
+%     \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \drmethodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
 %     \label{tab:cql_res}
 %     \vspace{-0.1cm}
 % \begin{tabular}{lcccc}
 % \toprule
 % % \multirow{2}{*}{\textbf{Data}}  & \multicolumn{4}{c}{\textbf{Stability performance}} \\
-% Data & CQL & CQL + \methodname & REM & REM + \methodname \\
+% Data & CQL & CQL + \drmethodname & REM & REM + \drmethodname \\
 % \midrule
 % 1\%   & 43.7~\ss{(39.6, 48.6)} & \textbf{56.9}~\ss{(52.5, 61.2)} & 4.0~\ss{(3.3, 4.8)} & \textbf{16.5}~\ss{(14.5, 18.6)}  \\
 % \midrule
@@ -1158,24 +1163,24 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % \vspace{-pt}
 % \centering
 % \begin{minipage}{.4\textwidth}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
+% % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
 % % \vspace{-10pt}
-% \includegraphics[width=0.96\linewidth]{figures/cog_plots.pdf}
+% \includegraphics[width=0.96\linewidth]{chapters/dr3/figures/cog_plots.pdf}
 % \vspace{-0.1in}
-% \caption{\footnotesize{\textbf{Performance of \methodname\ + COG} on two manipulation tasks using only 5\% and 25\% of the data used by \citet{singh2020cog} to make these more challenging.
-% COG + \methodname\  outperforms COG in training and attains higher average and final performance.}}
+% \caption{\footnotesize{\textbf{Performance of \drmethodname\ + COG} on two manipulation tasks using only 5\% and 25\% of the data used by \citet{singh2020cog} to make these more challenging.
+% COG + \drmethodname\  outperforms COG in training and attains higher average and final performance.}}
 % \label{fig:cog_figure}
 % \end{minipage}~~\vline~~
 % \begin{minipage}{.56\textwidth}
 %     \centering
 %     % \vspace{-0.1in}
-%     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-%     \includegraphics[width=0.99\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_rem_penalty.pdf}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/atari_new/IQM_cql_penalty.pdf}
 %     \vspace{-0.25in}
-%     \caption{\footnotesize{\textbf{Normalized performance across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)}. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance than CQL. We report IQM with  95\% stratified bootstrap CIs~\citep{agarwal2021precipice}}.}
+%     \caption{\footnotesize{\textbf{Normalized performance across 17 Atari games for REM + \drmethodname\ (top), CQL + \drmethodname\ (bottom)}. x-axis represents \emph{gradient steps}; no new data is collected. While na\"ive REM suffers from a degradation in performance with more training, REM + \drmethodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \drmethodname\ attains higher performance than CQL. We report IQM with  95\% stratified bootstrap CIs~\citep{agarwal2021precipice}}.}
 %     \label{fig:atari_all_combined}
 % \end{minipage}
 % \vspace{-0.5cm}
@@ -1187,14 +1192,14 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % % \vspace{-pt}
 % % \small \begin{center}
 % % % \vspace{-10pt}
-% % % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
-% % % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
-% % % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
-% % % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
-% % \includegraphics[width=0.5\linewidth]{figures/cog_plots.pdf}
+% % % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
+% % % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
+% % % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
+% % % \includegraphics[width=0.49\linewidth]{chapters/dr3/figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
+% % \includegraphics[width=0.5\linewidth]{chapters/dr3/figures/cog_plots.pdf}
 % % \end{center}
 % % \vspace{-15pt}
-% % \caption{\small{\textbf{Performance of \methodname\ + COG} on four robotic manipulation settings with different amounts of data. As is visible, COG + \methodname\ always outperforms COG and attains higher average and final performance.}}
+% % \caption{\small{\textbf{Performance of \drmethodname\ + COG} on four robotic manipulation settings with different amounts of data. As is visible, COG + \drmethodname\ always outperforms COG and attains higher average and final performance.}}
 % % \vspace{-5pt}
 % % \label{fig:cog_figure}
 % % \end{figure}
@@ -1205,10 +1210,10 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 %     \begin{minipage}{.5\textwidth}
 %     \centering
 %     \vspace{-0.01in}
-%     \includegraphics[width=0.99\linewidth]{figures/rank_trends_dr3_dqn.pdf}
-%     % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
+%     \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/rank_trends_dr3_dqn.pdf}
+%     % \includegraphics[width=\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 %     \vspace{-0.2in}
-%     \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \methodname\ alleviates rank collapse observed by \citet{kumar2021implicit}, without explicitly aiming to. Effective rank measures the number of directions with significant singular values~(Appendix~\ref{app:rank_collapse_is_gone}).}}}
+%     \caption{\footnotesize{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \drmethodname\ alleviates rank collapse observed by \citet{kumar2021implicit}, without explicitly aiming to. Effective rank measures the number of directions with significant singular values~(Appendix~\ref{app:rank_collapse_is_gone}).}}}
 %     \label{fig:iup_is_fixed}
 %     \vspace{-0.25in}
 %     \end{minipage}~~\vline~~
@@ -1218,13 +1223,13 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 %     \vspace{-0.05in}
 %     \fontsize{8}{8}\selectfont
 %     \centering
-%     \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \methodname\ after 2M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 4 seeds. This is training for \textbf{6x} longer compared to CQL defaults. Observe that CQL + \methodname\ outperforms CQL at 2M steps, indicating is efficacy in inducing stability. %``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.
+%     \captionof{table}{\footnotesize{\textbf{Performance of CQL, CQL + \drmethodname\ after 2M gradient steps with a learning rate of 3e-4} for the Q-function averaged over 4 seeds. This is training for \textbf{6x} longer compared to CQL defaults. Observe that CQL + \drmethodname\ outperforms CQL at 2M steps, indicating is efficacy in inducing stability. %``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.
 %     }}
 %     \label{tab:cql_d4rl}
 %     \vspace{-0.1in}
 %     \begin{tabular}{@{}lrr@{}}
 %     \toprule
-%     {\textbf{D4RL (-v0) Task}} & CQL & CQL + \methodname \\
+%     {\textbf{D4RL (-v0) Task}} & CQL & CQL + \drmethodname \\
 %     \midrule
 %     \texttt{kitchen-mixed} & 14.6 $\pm$ 20.5 & \textbf{37.0 $\pm$ 8.0} \\
 %     \texttt{kitchen-partial} & 29.6 $\pm$ 19.6 & \textbf{43.5 $\pm$ 1.9}  \\
@@ -1244,13 +1249,13 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % % \vspace{-0.8cm}
 % % \fontsize{8}{8}
 % % \centering
-% % \caption{\small{Performance of CQL, CQL + \methodname\ after 2M (twice as long as prior work) gradient steps with a learning rate of 3e-4 for the Q-function averaged over 4 seeds. We also find that CQL + \methodname\ outperforms CQL at 2M steps, and is comparable to CQL when evaluated at 1M steps, which was the protocol followed originally. ``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.}}
+% % \caption{\small{Performance of CQL, CQL + \drmethodname\ after 2M (twice as long as prior work) gradient steps with a learning rate of 3e-4 for the Q-function averaged over 4 seeds. We also find that CQL + \drmethodname\ outperforms CQL at 2M steps, and is comparable to CQL when evaluated at 1M steps, which was the protocol followed originally. ``\texttt{med}'' stands for medium and ``\texttt{lar}'' stands for large.}}
 % % \label{tab:cql_d4rl}
 % % \small{
 % % % \vspace{0.2cm}
 % % \begin{tabular}{l||r|r}
 % % \toprule
-% % {\textbf{D4RL (-v0) Task}} & CQL & \textbf{CQL + \methodname} \\
+% % {\textbf{D4RL (-v0) Task}} & CQL & \textbf{CQL + \drmethodname} \\
 % % \midrule
 % % \texttt{kitchen-mixed} & 14.58 $\pm$ 20.49 & \textbf{37.04 $\pm$ 8.04} \\
 % % \texttt{kitchen-partial} & 29.63 $\pm$ 19.58 & \textbf{43.54 $\pm$ 1.90}  \\
@@ -1265,28 +1270,28 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % \vspace{-0.5cm}
 % % \end{table}
 
-% \textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the harder D4RL~\citep{fu2020d4rl} domains (antmaze, kitchen domains). To assess if \methodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\methodname\ for \textbf{6x} longer: 2M steps with 3x higher learning rate. %This is different from prior works~\citep{kumar2020conservative} that report performance at the end of 1M steps.
-% Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL, in some cases substantially, indicating the ability to prevent unlearning that happens for more gradient steps with \methodname.
+% \textbf{{Offline RL on D4RL tasks.}} Finally, we evaluate DR3 in conjunction with CQL on the harder D4RL~\citep{fu2020d4rl} domains (antmaze, kitchen domains). To assess if \drmethodname\ is stable and able to prevent unlearning that eventually appears in CQL, we trained CQL+\drmethodname\ for \textbf{6x} longer: 2M steps with 3x higher learning rate. %This is different from prior works~\citep{kumar2020conservative} that report performance at the end of 1M steps.
+% Observe in Table~\ref{tab:cql_d4rl}, that CQL + \drmethodname\ outperforms CQL, in some cases substantially, indicating the ability to prevent unlearning that happens for more gradient steps with \drmethodname.
 % %%SL.10.2: I don't see how "indicating the ability to train for more gradient steps" follows from these results -- where is the evidence for this? did you change the number of steps? Also, this section appears to violate what you said before about reporting stability: you said that stability = average over iterations, but here you are not reporting it. If this is how it is, then maybe revise the beginning of the experiments section, which makes a really big deal out of this stability metric. I *think* what you mean is that training for 2M steps evaluates stability better than 1M steps, but critical readers will just say you cherry-picked the number of steps that makes your method look good.
-% Further, we also compare the effect of adding \methodname\ to a policy constraint method,  BRAC~\citep{wu2019behavior}.
+% Further, we also compare the effect of adding \drmethodname\ to a policy constraint method,  BRAC~\citep{wu2019behavior}.
 % %%SL.10.2: such as BRAC, or just BRAC?
-% \methodname\ applied on BRAC improves final median normalized score performance by \textbf{13.8}  and stability by \textbf{8.1} across 15 MuJoCo tasks. Numbers for BRAC can be found in Table~\ref{tab:brac}.
+% \drmethodname\ applied on BRAC improves final median normalized score performance by \textbf{13.8}  and stability by \textbf{8.1} across 15 MuJoCo tasks. Numbers for BRAC can be found in Table~\ref{tab:brac}.
 % %%AK: unfortunately this table is in the Appendix.
 
-% \textbf{To summarize}, these results indicate that \methodname\ is a versatile explicit regularizer that improves performance and stability of a wide range of offline RL methods, including conservative methods (e.g, CQL, COG), policy constraint methods (e.g., BRAC) and ensemble-based methods (e.g., REM). 
+% \textbf{To summarize}, these results indicate that \drmethodname\ is a versatile explicit regularizer that improves performance and stability of a wide range of offline RL methods, including conservative methods (e.g, CQL, COG), policy constraint methods (e.g., BRAC) and ensemble-based methods (e.g., REM). 
 
 % % \begin{wrapfigure}{r}{0.57\textwidth}
 % % \small \begin{center}
 % % \vspace{-0.3in}
-% % \includegraphics[width=0.99\linewidth]{figures/rank_trends_dr3_dqn.pdf}
-% % % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
+% % \includegraphics[width=0.99\linewidth]{chapters/dr3/figures/rank_trends_dr3_dqn.pdf}
+% % % \includegraphics[width=\linewidth]{chapters/dr3/figures/pickplace_open_grasp.png}
 % % \vspace{-0.1in}
-% % \caption{\small{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \methodname\ clearly alleviates rank collapse, without explicitly aiming to.}}}
+% % \caption{\small{{\textbf{Trend of effective rank,} $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% dataset. Note that \drmethodname\ clearly alleviates rank collapse, without explicitly aiming to.}}}
 % % \label{fig:iup_is_fixed}
 % % \end{center}
 % % \vspace{-0.25in}
 % % \end{wrapfigure}
-% \textbf{{DR3 allows utilizing full capacity as measured via feature ranks.}} Prior work~\citep{kumar2021implicit} has shown that implicit regularization can lead to a rank collapse issue in TD-learning, preventing Q-networks from using full capacity. To see if \methodname\ addresses the rank collapse issue, we follow \citet{kumar2021implicit}
+% \textbf{{DR3 allows utilizing full capacity as measured via feature ranks.}} Prior work~\citep{kumar2021implicit} has shown that implicit regularization can lead to a rank collapse issue in TD-learning, preventing Q-networks from using full capacity. To see if \drmethodname\ addresses the rank collapse issue, we follow \citet{kumar2021implicit}
 % %%SL.10.2: why should we expect it to alleviate rank collapse? was this discussed anywhere in the paper before? if so, perhaps we could backward reference it, but otherwise this is a bit mysterious
 % and plot the effective rank of learned features with DR3 in Figure~\ref{fig:iup_is_fixed}. 
 % %%AK: removed definition in the interest of space
@@ -1308,21 +1313,21 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % \textbf{Comparing explicit regularizers for different choices of noise covariance $M$.} Finally, we investigate the behavior of different implicit regularizers derived via two choices of $M$ in Equation~\ref{eqn:regularizer} and the corresponding explicit regularizers. While the explicit regularizer we use in practice is a simplifying choice that works well, another choice of $M$ is the covariance matrix induced by label noise, which requires explicit computation of $\Sigma_M^*$.
 % %%SL.10.2: This is very important. But I also don't like the weasel words here. We are trying to say that \Sigma_M = I is just another "choice". But critical readers will see right through this. It's not another choice, it's a hack to make it easy to implement, and we should just admit this. It's OK to present an interpretation of it as just another choice for M too, but we should definitely not attempt to hide that it's a hack. Just admit it's a hack, and say we use it because it works well, otherwise reviewers will believe the paper is being deceptive.
 % Observe in Figure~\ref{fig:other_penalty_main} that the explicit regularizers derived for both the choices of $M$ are equally effective. This justifies utilizing our simplified, heuristic choice of setting $\Sigma_M^* = I$ in practice. Results on five Atari games are shown in Appendix~\ref{app:theory_practice_gap}.       
-% % Since \methodname\ is directly derived as a way to mitigate the undesirable effect of implicit regularization of the TD update, utilizing it directly address the rank collapse issue as compared to a penalty artificially created to tackle ths phenomenon.
-% % \textbf{Data-Efficient online RL.} Finally, we evaluate the performance of \methodname\ on ``data-efficient'' online RL tasks from the Atari-100K benchmark~\citep{kaiser2019model,van2019use}, where the goal is learn a peformant policy as quickly as possible. On these tasks, we apply \methodname\ on data-efficient rainbow (DER)~\citep{van2018deep}, and compare the final performance at 100k environment steps.
+% % Since \drmethodname\ is directly derived as a way to mitigate the undesirable effect of implicit regularization of the TD update, utilizing it directly address the rank collapse issue as compared to a penalty artificially created to tackle ths phenomenon.
+% % \textbf{Data-Efficient online RL.} Finally, we evaluate the performance of \drmethodname\ on ``data-efficient'' online RL tasks from the Atari-100K benchmark~\citep{kaiser2019model,van2019use}, where the goal is learn a peformant policy as quickly as possible. On these tasks, we apply \drmethodname\ on data-efficient rainbow (DER)~\citep{van2018deep}, and compare the final performance at 100k environment steps.
 % %%AK: we need to also measure equivalent of average?
 
 
 % % \begin{table}[h]
 % % \fontsize{8}{8}
 % % \centering
-% % \caption{Performance of \methodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}. Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training.}
+% % \caption{Performance of \drmethodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}. Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training.}
 % % \label{tab:brac}
 % % \vspace{0.2cm}
 % % \begin{tabular}{ccccc}
 % % \toprule
 % % \multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Final Performance} \\
-% % & BRAC & BRAC + \methodname & BRAC & BRAC + \methodname \\
+% % & BRAC & BRAC + \drmethodname & BRAC & BRAC + \drmethodname \\
 % % \midrule
 % % %('True', '0.1', '2')
 % % halfcheetah-exp & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
@@ -1360,7 +1365,7 @@ Observe in Figure~\ref{fig:other_penalty_main} that the {explicit regularizer fo
 % % comparable on most tasks, and improvements on a few tasks. Antmaze and mujoco similar.
 % % \begin{figure*}[t]
 % %     \centering
-% %     \includegraphics[width=\linewidth]{figures/Normalized Regret.pdf}
+% %     \includegraphics[width=\linewidth]{chapters/dr3/figures/Normalized Regret.pdf}
 % %     \vspace{-0.65cm}
 % %     \caption{Normalized regret on harder benchmark offline policy evaluations tasks in the DOPE benchmark~\citep{fu2021benchmarks}. Lower regret is better. We report the mean over 5 seeds and SEM. We use the benchmark numbers for IS and DICE from~\citep{fu2021benchmarks}.}
 % %     \label{fig:fqe}

@@ -1,5 +1,5 @@
 \vspace{-0.25cm}
-\section{Proof of Theorem~\ref{thm:implicit_noise_reg}}
+\section{Proofs for DR3}
 \vspace{-0.25cm}
 \label{app:proofs}
 
@@ -8,23 +8,23 @@ In this section, we will derive our implicit regularizer $R_\mathrm{TD}(\theta)$
 \subsection{Notation}
 The noisy TD-learning update for training the Q-function is given by:
 \begin{align}
-    \!\!\!\theta_{k+1} = \theta_k - \eta \underbrace{\left( \sum_i \nabla_\theta Q(\bs_i, \ba_i) \left(Q_\theta(\bs_i, \ba_i)\!- \!(r_i\!+\!\gamma {Q}_{\theta}(\bs'_i, \ba'_i))\right) \right)}_{:= g(\theta)}\!+\!\eta \varepsilon_k,  ~~~~ \varepsilon_k \sim \mathcal{N}(0, M)
+    \!\!\!\theta_{k+1} = \theta_k - \eta \underbrace{\left( \sum_i \nabla_\theta Q(\bs_i, \mathbf{a}_i) \left(Q_\theta(\bs_i, \mathbf{a}_i)\!- \!(r_i\!+\!\gamma {Q}_{\theta}(\bs'_i, \mathbf{a}'_i))\right) \right)}_{:= g(\theta)}\!+\!\eta \varepsilon_k,  ~~~~ \varepsilon_k \sim \mathcal{N}(0, M)
 % \label{eq:td_update_appendix}
 \end{align}
 % \vspace{-0.5cm}
 where $g(\theta)$ denotes the parameter update. Note that $g(\theta)$ is not a full gradient of a scalar objective, but it is a form of a ``pseudo''-gradient or ``semi''-gradient. Let $\varepsilon_k$ denote an  i.i.d.random noise that is added to each update. This noise is sampled from a zero-mean Gaussian random variable with covariance matrix $M$, i.e., $\mathcal{N}(0, M)$. 
 
-Let $\theta^*$ denote a point in the parameter space such that in the vicinity of $\theta^*$, $g(\theta) \leq \mathscr{C}$, for a small enough $\mathscr{C}$. Let $G(\theta)$ denote the derivative of $g(\theta)$ w.r.t. $\theta$: $G(\theta) = \nabla_\theta g(\theta)$ and let $\nabla G(\theta)$ denote the third-order tensor $\nabla^2_\theta g(\theta)$. For notation clarity, let $G = G(\theta^*), \nabla G = \nabla G (\theta^*)$. Let $e_i$ denote the signed TD error for a given transition $(\bs_i, \ba_i, \bs'_i) \in \mathcal{D}$ at $\theta^*$: 
+Let $\theta^*$ denote a point in the parameter space such that in the vicinity of $\theta^*$, $g(\theta) \leq \mathscr{C}$, for a small enough $\mathscr{C}$. Let $G(\theta)$ denote the derivative of $g(\theta)$ w.r.t. $\theta$: $G(\theta) = \nabla_\theta g(\theta)$ and let $\nabla G(\theta)$ denote the third-order tensor $\nabla^2_\theta g(\theta)$. For notation clarity, let $G = G(\theta^*), \nabla G = \nabla G (\theta^*)$. Let $e_i$ denote the signed TD error for a given transition $(\bs_i, \mathbf{a}_i, \bs'_i) \in \mathcal{D}$ at $\theta^*$: 
 \begin{align}
-e_i = Q_{\theta^*}(\bs_i, \ba_i) - (r_i + \gamma Q_{\theta^*}(\bs'_i, \ba'_i)).
+e_i = Q_{\theta^*}(\bs_i, \mathbf{a}_i) - (r_i + \gamma Q_{\theta^*}(\bs'_i, \mathbf{a}'_i)).
 \end{align}
 Since $\theta^*$ is a fixed point of the training TD error, $e_i = 0$. Following \citet{blanc2020implicit}, we will assume that the learning rate in gradient descent, $\eta$, is small and we will ignore terms that scale as $\mathcal{O}(\eta^{1 + \delta})$, for $\delta > 0$. Our proof will rely on using a reference Ornstein-Uhlenbeck (OU) process which the TD parameter iterates will be compared to. Let $\zeta_k$ denote the $k$-th iterate of an OU process, which is defined as:
-\vspace{-0.1in}
+% \vspace{-0.1in}
 \begin{equation}
     \label{eqn:ou_process}
     \zeta_{k+1} = (I - \eta G) \zeta_k + \eta \varepsilon_k, ~~~ \varepsilon_k \sim \mathcal{N}(0, M)
 \end{equation}
-We will drop $\theta$ from $\nabla_\theta$ to indicate that the gradient is being computed at $\theta^*$, and drop $(\bs_i, \ba_i)$ from $Q(\bs_i, \ba_i)$ and instead represent it as $Q_i$ for brevity; we will represent $Q(\bs'_i, \ba'_i)$ as $Q'_i$. We assume that $\nabla^2 Q_i$ is $\mathscr{L}_2$-Lipschitz and $\nabla^3 Q_i$ is $\mathscr{L}_3$-Lipschitz throughout the parameter space $\Theta$.
+We will drop $\theta$ from $\nabla_\theta$ to indicate that the gradient is being computed at $\theta^*$, and drop $(\bs_i, \mathbf{a}_i)$ from $Q(\bs_i, \mathbf{a}_i)$ and instead represent it as $Q_i$ for brevity; we will represent $Q(\bs'_i, \mathbf{a}'_i)$ as $Q'_i$. We assume that $\nabla^2 Q_i$ is $\mathscr{L}_2$-Lipschitz and $\nabla^3 Q_i$ is $\mathscr{L}_3$-Lipschitz throughout the parameter space $\Theta$.
 
 \subsection{Proof Strategy} 
 For a given point $\theta^*$ to be an attractive fixed point of TD-learning, our proof strategy would be to derive the condition under which it mimics a given OU noise process, which as we will show stays close to the parameter $\theta^*$. This condition would then be interpreted as the gradient of a ``induced'' implicit regularizer. If the point $\theta^*$ is not a stationary point of this regularizer, we will show that the movement $\theta$ is large when running the noisy TD updates, indicating that the regularizer, at least in part guides the dynamics of TD-learning. To show this, we would write out the gradient update, isolate some terms that will give rise to the implicit regularizer, and bound the remaining terms using contraction and concentration arguments. The contraction arguments largely follow prior work (though with key exceptions in handling contraction with asymmetric and complex eigenvalue matrices), while the form of the implicit regularizer is different. Finally, we will interpret the resulting update over large timescales to show that learning is indeed guided by the implicit regularizer.   

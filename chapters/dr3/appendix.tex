@@ -1,897 +1,32 @@
-\part*{Appendices}
-\counterwithin{figure}{section}
-\counterwithin{table}{section}
-\counterwithin{equation}{section}
+% \counterwithin{figure}{section}
+% \counterwithin{table}{section}
+% \counterwithin{equation}{section}
 
-\input{visualizations}
+\input{chapters/dr3/visualizations}
 
 %we aim to answer these questions by showing that implicit regularization induced during TD-learning is the primary cause of this co-adaptation phenomenon, and it can lead to several undesirable consequences. 
 %%AK: I still kept SARSA for now, but we can remove it if needed. I removed statements saying SARSA fixes all issues, and I called it a proxy method to indicate that it is not good
 
-\input{extended_related_work}
+\input{chapters/dr3/extended_related_work}
 
-\input{cleaned_up_proof}
+\input{chapters/dr3/cleaned_up_proof}
 
-% \section{Proof of Theorem~\ref{thm:implicit_noise_reg}}
-% \label{app:proofs}
-
-% In this section, we will derive our implicit regularizer $R_\mathrm{TD}(\theta)$ that emerges when performing TD updates with a stochastic noise model given by covariance matrix $M$. We first introduce our notation that we will use throughout the proof, then present our assumptions and finally derive the regularizer. Our proof utilizes the analysis techniques from \citet{blanc2020implicit} and \citet{damian2021label}, which analyze label-noise SGD for supervised learning, however that key modifications need to be done to their arguments to account for non-symmetric matrices that emerge in TD learning and the form of the resulting regularizer is very different. 
-
-% \textbf{Notation.} The noisy TD-learning update for training the Q-function is given by:
-% \begin{align}
-%     \!\!\!\theta_{k+1} = \theta_k - \eta \underbrace{\left( \sum_i \nabla_\theta Q(\bs_i, \ba_i) \left(Q_\theta(\bs_i, \ba_i)\!- \!(r_i\!+\!\gamma {Q}_{\theta}(\bs'_i, \ba'_i))\right) \right)}_{:= g(\theta)}\!+\!\eta \varepsilon_k,  ~~~~ \varepsilon_k \sim \mathcal{N}(0, M)
-% \label{eq:td_update_appendix}
-% \vspace{-0.5cm}
-% \end{align}
-% where $g(\theta)$ denotes the parameter update (note that $g(\theta)$ is not a full gradient of a scalar objective, but it is a form of a ``pseudo''-gradient) and $\varepsilon_k$ denotes a random noise that is added to each update. The choice of the covariance matrix $M$ identifies our model of the stochastic TD update. Let $\theta^*$ denote a point in the parameter space such that $g(\theta^*) \leq \mathscr{C}$. Let $G(\theta)$ denote the derivative of $g(\theta)$ w.r.t. $\theta$: $G(\theta) = \nabla_\theta g(\theta)$ and let $\nabla G(\theta)$ denote the third-order tensor $\nabla^2_\theta g(\theta)$. For notation clarity, let $G = G(\theta^*), \nabla G = \nabla G (\theta^*)$. Let $e_i$ denote the signed Bellman residual error computed using $(\bs_i, \ba_i, \bs'_i)$, i.e., $e_i = Q_{\theta^*}(\bs_i, \ba_i) - (r_i + \gamma Q_{\theta^*}(\bs'_i, \ba'_i))$. Following \citet{blanc2020implicit}, we will assume that the learning rate in gradient descent, $\eta$, is small and we will ignore terms that scale as $\mathcal{O}(\eta^{1 + \delta})$, for $\delta > 0$. Our proof will rely on using a reference Ornstein-Uhlenbeck (OU) process which the TD parameter iterates will be compared to. Let $\zeta_k$ denote the $k$-th iterate of an OU process, which is defined as:
-% \vspace{-0.1in}
-% \begin{equation}
-%     \label{eqn:ou_process}
-%     \zeta_{k+1} = (I - \eta G) \zeta_k + \eta \varepsilon_k, ~~~ \varepsilon_k \sim \mathcal{N}(0, M)
-% \end{equation}
-% We will drop $\theta$ from $\nabla_\theta$ to indicate that the gradient is being computed at $\theta^*$, and drop $(\bs_i, \ba_i)$ from $Q(\bs_i, \ba_i)$ and instead represent it as $Q_i$; we will represent $Q(\bs'_i, \ba'_i)$ as $Q'_i$. We assume that $\nabla^2 Q_i$ is $\mathscr{L}_2$-Lipschitz and $\nabla^3 Q_i$ is $\mathscr{L}_3$-Lipschitz.
-
-% \textbf{Proof strategy.} Our proof strategy would be to understand the dynamics of noisy TD-learning over periods of timescale $1/\eta$. Over such a timescale, we show that while a standard noise process that is stable around a given TD solution $\theta^*$ will stay within a radius of $\mathcal{O}(\sqrt{\eta})$, where $\eta$ denotes the learning rate used in the noisy TD update, the implicit regularizer will cause significant deviation in the parameter vector. To show this, we would write out the gradient update, isolate some terms that will give rise to the implicit regularizer, and bound the remaining terms using contraction and concentration arguments. The contraction arguments largely follow prior work (though with key exceptions in handling contraction with asymetric and complex eigenvalue matrices), while the form of the implicit regularizer is different.   
-
-% Next, we present some key assumptions we will need for the proof. Our first assumption is that the matrix $G \in \mathbb{R}^{d \times d}$ is of maximal rank possible, which is equal to the number of datapoints $n$ and $n \ll d$, the dimensionality of the parameter space. Crucially, this assumption do not imply that $G$ is of full rank -- it cannot be, because we are in the overparameterized regime. 
-% \begin{assumption}[$G$ spans an $n$-dimensional basis.]
-% \label{assumption:psd}
-% Assume that the matrix $G$ spans $n$-possible directions in the parameter space and hence, attains the maximal possible rank it can.
-% \end{assumption}
-
-% The second assumption we need is that the noise matrix $M$ shares the same $n$-dimensional basis as matrix $G$:
-% \begin{assumption}
-% \label{assumption:shared_basis}
-% $M$ and $G$ span identical $n$-dimensional subspace in $d$-dimensional space.
-% \end{assumption}
-% This assumption is equivalent to assuming that the added noise with covariance $M$ during TD learning does not span a direction that $(I - \eta G)$ (Equation~\ref{eqn:nu_k}) cannot contract. In fact, if the matrix $M$ does span a direction that is not spanned by $G$, then noisy TD updates will depart from the vicinity of a given fixed point. We will strengthen this condition in Lemma~\ref{lemma:contraction}. 
-
-% Next, we present some lemmas that would be useful for proving the theoretical result.  
-
-% \begin{lemma}[Expressions for the second and third-order derivatives.]
-% \label{lemma:useful}
-% The following definitions and expansions apply to our proof:
-% \begin{align*}
-%     G(\theta^*) &= \sum_{i} \nabla^2 Q_i e_i + \sum_i \nabla Q_i (\nabla Q_i - \gamma \nabla Q'_i)^\top\\
-%     \nabla G (\theta^*) [\bv, \bv] &= 2 \sum_i \nabla^2 Q_i \bv \bv^\top (\nabla Q_i - \gamma \nabla Q'_i) + \sum_i \mathrm{tr}\left((\nabla^2 Q_i - \gamma \nabla^2 Q'_i) \bv \bv^\top\right) \nabla Q_i + \nabla^3 Q_i e_i  
-% \end{align*}
-% \end{lemma}
-% Lemma~\ref{lemma:useful} presents a decomposition of the matrix $G$ and the directional derivative of the third order tensor $\nabla G [\bv, \bv]$ in directions $\bv$ and $\bv$, which will appear in the Taylor expansion layer. Lemma~\ref{lemma:covariance_noise} derives a fixed-point recursion for the covariance of the total noise accumulated in the OU-process.  
-
-% \begin{lemma}[Covariance of the random noise process $\zeta_k$]
-% \label{lemma:covariance_noise}
-% Let $\zeta_{k}$ denote the OU process satisfying: $\zeta_{k+1} = (I - \eta G) \zeta_k + \eta \varepsilon_k$, where $\varepsilon_k \sim \mathcal{N}(0, M)$, where $M \succcurlyeq 0$. Then, $\zeta_{k+1} \sim \mathcal{N}(0, \Sigma)$, where $\Sigma$ satisfies the discrete Lyapunov equation: 
-% \begin{equation*}
-%     \Sigma^*_M = (I - \eta G) \Sigma^*_M (I - \eta G)^\top + \eta M.
-% \end{equation*}
-% \end{lemma}
-% \begin{proof}
-% For the OU process, $\zeta_{k+1} = (I - \eta G) \zeta_k + \sqrt{\eta} \varepsilon_k$, since $\varepsilon_k$ is a Gaussian random variable, by induction so is $\zeta_{k+1}$, and therefore the covariance matrix of $\zeta_{k+1}$ is given by:
-% \vspace{-0.1in}
-% \begin{equation}
-%     \Sigma_{k+1} := (I - \eta G) \Sigma_k (I - \eta G)^k + \eta M.
-% \end{equation}
-% \vspace{-0.1in}
-% Solving for the fixed point for $\Sigma_k$ gives the desired expression.
-% \end{proof}
-
-% Lemma~\ref{lemma:bounded_noise} shows that the OU noise iterates are bounded with high probability:
-% \begin{lemma}[$\zeta_k$ is bounded with high probability]
-% \label{lemma:bounded_noise}
-% With probability atleast $1 - \delta$, $||\zeta_k|| \leq $. 
-% \end{lemma}
-
-% In our proofs, we will require the following contraction lemmas to tightly bound the magnitude of some zero-mean terms that will appear in the noisy TD update under certain scenarios. Unlike the analysis in \citet{damian2021label} and \citet{blanc2020implicit} for supervised learning + label noise, the concentration terms that appear in TD learning may not be a contraction unless the eigenspaces of the noise matrix $M$, the Hessian of the Q-function, $\sum_i \nabla^2 Q_i$ and the matrix $G$ have approximately aligned top eigenvectors (we formalize this notion in the Lemma below).  
-
-% \begin{definition}[$(\omega, C_0)$-alignment]
-% \label{def:alignment}
-% Given a positive semidefinite matrix $A$, let $A = U_A \Lambda_A U_A^\top$ denote its eigendecomposition. Without loss of generality consider the scenario that the eiegenvalues are arranged in decreasing order, i.e., $\forall i > j, \Lambda_A(i) \leq \Lambda_A(j)$. Given another matrix $B$, let $B = U_B \Lambda_B U_B^H$ denote its complex eigendecomposition, where eigenvalues in $\Lambda_B$ are arranged in decreasing order of their complex magnitudes, i.e., $\forall i > j, |\Lambda_B(i)| \leq |\Lambda_B(j)|$. Then the matrix pair $(A, B)$ is said to be $(\omega, C_0)$-aligned if $|U_B^H(i) U_A(i)| \leq \omega$ and if there exists a constant $C_0$ such that $\forall~ i, \Lambda_A(i) \leq C_0 |\Lambda_B(i)|$. 
-% \end{definition}
-% If two matrices are $(\omega, C_0)$-aligned, this means that the corresponding eigenvectors when arranged in decreasing order of eigenvalue magnitude roughly align with each other. This condition would be crucial while deriving the implicit regularizer as it will quantify the rate of contraction of certain terms that define the neighborhood that the iterates of noisy TD-learning will lie in with high probability. We will operate in the setting when the matrix $G$ and the Hessian of the Q-function $\sum_i \nabla^2 Q_i$ are $(\omega, C_0)$-aligned with each other. Next we utilize this notion of alignment to show a particular contraction bound that extends the weak contraction bounds in \citet{damian2021label}.  
-
-% \begin{lemma}
-% \label{lemma:contraction}
-% Assume we are given a matrix $G$ such that $\rho(I - \eta G) \leq \rho_0 < 1$ for a given $\eta$. Let $G = U \Lambda U^H$ be the complex eigenvalue decomposition of $G$ (since almost every matrix is complex-diagonalizable). For a positive semi-definite matrix $S$ that is $(\omega, C_0)$-aligned with $G$ if $S = U_S \Lambda_S U_S^\top$ is its eigenvalue decomposition, the following contraction bound holds: 
-% \begin{align*}
-%     ||(I - \eta G)^k S||  = \mathcal{O}\left(\frac{\omega C_0}{\eta k}\right)
-% \end{align*}
-% \end{lemma}
-% \begin{proof}
-% To prove these statements, we can expand $(I - \eta G)$ using its eigenvalue decomposition and then utilize the definition of $\omega$-alignment to bound the terms.
-% \begin{align}
-%     ||(I - \eta G)^k S|| &= ||(I - \eta U \Lambda U^H)^k U_S \Lambda_S U_S^\top ||\\
-%     &= \left\vert \left\vert (U U^H - \eta U \Lambda_U U^H)^k U_S \Lambda_S U_S^\top \right\vert \right\vert \\
-%     &= \leftnorm U \left(I - \eta \Lambda_U \right)^k U^H U_S \Lambda_S U_S^\top \rightnorm\\
-%     &\leq \omega \cdot ||\left(I - \eta \Lambda_U\right)^k|| \cdot \Lambda_S \\
-%     & \leq \omega \cdot C_0 \cdot \left( \max_i~~ |1 - \eta \Lambda_U(i)|^k |\Lambda_U(i)|\right)
-% \end{align}
-% Now we need to solve for the inner maximization term. When $\Lambda_U(i)$ is not complex for any $i$, the term above is $\lesssim 1/\eta k$, but when $\Lambda_U(i)$ is complex, this bound can only hold in some cases. To note when this quantity is bounded, we expand $|1 - \eta x|^k$ for some complex number $x = r (\cos \theta + \iota \sin \theta) $:
-% \begin{align}
-% |1 - \eta x|^k &= \left\vert\left(1 - \eta r \cos \theta \right) + \iota \eta r \sin \theta \right\vert \\
-% &= \left[\sqrt{\left(1 - \eta r \cos \theta\right)^2 + \eta^2 r^2 \sin^2 \theta}\right]^k = \left(1 +\eta^2 r^2 - 2 \eta r \cos \theta\right)^{k/2}\\
-% \implies |1 - \eta x|^k |x| &= \left(1 +\eta^2 r^2 - 2 \eta r \cos \theta\right)^{k/2} r\\
-% & \lesssim \frac{1}{\eta k}~~~~\text{if}~ \eta \leq \min_{i} \frac{\mathrm{Re}(\Lambda_U(i))}{|\Lambda_U(i)|} ~~~~~\text{and}~~~~ \infty~~\text{otherwise}.
-% \end{align}
-% Plugging back the above expression in the bound above completes the proof. For the final piece, rather than expressing the above as a constraint on $\eta$, we will utilize $\rho_0$ instead.
-% \end{proof}
-
-% The proof of Lemma~\ref{lemma:contraction} indicates that unless the learning rate $\eta$ and the matrix $G$ are such that the $\rho(I - \eta G) \leq \rho < 1$, such an expression may may diverge. This is expected since the matrix $I - \eta G$  will not contract in directions of non-zero eigenvalues if the real part $r \cos \theta$ is negative or zero. Additionally, we note that under Definition~\ref{def:alignment}, we can extend several weak-contraction bounds from \citet{damian2021label} to our setting. 
-
-% Equipped with these lemmas, we are now ready to present a proof of Theorem~\ref{thm:implicit_noise_reg}. 
-
-% \begin{proof}[Proof of Theorem~\ref{thm:implicit_noise_reg}.]
-% Our strategy is to analyze the learning dynamics of noisy TD updates that originate at $\theta^*$. In a small neighborhood around $\theta^*$, we can expand the noisy TD update (Equation~\ref{eq:td_update}) using Taylor's expansion around $\theta^*$ which gives:
-% \begin{align}
-%     \label{eqn:nu_k_app}
-%     &\theta_{k+1} = \theta_k - \eta g(\theta_k)+ \eta \varepsilon_k, ~~ \varepsilon_k \sim \mathcal{N}(0, M)\\
-%     \implies &\theta_{k+1} = \theta_k - \eta \left( g + G (\theta_k - \theta^*) + \frac{1}{2} G [\theta_k - \theta^*, \theta_k - \theta^*] \right) + \eta \varepsilon_k + \mathcal{O}(\eta ||\theta_k - \theta^*||^3).
-% \end{align}
-% Denoting $\nu_k := \theta_k - \theta^*$, using the fact that $||g(\theta^*)|| \leq \mathscr{C}$, we find that $\nu_k$ can be written as:
-% \begin{align}
-% \label{eqn:nu_k_appe}
-%     \nu_{k+1} &= (I - \eta G) \nu_k + \varepsilon_k + \frac{1}{2} G [\nu_k, \nu_k] + \mathcal{O}(\eta ||\nu_k||^3 + \eta\mathscr{C})
-% \end{align}
-% Since the OU process $\zeta_k$ stays in the vicinity of the point $\theta^*$, and follows a similar recursion to the one above, our goal would be to design a regularizer so that Equation~\ref{eqn:nu_k_appe} closely follows the OU process. Thus, we would want to bound the difference between the variable $\nu_k$ and the variable $\zeta_k$, denoted as $r_k$ to be within a small neighborhood:
-% \begin{align*}
-% r_{k+1} = \nu_{k+1} - \zeta_{k+1} = (I - \eta G) \underbracket{(\nu_k - \zeta_k)}_{r_k} + \frac{1}{2} G [\nu_k, \nu_k] + \mathcal{O}(\eta ||\nu_k||^3 + \eta \mathscr{C}). 
-% \end{align*}
-% We can write down an expression for $r_k$ summing over all the terms:
-% \begin{equation}
-% \label{eqn:r_k}
-%     r_{k+1} = - \underbracket{\frac{\eta}{2} \sum_{j \leq k} (I - \eta G)^{k - j} \nabla G [\nu_k, \nu_k]}_{\text{term (a)}} + \underbracket{\sum_{j \leq k} (I - \eta G)^j \left[\mathcal{O}(\eta ||\nu_k||^3 + \eta \mathscr{C}) \right]}_{\text{term (b)}}.
-% \end{equation}
-% Term (a) in the above equation is the one that can induce a displacement in $r_k$ as $k$ increases and would be used to derive the regularizer, whereas term (b) primarily consists of terms that concentrate to $0$. We first analyze term (a) and then we will analyze the concentration later. 
-
-% \textbf{Analysis of term (a):} To analyze term (a), note that the term $\nabla G [\nu_k, \nu_k]$, by Lemma~\ref{lemma:useful}, only depends on $\nu_k$ via the covariance matrix $\nu_k \nu_k^\top$. So we will partition this term into two terms: \textbf{(i)} a term that utilizes the asymptotic covariance matrix of the OU process and \textbf{(ii)} errors due to a finite $k$ and stochasticity that will concentrate.
-% \begin{align}
-%     2 \times \text{(a)}~ &= \eta  \sum_{j \leq k} (I - \eta G)^{k - j} \nabla G [\nu_k, \nu_k]\\
-%     \label{eqn:random1}
-%     &= \sum_{j \leq k} (I - \eta G)^{k - j} \nabla G [\zeta^*, \zeta^*] + \sum_{j \leq k} (I - \eta G)^{k - j} \nabla G ([\nu_k, \nu_k] - [\zeta^*, \zeta^*]),
-% \end{align}
-% The first term is a ``bias'' term and doesn't concentrate to $0$, and will give rise to the regularizer. We can break this term using Lemma~\ref{lemma:useful} as:
-% \begin{align}
-% \label{eqn:b_9}
-%     \!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\nabla G [\zeta^*, \zeta^*] =& 2 \sum_i \nabla^2 Q_i \Sigma^*_M (\nabla Q_i - \gamma \nabla Q'_i) + \sum_i \mathrm{tr}\left[(\nabla^2 Q_i - \gamma \nabla^2 Q'_i) \Sigma^*_M \right] \nabla Q_i \\  \nonumber
-%     &+ \mathcal{O}(\mathscr{L}_3 ||e_i||)
-% \end{align}
-% The regularizer $R_\mathrm{TD}(\theta)$ is the function such that:
-% \begin{align}
-%     \label{eqn:derive_regularizer}
-%     \nabla_\theta R_\mathrm{TD}(\theta) & = \sum_i \nabla^2 Q_i \Sigma^*_M (\nabla Q_i - \gamma \nabla Q'_i)\\
-%     \label{eqn:regularizer_fn_app}
-%     \implies R_\mathrm{TD}(\theta) &= \sum_i \nabla Q_i \Sigma^*_M \nabla Q_i^\top - \gamma \sum_i \mathrm{trace}\left(\Sigma^*_M \nabla Q_i [[\nabla Q'_i]]^\top\right),
-% \end{align}
-% where $[[\cdot]]$ denotes the stop gradient operator. If the point $\theta^*$ is a stationary point of the regularizer $R_\mathrm{TD}(\theta)$, then Equations~\ref{eqn:derive_regularizer} and \ref{eqn:regularizer_fn_app} imply that the first term of Equation~\ref{eqn:b_9} must be 0. Therefore in this case to show that $\theta^*$ is attractive, we need to show that the other terms in Equations~\ref{eqn:b_9}, \ref{eqn:random1} and term (b) in Equation~\ref{eqn:r_k} concentrate around $0$ and are bounded in magnitude. The remaining part of the proof does this.
-
-% \textbf{Concentrating terms in Equation~\ref{eqn:b_9}.} We first concentrate the terms in Equation~\ref{eqn:b_9}. The cumulative effect of the second term in Equation~\ref{eqn:b_9} is given by:
-% \begin{align}
-%     &\eta \sum_{j \leq k} (I - \eta G)^{j-k} \nabla Q_i \mathrm{tr}\left[ (\nabla^2 Q_i - \gamma \nabla^2 Q'_i) \Sigma^*_M \right]\\ 
-%     &\leq \eta \sum_{j \leq k} (I - \eta G)^{j-k} \nabla Q_i \cdot \mathcal{O}\left( \mathscr{L}_2 (1+ \gamma) \sigma \right) \leq \mathcal{O}\left( \eta \sqrt{\frac{k}{\eta}} \omega_0 C_0  \mathscr{L}_2 (1 + \gamma) \sigma \right), 
-% \end{align}
-% using Lemma~\ref{lemma:contraction}.
-
-% \textbf{Concentrating terms in Equation~\ref{eqn:random1}.} Next, we turn to concentrating the second term in Equation~\ref{eqn:random1}. This term corresponds to the contribution of difference between the empirical covariance matrix  $\nu_k \nu_k^\top$ and the asymptotic covariance matrix $\zeta^* \zeta^{* \top}$. We expand this term below using the form of $G$ from Lemma~\ref{lemma:useful}, and bound it one by one.
-% \begin{align}
-%     &\sum_{j \leq k} (I - \eta G)^{k - j} \nabla G ([\nu_k, \nu_k] - [\zeta^*, \zeta^*])\\
-%     & = \sum_{j \leq k} \sum_i (I - \eta G)^{k-j} \nabla^2 Q_i \left(\nu_k \nu_k - \zeta^* \zeta^{* \top}\right) (\nabla Q_i - \gamma \nabla Q'_i) + \mathcal{O}\left(\sqrt{\eta k} \omega_0 C_0 \mathscr{L}_2 (1 + \gamma) \sigma \right)
-%     \label{eqn:remaining}
-% \end{align}
-% Now, we note that the term $\Delta_{k+1} := \nu_{k+1} \nu_{k+1}^\top - \zeta^* \zeta^{* \top}$ can itself be written as a recursion:
-% \begin{align}
-%     \Delta_{k+1} &= (I - \eta G) (\Delta_k) (I - \eta G)^\top + \underbracket{(I - \eta G) \zeta_k \varepsilon^\top  + \varepsilon \zeta_k^\top (I - \eta G)^\top}_{A_k} + \underbracket{\varepsilon \varepsilon^\top - \eta M}_{B_k}     
-% \end{align}
-% Expanding the term $\Delta_{k+1}$ in terms of a summation over $k$, and plugging it into the expression from Equation~\ref{eqn:remaining} we get
-% \begin{align}
-% \label{eqn:remaining}
-%     \sum_{i} \sum_{j \leq k} (I - \eta G)^{k-j} & \nabla^2 Q_i (I - \eta G)^j \Delta_0 (I - \eta G^\top)^j \\ 
-%     + \sum_i &~ \sum_{j \leq k} \sum_{p \leq j} (I - \eta G)^{k-j} \nabla^2 Q_i (I - \eta G)^{j-p-1} (A_p + B_p) (I - \eta G^\top)^{j-p-1} \nonumber
-% \end{align}
-% Now by noting that if $G$ and $\nabla Q_i$ are $(\omega, C_0)$-aligned, then so are $G^\top$ and $\nabla Q_i$, we can finish the proof by repeating the calculations used by \citet{damian2021label} (Appendix B, Equations 67-73) to bound the terms in Equation~\ref{eqn:remaining} by $\mathcal{O}(\sqrt{\eta k})$.  
-
-% \textbf{Term (b) in Equation~\ref{eqn:r_k}.} When $\mathscr{C}$ is small enough, we can bound the term (b) using $\mathcal{O}(\sqrt{\eta k})$.  
-
-% \textbf{Summarizing the analysis.} Since we were able to concentrate all the terms except Equation~\ref{eqn:derive_regularizer}, the overall update to the vector $r_k$ which measures the displacement between the parameter vector $\theta_k$ and $\theta^*$ can be written as follows, and it is governed by the derivative of the implicit regularizer (modulo error terms):
-% \begin{equation}
-%     r_{k+1} = - \frac{\eta}{2} \sum_{j \leq k} (I - \eta G)^{k - j} \nabla_\theta R_\mathrm{TD}(\theta^*) + \mathcal{O}\left(\sqrt{\eta t} \cdot \mathrm{poly}(\mathscr{C}, \mathscr{L}_2, \mathscr{L}_3, \omega, C_0)\right).   
-% \end{equation}
-% Thus if the point $\theta^*$ is not the stationary point of the regularizer $R_\mathrm{TD}(\theta)$, then we will see that the vector $r_k$ will increase linearly in $k$ as $k$ increases. Note the other conditions which are still required: \textbf{(1)} we require the spectral radius $\rho(I - \eta G) \leq 1$, with $\rho(I - \eta G) \leq \rho_0 = 1$ in directions with non-zero eigenvalues of $G$, and \textbf{(2)} $(\omega, C_0)$-contraction to ensure that various terms besides the regularizer (which is like a ``bias'' term) contract at a $\sqrt{1/\eta}$ rate. If condition \textbf{(1)} is not true, then TD learning will diverge, whereas if condition \textbf{(2)} is not true, then the learning dynamics would be dominated by \todo{fill}.     
-
-% \end{proof}
 
 \section{Proof of Proposition~\ref{thm:co_adapted_features_are_bad}}
 \label{app:new_thm}
 In this section, we will prove Proposition~\ref{thm:co_adapted_features_are_bad}. First, we refer to Proposition 3.1 in \citet{ghosh2020representations}, which shows that TD-learning is stable and converges if and only if the matrix $M_\phi = \Phi^\top (\Phi - \gamma \Phi')$ has eigenvalues with all positive real entries. Now note that if, 
 \begin{align}
-    \sum_{\bs, \ba} \phi(\bs, \ba)^\top \phi(\bs, \ba) &\leq \gamma \sum_{\bs, \ba, \bs'} \phi(\bs', \ba')^\top \phi(\bs, \ba)\\
+    \sum_{\bs, \mathbf{a}} \phi(\bs, \mathbf{a})^\top \phi(\bs, \mathbf{a}) &\leq \gamma \sum_{\bs, \mathbf{a}, \bs'} \phi(\bs', \mathbf{a}')^\top \phi(\bs, \mathbf{a})\\
     \implies \mathrm{trace} \left(\Phi^\top \Phi\right) &\leq \gamma \mathrm{trace}\left(\Phi^\top \Phi'\right)\\
     \implies \mathrm{trace}\left[\Phi^\top \left(\Phi - \gamma \Phi'\right) \right] \leq 0. 
 \end{align}
 Since the trace of a real matrix is the sum of real components of eigenvalues, if for a given matrix $M$, $\mathrm{trace}(M) \leq 0$, then there exists atleast one eigenvalue $\lambda_i$ such that $\mathrm{Re}(\lambda_i) \leq 0$. If $\lambda_i < 0$, then the learning dynamics of TD would diverge, while if $\lambda_i = 0$ for all $i$, then learning will not contract towards the TD fixed point. This concludes the proof of this result.
 
-% The noisy TD-learning updates are given by:
-% \begin{align}
-%     \theta_{k+1} ~&= \theta_k - \eta \left( \nabla L + \nabla^2 L (\theta_k - \theta^*) + \frac{1}{2} \nabla^3 L (\theta_k - \theta^*, \theta_k - \theta^*) \right) + \varepsilon_k, ~~~~~~\\
-%     \label{eqn:label_noise_update}
-%     \implies \nu_{k+1} ~&= (I - \eta \nabla^2 L )\nu_k  - \frac{\eta}{2} \nabla^3 L (\nu_k, \nu_k) + \varepsilon_k, ~~~~ \varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M),
-% \end{align}
-% where $M = \sum_i \nabla_\theta Q_\theta(\bx_i) \nabla_\theta Q_\theta(\bx_i)^\top$ evaluated at $\theta = \theta^*$ \gjt{For me, \begin{align*}
-% \nabla^3&L(\nu_k, \nu_k)_j = \nu_k^T \frac{\sum_i \left(\nabla Q_\theta(x_i)\right)_j(Q_\theta(x_i) - \gamma Q_\theta(x_i'))}{\partial \theta_l \partial \theta_m} \nu_k = \sum_i\nu_k^T \frac{ \left(\nabla Q_\theta(x_i)\right)_j(Q_\theta(x_i) - \gamma Q_\theta(x_i'))}{\partial \theta_l \partial \theta_m} \nu_k \\
-% &= \sum_i\nu_k^T \left( \frac{ \left(\nabla Q_\theta(x_i)\right)_j}{\partial \theta_l}\frac{(Q_\theta(x_i) - \gamma Q_\theta(x_i'))}{\partial \theta_m} + \frac{ \left(\nabla Q_\theta(x_i)\right)_j}{\partial \theta_m}\frac{(Q_\theta(x_i) - \gamma Q_\theta(x_i'))}{\partial \theta_l} + \left(\nabla Q_\theta(x_i)\right)_j\frac{(Q_\theta(x_i) - \gamma Q_\theta(x_i'))}{\partial \theta_l \partial \theta_m} \right) \nu_k 
-% \end{align*}
-% }. The implicit regularizer $R_\mathrm{TD}(\theta)$ in our scenario is the scalar function such that the derivative $\nabla^3 L(\nu_k, \nu_k) = \nabla_\theta R_\mathrm{TD}(\theta)$. Informally, if the optimal solution $\theta^*$ is a stationary point of such an implicit regularizer, then the potential increase in $\nu_{k+1}$ is controlled in the directions missing in $\nabla^2 L$ is controlled. To formalize this insight, we shall pick a reference stochastic process which remains within a neighborhood around $\theta^*$, and show that if the point $\theta^*$ is a stationary point of the implicit regularizer, then $\nu_k$ shall closely follow this reference process over intervals of update horizons $O(\frac{1}{\eta})$. Building on \citet{blanc2020implicit}, our reference process will be an Ornstein-Uhlenbeck (OU) process that we will shortly describe. We shall analyze then analyze the update in Equation~\ref{eqn:label_noise_update} when $\nu_k \approx \zeta_k$, where $\zeta_k$ is distributed according to this OU process:
-% \begin{equation}
-%     \label{eqn:ou_process}
-%     \zeta_{k+1} = (I - \eta \nabla^2 L) \zeta_k + \varepsilon_k.
-% \end{equation}
-% Accounting for higher-order terms in Equation~\ref{eqn:ou_process} incurs an error $\mathcal{O}(\eta^{1 + \delta})$ \gjt{clarify what do you mean by error? going from nu to zeta?}, where $\delta > 0$, which we assume is small and ignorable \gjt{Is this an assumption or is it actually ignorable?} similar to prior work~\citep{blanc2020implicit}. Further, using Lemma~\ref{eqn:covariance_noise}, we note that the noise process $\zeta_k$ is distributed according to $\zeta_k \sim \mathcal{N}(0, \Sigma)$, where $\Sigma$ is given by \gjt{This is true in the limit, but what about finite k?}:
-% \begin{equation}
-%     \Sigma = \eta \sigma^2 S (2 - \eta \nabla^2 L)^{-1}.
-% \end{equation}
-% All we need to do now to obtain an expression for $R_\mathrm{TD}(\theta)$ is to express $\nabla^3 L(\nu_k, \nu_k) \approx \nabla^3 L (\zeta_k, \zeta_k)$ as the gradient of a scalar, and bound the errors incurred due to $\approx$ via concentration arguments for the noise process. We obtain the following expression:
-% \begin{align}
-% \label{eqn:approx_grad_sq_L}
-%     \nabla^3 L (\zeta_k, \zeta_k) \approx \sum_i \nabla^2 Q \mathbb{E}[\zeta_k \zeta_k^\top] (\nabla Q - \gamma \nabla Q') \rightarrow \sum_i \nabla^2 Q \Sigma (\nabla Q - \gamma \nabla Q'),
-% \end{align}
-% where $\approx$ indicates that we ignore terms that can be bounded by more than $\mathcal{O}(\sqrt{\eta})$ We now want to compute a scalar quantity with the derivative equal to the expression in Equation~\ref{eqn:approx_grad_sq_L} to obtain the regularizer. While the expression is not clearly integrable, we note -- \textbf{(1)} The matrix $\Sigma$ is only computed at $\theta^*$ and is hence a constant, and \textbf{(2)} the derivative of the Q-function at the next state, $\nabla Q'$ is not integrable. But if we utilize a stop gradient function ($\texttt{Stop}$) on $\nabla Q'$, we can express the integral as a scalar function. Thus, the implicit regularizer is given by:
-% \begin{equation}
-%     \label{eqn:appendix_regularizer}
-%     R_\mathrm{TD}(\theta) = \text{tr}~\left[\Sigma \left(\sum_i \nabla_\theta Q_\theta(\bx_i) \nabla_\theta Q_\theta(\bx_i)^\top - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \texttt{Stop}(\nabla Q_\theta(\bx'_i))^\top \right) \right]. 
-% \end{equation}
-% % Now our goal is to express the integrand fully in terms of the matrix $\nabla^2 L$ and use the fact that $\nabla^3 L$ is the differential of $\nabla^2 L$ to obtain the regularizer. Since the noise process does not modify the basis $U$, we can instead choose to solve the differential above in its eigenvalue space. In the eigenvalue space, the integrand $S (2 - \eta \nabla^2 L)^{-1}$ acts independently on each eigenvalue, and translates to $\lambda_M \lambda^+ (2 - \eta \lambda)^{-1}$. Using binomial theorem for negative exponents, we can simplify:
-% % \begin{equation}
-% %     \lambda_M \lambda^+ (2 - \eta \lambda)^{-1} = \lambda_M \frac{\lambda^+}{2} \left[ 1 + \frac{\eta \lambda}{2} + \frac{\eta^2 \lambda^2}{4} + \mathcal{O}(\eta^{2 + \delta}) \right] \approx \frac{\lambda_M}{2 \lambda} + \eta \frac{\lambda_M}{2} + \mathcal{O}(\eta^{1 + \delta}). 
-% % \end{equation}
-% % Integrating the above two terms with respect to $\lambda$, and summing over all eigenvalues independently, we obtain the following implicit regularizer:
-% % \begin{equation}
-% %     \label{eqn:implicit_reg}
-% %     R_\mathrm{TD}(\theta) = \text{tr}(M \log (\nabla^2 L)) + \eta~ \text{tr}(M \nabla^2 L).
-% % \end{equation}
-% % The regularizer from Section~\ref{sec:analysis} is a special case of this general regularized derived above. 
-% Finally, we aim to finish the argument by addressing concentration details for various terms in the analysis so far. We revisit the update for $\nu_k$:
-% \begin{align}
-%     \nu_{k+1} &= (I - \eta \nabla^2 L) \nu_k - \underbrace{\frac{\eta}{2} \nabla^3 L (\Sigma)}_{\nabla R_\mathrm{TD}(\theta)} + \underbrace{\left( \frac{\eta}{2} \nabla^3 L (\Sigma) - \frac{\eta}{2} \nabla^3 L (\nu_k \nu_k^\top) \right)}_{:= \Delta_k; ~~\text{concentration}} + \varepsilon_k,
-% \end{align}
 
-% This additional concentration term compounds over $k=1, 2, \cdots$ and the overall cumulative value until time $t$ is given by:
-% \begin{align}
-% \label{eqn:delta_eqn}
-%     \overline{\Delta}_t: = \sum_{k \leq t} (I - \eta \nabla^2 L)^k \left( \frac{\eta}{2} \nabla^3 L (\Sigma) - \frac{\eta}{2} \nabla^3 L (\nu_k \nu_k^\top) \right)
-% \end{align}
-% To bound this we concentrate the difference $\nu_k \nu_k^\top - \Sigma$ in the space spanned by $\nabla^3 L$. First, we can expand $\nabla^3 L A$, for any matrix $A$ as:
-% \begin{equation}
-%     \nabla^3 L A = \underbrace{\sum_i \nabla^2 Q_\theta(\bx_i) A (\nabla Q_\theta(\bx_i) - \gamma \nabla Q_\theta(\bx'_i))}_{(1)} + \underbrace{\sum_i \nabla Q_\theta(\bx_i)~ \text{tr}\left[ A (\nabla^2 Q(\bx_i) - \gamma \nabla^2 Q(\bx'_i)) \right]}_{(2)}. 
-% \end{equation}
-% For term $(2)$, we can choose to utilize Assumption~\ref{assumption:M_diagonal} and the boundedness of the random process $\zeta_k$ to bound the trace above: $\text{tr}(A (\nabla^2 Q(\bx_i) - \gamma \nabla^2 Q(\bx'_i)) \leq ||A||_\infty (1 + \gamma) ||\nabla^2 Q(\bx_i)||_\infty \leq C_1$, where $C_1$ is a chosen constant independent of $\eta$ and $t$. Thus, all we need to do for this term is to bound the remainder of $(2)$:
-% \begin{align*}
-%     (2) &\leq C_1 \sum_{k \leq t} (I - \eta \nabla^2 L)^k \sum_i \nabla_\theta Q_\theta(\bx_i)\\
-%     (2)^2 &\leq C_1^2 \left\vert \left\vert \sum_{k \leq t} \sum_i (I - \eta \nabla^2 L)^k \nabla_i Q(\bx_i) \right\vert \right\vert^2 \leq C_1^2 \sum_{k, i} \left\vert \left\vert (I - \eta \nabla^2 L)^{k} \nabla_i Q(\bx_i) \right\vert\right\vert^2\\
-%     &= C_1^2 \sum_{k, i} \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} \left(\nabla_i Q_\theta(\bx_i) \nabla_i Q_\theta(\bx_i)^\top \right)  \right]\\
-%     &= C_1^2 \sum_k^t \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} \left(\sum_i \nabla_i Q_\theta(\bx_i) \nabla_i Q_\theta(\bx_i)^\top \right)  \right] = C_1^2 \sum_k^t \text{tr} \left[ (I - \eta \nabla^2 L)^{2k} M \right]\\
-%     &= C_1^2 \sum_{j=1}^d \sum_k^t (1 - \eta \lambda(j))^{2k} \lambda_M(j)  = \mathcal{O}\left(\frac{t}{\eta}\right),
-% \end{align*}
-% where the last step follows from the fact that $\sum_{m} (1 - \eta x)^{2m} \rightarrow (1 - (1 - \eta x)^2)^{-1} = \mathcal{O}(1/\eta)$. And the above bound holds with a high probability $1 - \delta$, $\delta = \exp(-\text{poly}(1/\eta))$. This implies that $(2) = \mathcal{O} (\sqrt{t/\eta})$. Next, to bound term $(1)$, we first note that using Assumption~\ref{assumption:M_diagonal}, we note the following relationship:
-% \begin{align}
-%     \label{eqn:bounding_1}
-%     \nabla^2 L &= U \Lambda U^H = M - \gamma \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top = U \Lambda_M U^H - \gamma \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top\\
-%     &  \implies \sum_i \nabla Q_\theta(\bx_i) \nabla Q_\theta(\bx'_i)^\top = \frac{1}{\gamma} U (\Lambda_M - \Lambda) U^H\\
-%     & \implies \nabla Q^\top \nabla Q' = U \frac{1}{\gamma}\Lambda' U^H, \text{~~where~~} \Lambda' \succcurlyeq 0 ~~ \text{(Using Assumption~\ref{assumption:M_diagonal})}\\
-%     & \implies \left( U \Lambda_M^{\frac{1}{2}} \right)^\top \nabla Q' = U \frac{1}{\gamma} \Lambda' U^H \\
-%     \label{eqn:difference_in_same_space}
-%     & \implies \nabla Q' = \frac{1}{\gamma} \sqrt{\Lambda_M^{+}} \Lambda' U^H ~\implies \nabla Q - \gamma \nabla Q' = \left[ \sqrt{\Lambda_M} - \sqrt{\Lambda_M^{+}} \Lambda'  \right] U^H. 
-% \end{align}
-% Equation~\ref{eqn:difference_in_same_space} tells us that the term $\nabla Q(\bx_i) - \gamma \nabla Q(\bx'_i)$ appearing in term $(1)$ is equivalent to $\nabla Q(\bx_i)$ upto the diagonal matrix of eigenvalues, i.e., while $\nabla Q = \sqrt{\Lambda_M} U^H$, $\nabla Q - \gamma \nabla Q' = \Lambda'' U^H$, where $\Lambda''$ is given in Equation~\ref{eqn:difference_in_same_space}. This provides us with a way to show concentration in $\mathcal{O}(\sqrt{\eta})$ for term $(1)$ similar to term $(2)$. To finally bound $(1)$, we first compute the matrix $A_k$:
-% \begin{align*}
-%     A_{k+1} &= \nu_{k+1} \nu_{k+1}^\top - \Sigma \\
-%     &= (I - \eta \nabla^2 L) A_{k} (I - \eta \nabla^2 L) - \eta \left[ (I - \eta \nabla^2 L) \zeta_k \epsilon_k^\top + \epsilon_k \zeta_k^\top (I - \eta \nabla^2 L) \right] + \eta^2 (\epsilon_k \epsilon_k^\top - \sigma^2 M), 
-% \end{align*}
-% where we used the reparameterization trick that sampling $\varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M)$ is equivalent to sampling $\epsilon_k \sim \mathcal{N}(0, \sigma^2 M)$ and scaling it by $\eta$, i.e., $\varepsilon_k = \eta \epsilon_k$. In the above recurrence, note that the second and third terms are multiplied by $\eta$ and $\eta^2$ respectively. This means that their concentration bounds will attain $\mathcal{O}(\eta^{1 + \delta})$, which is small and can be discarded: a formal analysis of these terms can be built using Martingale concentration bounds analogously as \citet{blanc2020implicit} (Lemma 5). For the first term, we can unroll the recurrence to $A_0$, and note that term $(1)$ is equal to:
-% \begin{equation}
-% \label{eqn:solving_eqn1}
-%     \mathcal{O}(\eta^{1 + \delta}) + \sum_{k \leq t} \sum_i (I - \eta \nabla^2 L)^{t -k} \nabla^2 Q(\bx_i) (I - \eta \nabla^2 L)^k A_0 (I - \eta \nabla^2 L)^k \left(\nabla Q(\bx_i) - \gamma \nabla Q(\bx'_i) \right).
-% \end{equation}
-% The final expression in the above equation can be bounded with high probability $1 - \exp(-\text{poly}(1/\eta))$ by $\mathcal{O}(\sqrt{\eta t} C_2)$, where the constant $C_2$ depends on the Lipschitz constant of the gradient $||\nabla Q(\bx_i)||$ and the norm of matrix $A_0$. To note this, observe that the bound roughly translates to$\sum_{k} (I - \eta \nabla^2 L)^{t+k} v_k$, where $v_k$ is a vector and now, we can bound this expression by using the same technique as term $(2)$ with an additional $(I - \eta \nabla^2 L)^t$, which can be bounded above by 1.
-
-% Thus all the error terms, including concentration terms are bounded by $\mathcal{O}(\sqrt{\eta t})$ with high probability $1 - \exp(-\text{poly}(1/\eta))$, while the implicit regularizer contributes $\nabla R_\mathrm{TD}(\theta)$ at each step to the movement of $\nu_k$. That is, to be more formal, the value of $\nu_k$ at time $t$ is given by:
-% \begin{equation*}
-%     \nu_t = (I - \eta \nabla^2 L)^t \nu_0 - \underbrace{\sum_{j=1}^t (I - \eta \nabla^2 L)^j \frac{\eta}{2} \nabla R_\mathrm{TD}(\theta^*)}_{= \eta t/2 \nabla_\theta R_\mathrm{TD}(\theta) \text{~in directions where~} \lambda(\nabla^2 L) = 0} + \mathcal{O}(\sqrt{\eta t}).
-% \end{equation*}
-% While the term with the regularizer behaves as $\mathcal{O}(\eta t)$ in directions where the eigenvalues of $\nabla^2 L$ are equal to 0 and hence there is no mean-reversion, the error terms behave as $\mathcal{O}(\sqrt{\eta t})$. Thus after a sufficiently long $t = \eta^{-1 - \delta}$, we will obtain that the regularizer dominates the gradient in directions not spanned by the mean reversion term ($(I - \eta \nabla^2 L)^t \nu_0$) (since a linear function would dominate the $\sqrt{\cdot}$ function). Thus, the dynamics of label-noise gradient descent from the optimizer $\theta^*$ operates according to the implicit regularizer $R_\mathrm{TD}(\theta)$.
-% \end{proof}
-
-% \textbf{Removing the additional $\Sigma$ from the implicit regularizer $R_\mathrm{TD}(\theta)$.} The implicit regularizer derived in Equation~\ref{eqn:appendix_regularizer} is shown below, and it contains an additional weighting by the covariance matrix, $\Sigma$ of the noise of the OU process. 
-% \begin{equation*}
-%     R_\mathrm{TD}(\theta) = \text{tr}~\left[\Sigma \left(\sum_i \nabla_\theta Q_\theta(\bx_i)^\top \nabla_\theta Q_\theta(\bx_i) - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i)^\top \texttt{Stop}(\nabla Q_\theta(\bx'_i)) \right) \right]. 
-% \end{equation*}
-% We can slightly modify our derivation to get rid of this weighting term, while still retaining the properties of this derivation. To do so, we match $\nu_{k}$ to the a modified OU process defined by $\zeta_k'$:
-% \begin{equation}
-%     \label{eqn:ou_process_modified}
-%     \zeta'_{k+1} = (I - \eta \nabla^2 L) \zeta'_k + \varepsilon'_k, ~~~ \varepsilon'_k \sim \mathcal{N}(0, \eta^2 \sigma^2 \nabla^2 L).
-% \end{equation}
-% We will follow the same analysis style: our goal would be to derive a regularizer that makes $\nu_k$ be as close to $\zeta'_k$, and thus we will still analyze the conditions under which the third order term $\frac{\eta}{2} \nabla^3 L (\zeta'_k, \zeta'_k)$ is 0 at the optimum $\theta^*$. By deriving the analogue of Equation~\ref{eqn:approx_grad_sq_L}, in this case, we will obtain that $\zeta'_k \zeta'_k^\top \rightarrow \mathcal{O}(\frac{\eta \sigma^2}{2}) \mathbb{I}$ analogous to the case of \citet{blanc2020implicit} for supervised learning, where $\nabla^2 L = M$, and we will obtain the regularizer as the integrand of:
-% \begin{align}
-% \label{eqn:approx_grad_sq_L_new}
-%     \nabla^3 L (\zeta'_k, \zeta'_k) \approx \sum_i \nabla^2 Q \mathbb{E}[\zeta'_k {\zeta'}^{\top}_k] (\nabla Q - \gamma \nabla Q') \rightarrow \mathcal{O}(\eta \sigma^2) \sum_i \nabla^2 Q (\nabla Q - \gamma \nabla Q'),
-% \end{align}
-% which is exactly the regularizer shown in Theorem~\ref{thm:implicit_noise_reg}.
-% \begin{equation}
-% \label{eqn:main_paper_regularizer}
-%      R_\mathrm{TD}(\theta) = \text{tr}~\left[ \left(\sum_i \nabla_\theta Q_\theta(\bx_i) \nabla_\theta Q_\theta(\bx_i)^\top - \gamma \sum_i \nabla_\theta Q_\theta(\bx_i) \texttt{Stop}(\nabla Q_\theta(\bx'_i))^\top \right) \right].
-% \end{equation}
-% However, an additional term equal to the difference in the noise $\varepsilon_k \sim \mathcal{N}(0, \eta^2 \sigma^2 M)$ and the noise in the reference OU process, $\varepsilon'_k$ is compounded in $\overline{\Delta}_t$ (Equation~\ref{eqn:delta_eqn}). However, note that this noise term behaves similarly as term $(2)$, i.e., it lies in the subspace $U^H$ (since $\nabla^2 L - M$ spans this space from Assumption~\ref{assumption:M_diagonal}) and corresponds to an eigenvalue $\lambda'(i)$ which is bounded by the sum of eigenvalues $\lambda(i)$ and $\lambda_M(i)$ of $\nabla^2 L $ and $M$ respectively. Hence, we can use a similar trick like $(2)$ to bound this error in addition to terms $(1)$ and $(2)$, and the rest of the proof of Theorem~\ref{thm:implicit_noise_reg} follows as is.
-
-
-% \section{Experimental Evaluation of \methodname}
-% \label{sec:experiments}
-% % \vspace{-10pt}
-% %%AK: I tried to say something stronger here, not sure if this comes out as such we can start it more standardly -- "The goal of our experiments is to evaluate the efficacy of our method \methodname..." 
-% The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of \methodname\ in addressing regularization challenges. To this end, we investigate if \methodname\ improves performance and stability in offline RL settings on three offline RL benchmarks: offline datasets for Atari 2600 games with discrete actions~\citep{agarwal2019optimistic}, continuous control offline RL tasks from D4RL~\citep{fu2020d4rl}, and image-based robotic manipulation tasks~\citep{singh2020cog} that require temporal stitching in the presence of a sparse reward signal.
-
-
-% \textbf{Evaluation metrics.} We evaluate our approach in terms of both final offline RL performance, as well as a measure of training stability. The latter is particularly important in practice, since the offline RL setting does not admit cheap and easy validation of trained policies. Prior work has generally disregarded this metric, reporting results either after a hand-selected number of gradient steps~\citep[\textit{e.g.,}][]{wu2019behavior,fu2020d4rl,kumar2020conservative}, or the maximum performance  during training (i.e., oracle model selection)~\citep{agarwal2019optimistic, gulcehre2020rl}. We argue that both approaches do not provide a complete picture of the performance of an algorithm, since in practice selecting the number of training gradient steps is both important for strong performance and difficult to do without online evaluation. This can make unstable algorithms appear to perform much better on benchmarks than they would in real-world settings.
-
-% To evaluate the stability of offline RL methods, we train the methods for a large number of gradient steps (2-3x longer than prior papers) and report the \textbf{average performance} over the course of training. This metric is equivalent to the expected final performance obtained if we randomly picked the iteration to evaluate. In other words, this metric assumes a uniform-at-random policy selection scheme, which resembles one practitioners are likely to use in practice if no domain information is available. By computing the average over longer periods, we expect that a stable method should have better average performance as compared to a method that attains large peak performance but degrades substantially with more training. 
-% % and not the number of environment steps (since the setting is completely offline).
-% %%SL.5.23: maybe mention that you also show learning curves? it would help to explain these learning curves, because they don't show what readers necessarily expect in RL (where x-axis = amount of data), but rather number of grad steps.
-
-% \begin{table}[t]
-% \fontsize{9}{9}\selectfont
-%     \centering
-%     \caption{\small{Final performance (last iteration score) and average performance (stability score) of CQL, CQL + \methodname, REM and REM + \methodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. individual scores for all 17 games are provided in the Tables~\ref{tab:dqn_5} and \ref{tab:dqn_1}. Note that \methodname\ improves the performance of both CQL and REM giving rise to better final performance as well as stability.} We report median normalized scores. }
-%     \label{tab:cql_res}
-%     \vspace{0.1cm}
-% \begin{tabular}{cc|cccc|cccc}
-% \toprule
-% \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{4}{c|}{\textbf{Last iteration score}} & \multicolumn{4}{c}{\textbf{Stability score}} \\
-% &  & CQL & CQL+\methodname & REM & REM+\methodname & CQL & CQL+\methodname & REM & REM+\methodname \\
-% \midrule
-% 1\% &  Median & 44.4 & \textbf{61.8} & 0.0 & \textbf{13.1} & 42.5 & \textbf{63.7} & 3.1 & \textbf{11.7}\\
-%  & IQM & 44.0 & \textbf{50.5} & -0.1 & \textbf{13.4} & 42.8 & \textbf{52.6} & 3.4 & \textbf{12.4}  \\
-% \midrule
-% 5\% & Median  & 89.6 & \textbf{100.2} & 3.9 & \textbf{84.2} & 81.4 & \textbf{102.6} & 18.8 & \textbf{52.5} \\
-%  & IQM & 74.2 & \textbf{93.6} &  6.4 & \textbf{70.8} &  72.3 & \textbf{102.4} & 21.1 & \textbf{53.5} \\
-% \midrule
-% 10\% & Median  & 59.6 &  \textbf{67.0} & 24.9 &  \textbf{72.4} & 52.1 & \textbf{65.2} & 47.7 & \textbf{63.9}\\
-%  & IQM & 54.1 & \textbf{67.3} & 23.5 & \textbf{77.4} &  56.3 & \textbf{65.2} & 47.9 & \textbf{67.8} \\
-% \bottomrule
-% \vspace{-20pt}
-% \end{tabular}
-% \end{table}
-
-
-% \begin{figure*}[t]
-%     \centering
-%     \vspace{-5pt}
-%     % \includegraphics[width=\linewidth]{figures/atari_new/Median_rem_penalty.pdf}
-%     \includegraphics[width=0.67\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-%     \includegraphics[width=0.67\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
-%     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_rem_penalty.pdf}
-%     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_rem_penalty.pdf}
-%     \vspace{-0.25cm}
-%     \caption{\small{\textbf{Average normalized scores across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different dataset types from prior work~\citep{agarwal2019optimistic}. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance. Performance is reported using interquartile mean~(IQM), normalization was performed with respect to the behavior policy that collected the entire DQN replay dataset and shaded regions show 95\% percentile confidence intervals~(CIs.)}}
-%     \label{fig:atari_all_combined}
-%     \vspace{-0.55cm}
-% \end{figure*}
-
-
-
-% % \begin{figure*}[h]
-% %     \centering
-% %     \includegraphics[width=\linewidth]{figures/atari_new/Median_cql_penalty.pdf}
-% %     \includegraphics[width=\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_cql_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_cql_penalty.pdf}
-% %     \vspace{-0.65cm}
-% %     \caption{Behavior Normalized Scores across 17 Atari games. We use Interquartile mean~(IQM).}
-% %     \label{fig:atari_5_percent}
-% % \end{figure*}
-
-
-
-% % \begin{figure}[t]
-% %     \centering
-% %     \includegraphics[width=\linewidth]{atari/norm_3_games_cql_rem.pdf}
-% %     \vspace{-0.65cm}
-% %     \caption{In addition to minimizing unnormalized similarities~($\simunnorm(\bs, \ba, \bs')$), \methodname\ attains much lower normalized similarities as compared to CQL and REM. The results are shown for training with 5\% DQN replay dataset averaged over 5 seeds.}\label{fig:atari_3_cosine}
-% %     \vspace{-0.5cm}
-% % \end{figure}
-
-
-% % \begin{figure*}[t]
-% %     \centering
-% %     \includegraphics[width=\linewidth]{atari/5_percent_res_100.pdf}
-% %     \vspace{-0.65cm}
-% %     \caption{Evaluation performance of offline REM and CQL with and without \methodname\ on the 5\% DQN replay dataset~\citep{agarwal2019optimistic}. Note that the data collected during evaluation is not provided to offline agents during training. The horizontal line shows the average performance of the trajectories in entire DQN replay dataset. \methodname\ substantially improves the performance of CQL and REM as well as prevents the decay in performance of REM with more gradient updates on \textsc{Seaquest} and \textsc{Asterix}. For \textsc{Pong}, training for longer~(12.5 million updates) results in improved score for REM + \methodname\ over REM.}
-% %     \label{fig:atari_5_percent}
-% % \end{figure*}
-
-
-% % \begin{table*}[t]
-% %     \centering
-% %     \caption{Normalized returns on sub-sampled Atari DQN Replay datasets~\citep{agarwal2019optimistic}. A random policy is provided a normalized score of zero while the average performance of the trajectories in the entire DQN replay dataset is assigned a normalized score of 100. We report results based on 6.5 million gradient updates with batch size of 32 for the 1\% setting and 12.5 million gradient updates for the 5\% and 10\% settings. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}.}
-% %     \label{tab:cql_res}
-% %     \vspace{0.2cm}
-% % \begin{tabular}{cccccc}
-% % \toprule
-% % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
-% % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% % & (17 games) & CQL & CQL + \methodname & CQL & CQL + \methodname \\
-% % \midrule
-% % 1\% replay &  Median & 43.3 & \textbf{71.0} & 73.2 & \textbf{96.3} \\
-% % (uniformly sampled) & Mean & 50.7 & \textbf{60.9} & 74.4 & \textbf{84.6}  \\
-% % \midrule
-% % {5\% replay} & Median  & 84.6 & \textbf{104.9} & 127.8 & \textbf{150.7} \\
-% % (uniformly sampled)  & Mean & 43.3 & \textbf{97.2} &  139.5 & \textbf{189.5}  \\
-% % \midrule
-% % {10\% replay} & Median  & 53.4 &  \textbf{69.9} & 73.3 & \textbf{97.2} \\
-% % (initial exploration data) & Mean & 21.8 & \textbf{49.6} &  79.4 & \textbf{140.0}  \\
-% % \bottomrule
-% % \end{tabular}
-% % \end{table*}
-
-% %% Final Performance CQL vs Penalty
-% % -----DR3+CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 61.8 [41.6 69. ]
-% % 5% data
-% % Median 100.2 [ 90.6 102.7]
-% % 10% data
-% % Median 67.0 [62.1 71.4]
-% % *****IQM*****
-% % 1% data
-% % IQM 50.5 [44.9 56.1]
-% % 5% data
-% % IQM 93.6 [88. 99.]
-% % 10% data
-% % IQM 67.3 [63.2 71.4]
-% % -----CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 44.4 [30.9 54. ]
-% % 5% data
-% % Median 89.6 [67.9 98.2]
-% % 10% data
-% % Median 59.6 [54.6 64.4]
-% % *****IQM*****
-% % 1% data
-% % IQM 44.0 [38.1 49.8]
-% % 5% data
-% % IQM 74.2 [67.3 81.4]
-% % 10% data
-% % IQM 54.1 [49.5 59.3]
-
-% %% Final performance REM vs REM+penalty
-% % -----DR3+REM-----
-% % *****Median*****
-% % 1% data
-% % Median 13.1 [10.  18.4]
-% % 5% data
-% % Median 72.4 [65.7 81.1]
-% % 10% data
-% % Median 72.4 [65.7 81.1]
-% % *****IQM*****
-% % 1% data
-% % IQM 13.4 [11.  16.4]
-% % 5% data
-% % IQM 77.2 [71.4 83.9]
-% % 10% data
-% % IQM 77.2 [71.4 83.9]
-% % -----REM-----
-% % *****Median*****
-% % 1% data
-% % Median -0.0 [-0.7  0.1]
-% % 5% data
-% % Median 24.9 [14.5 29. ]
-% % 10% data
-% % Median 24.9 [14.5 29. ]
-% % *****IQM*****
-% % 1% data
-% % IQM -0.1 [-0.7  0.6]
-% % 5% data
-% % IQM 23.5 [19.9 27.3]
-% % 10% data
-% % IQM 23.5 [19.9 27.3]
-
-
-% % REM vs REM + penalty Average performance (stability)
-% % -----DR3+REM-----
-% % *****Median*****
-% % 1% data
-% % Median 11.7
-% % 5% data
-% % Median 52.5
-% % 10% data
-% % Median 63.9
-% % *****IQM*****
-% % 1% data
-% % IQM 12.4
-% % 5% data
-% % IQM 53.5
-% % 10% data
-% % IQM 67.8
-% % -----REM-----
-% % *****Median*****
-% % 1% data
-% % Median 3.1
-% % 5% data
-% % Median 18.8
-% % 10% data
-% % Median 47.7
-% % *****IQM*****
-% % 1% data
-% % IQM 3.4
-% % 5% data
-% % IQM 21.1
-% % 10% data
-% % IQM 47.9
-
-% % FInal performance (scaled via random scores and CQL is 100\% for IUP comparison):
-% % Asterix 256.6
-% % BeamRider 18.6
-% % Breakout 176.3
-% % DemonAttack 228.0
-% % DoubleDunk 133.5
-% % Enduro 115.2
-% % IceHockey 51.7
-% % Jamesbond 310.8
-% % MsPacman 131.5
-% % Pong 105.5
-% % Qbert 114.4
-% % RoadRunner 100.0
-% % Seaquest 366.6
-% % SpaceInvaders 322.8
-% % WizardOfWor 80.3
-% % YarsRevenge 75.7
-% % Zaxxon 485.6
-
-
-
-% % \begin{table*}[t]
-% %     \centering
-% %     \caption{Normalized returns on sub-sampled Atari DQN replay datasets~\citep{agarwal2019optimistic}. The individual scores and learning curves for all the 17 games are provided in the Appendix~\ref{app:atari_results}. When combined with REM, we used a coefficient of $\alpha = 0.001$ to show the robustness of \methodname\ across different datasets. \color{red}{Merge the two tables somehow to save space.}}
-% %     \label{tab:rem_res}
-% %     \vspace{0.2cm}
-% % \begin{tabular}{cccccc}
-% % \toprule
-% % %%AK.1.26: maybe we want to name the average performance as Stability coefficient or something like that but thats a minor point
-% % \multirow{2}{*}{DQN Replay Setting} & Normalized Score Metric & \multicolumn{2}{c}{Average Performance}   & \multicolumn{2}{c}{Maximum Performance} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
-% % \midrule
-% % 1\% replay &  Median & 4.7 & \textbf{19.3} & 25.5 & \textbf{42.5} \\
-% % (uniformly sampled) & Mean & -1.8 & \textbf{47.2} &  72.4 & \textbf{100.2}  \\
-% % \midrule
-% % {5\% replay} & Median  & 27.4 & \textbf{58.5} & 88.8 & \textbf{99.8} \\
-% % (uniformly sampled)  & Mean & 40.9 & \textbf{84.7} &  141.1 & \textbf{165.8}  \\
-% % \midrule
-% % {10\% replay} & Median  & 50.7 &  \textbf{68.5} & 107 & \textbf{108.5} \\
-% % (initial exploration data) & Mean & 63.7 & \textbf{84.4} &  136.5 & \textbf{140.7}  \\
-% % \bottomrule
-% % \end{tabular}
-% % \end{table*}
-
-% %% Final Performance CQL vs Penalty
-% % -----DR3+CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 61.8 [41.6 69. ]
-% % 5% data
-% % Median 100.2 [ 90.6 102.7]
-% % 10% data
-% % Median 67.0 [62.1 71.4]
-% % *****IQM*****
-% % 1% data
-% % IQM 50.5 [44.9 56.1]
-% % 5% data
-% % IQM 93.6 [88. 99.]
-% % 10% data
-% % IQM 67.3 [63.2 71.4]
-% % -----CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 44.4 [30.9 54. ]
-% % 5% data
-% % Median 89.6 [67.9 98.2]
-% % 10% data
-% % Median 59.6 [54.6 64.4]
-% % *****IQM*****
-% % 1% data
-% % IQM 44.0 [38.1 49.8]
-% % 5% data
-% % IQM 74.2 [67.3 81.4]
-% % 10% data
-% % IQM 54.1 [49.5 59.3]
-
-% % CQL  vs CQL + penalty Average performance (stability)
-% % -----DR3+CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 63.7
-% % 5% data
-% % Median 102.6
-% % 10% data
-% % Median 65.2
-% % *****IQM*****
-% % 1% data
-% % IQM 52.6
-% % 5% data
-% % IQM 102.4
-% % 10% data
-% % IQM 65.2
-% % -----CQL-----
-% % *****Median*****
-% % 1% data
-% % Median 42.5
-% % 5% data
-% % Median 81.4
-% % 10% data
-% % Median 52.1
-% % *****IQM*****
-% % 1% data
-% % IQM 42.8
-% % 5% data
-% % IQM 72.3
-% % 10% data
-% % IQM 56.3
-
-
-% % \begin{table*}[t]
-% %     \centering
-% %     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
-% %     \label{tab:rem_res}
-% %     \vspace{0.2cm}
-% % \begin{tabular}{cccccc}
-% % \toprule
-% % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
-% % \midrule
-% % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
-% %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
-% % \midrule
-% % 5\% & Median  & 24.9 & \textbf{72.4} & 18.8 & \textbf{52.5} \\
-% %  & IQM & 23.5 & \textbf{77.2} &  21.1 & \textbf{53.5}  \\
-% % \midrule
-% % 10\% & Median & 24.9 &  \textbf{72.4} & 47.7 & \textbf{63.9} \\
-% %  & IQM & 23.5 & \textbf{77.4} &  47.9 & \textbf{67.8}  \\
-% % \bottomrule
-% % \end{tabular}
-% % \end{table*}
-
-
-
-% % REM vs REM + penalty Average performance (stability)
-% % -----DR3+REM-----
-% % *****Median*****
-% % 1% data
-% % Median 11.7
-% % 5% data
-% % Median 52.5
-% % 10% data
-% % Median 63.9
-% % *****IQM*****
-% % 1% data
-% % IQM 12.4
-% % 5% data
-% % IQM 53.5
-% % 10% data
-% % IQM 67.8
-% % -----REM-----
-% % *****Median*****
-% % 1% data
-% % Median 3.1
-% % 5% data
-% % Median 18.8
-% % 10% data
-% % Median 47.7
-% % *****IQM*****
-% % 1% data
-% % IQM 3.4
-% % 5% data
-% % IQM 21.1
-% % 10% data
-% % IQM 47.9
-
-% %% Final performance REM vs REM+penalty
-% % -----DR3+REM-----
-% % *****Median*****
-% % 1% data
-% % Median 13.1 [10.  18.4]
-% % 5% data
-% % Median 72.4 [65.7 81.1]
-% % 10% data
-% % Median 72.4 [65.7 81.1]
-% % *****IQM*****
-% % 1% data
-% % IQM 13.4 [11.  16.4]
-% % 5% data
-% % IQM 77.2 [71.4 83.9]
-% % 10% data
-% % IQM 77.2 [71.4 83.9]
-% % -----REM-----
-% % *****Median*****
-% % 1% data
-% % Median -0.0 [-0.7  0.1]
-% % 5% data
-% % Median 24.9 [14.5 29. ]
-% % 10% data
-% % Median 24.9 [14.5 29. ]
-% % *****IQM*****
-% % 1% data
-% % IQM -0.1 [-0.7  0.6]
-% % 5% data
-% % IQM 23.5 [19.9 27.3]
-% % 10% data
-% % IQM 23.5 [19.9 27.3]
-
-% % \begin{table*}[t]
-% %     \centering
-% %     \caption{\small{Performance of REM, REM + \methodname after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual scores for all 17 games are provided in the Appendix~\ref{app:atari_results}.}}
-% %     \label{tab:rem_res}
-% %     \vspace{0.2cm}
-% % \begin{tabular}{cccccc}
-% % \toprule
-% % \multirow{2}{*}{\textbf{Data}} & \textbf{Metric} & \multicolumn{2}{c}{\textbf{Last iteration score}}   & \multicolumn{2}{c}{\textbf{Stability score}} \\
-% % & (17 games) & REM & REM + \methodname & REM & REM + \methodname \\
-% % \midrule
-% % 1\% &  Median & 0.0 & \textbf{13.1} & 3.1 & \textbf{11.7} \\
-% %  & IQM & -0.1 & \textbf{13.4} & 3.4 & \textbf{12.4}  \\
-% % \midrule
-% % 5\% & Median  & 24.9 & \textbf{72.4} & 18.8 & \textbf{52.5} \\
-% %  & IQM & 23.5 & \textbf{77.2} &  21.1 & \textbf{53.5}  \\
-% % \midrule
-% % 10\% & Median & 24.9 &  \textbf{72.4} & 47.7 & \textbf{63.9} \\
-% %  & IQM & 23.5 & \textbf{77.4} &  47.9 & \textbf{67.8}  \\
-% % \bottomrule
-% % \end{tabular}
-% % \end{table*}
-
-
-
-
-% % \begin{figure*}[t]
-% %     \centering
-% %     \vspace{-5pt}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Median_rem_penalty.pdf}
-% %     \includegraphics[width=0.45\linewidth]{figures/atari_new/IQM_rem_penalty.pdf}
-% %     \includegraphics[width=0.45\linewidth]{figures/atari_new/IQM_cql_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Mean_rem_penalty.pdf}
-% %     % \includegraphics[width=\linewidth]{figures/atari_new/Capped_Mean_rem_penalty.pdf}
-% %     \vspace{-0.25cm}
-% %     \caption{\small{\textbf{Avasdsdferage normalized scores across 17 Atari games for REM + \methodname\ (top), CQL + \methodname\ (bottom)} over the course of training with different dataset types from prior work~\citep{agarwal2019optimistic}. While na\"ive REM suffers from a degradation in performance with more training, REM + \methodname\ not only remains generally stable with more training, but also attains higher final performance. CQL + \methodname\ attains higher performance. Performance is reported using interquartile mean~(IQM), normalization was performed with respect to the behavior policy that collected the entire DQN replay dataset and shaded regions show 95\% percentile confidence intervals~(CIs.)}}
-% %     \label{fig:atari_all_combined}
-% %     \vspace{-0.55cm}
-% % \end{figure*}
-
-% \textbf{Offline RL on Atari 2600 games.}
-% We compare \methodname\ to prior offline RL methods on a set of offline Atari datasets of varying sizes and quality (in terms of returns), following prior work~\citep{agarwal2019optimistic}. Following the protocol of \citep{agarwal2019optimistic, kumar2020conservative,kumar2021implicit}, we evaluated on three different datasets: \textbf{(1)} small but diverse datasets consisting of 1\% and 5\% samples drawn uniformly at random from DQN replay~\citep{agarwal2019optimistic}; \textbf{(2)} a lower quality dataset with more suboptimal trajectories consisting of the first 10\% samples of the replay buffer of an online DQN. We report median and mean normalized scores across 17 games (previously used by~\citep{fedus2020revisiting,kumar2021implicit}) where the normalized score is computed using the average returns of \textit{all} the trajectories in the entire replay buffer of an online DQN.  
-% \methodname\ attains the state-of-the-art performance across the offline Atari benchmarks, when combined with recent offline RL methods, directly improving upon prior methods including CQL~\citep{kumar2021implicit} and REM~\citep{agarwal2019optimistic},
-% across all the dataset settings. The final performance and the average performance (\ie stability score) of the method is provided Table~\ref{tab:cql_res}.  Observe in Figure~\ref{fig:atari_all_combined}, that when \methodname\ is applied in conjunction with REM, it prevents the excessive degradation in performance. CQL +\methodname\ improves by 20\% over CQL on final performance and attains 25\% better stability score (Table~\ref{tab:cql_res}).
-
-% In addition, we also compare \methodname\ to the $\mathrm{srank}(\Phi)$ regularizer proposed to counter rank collapse in the features of the Q-function in~\citep{kumar2021implicit}. While this regularizer attempted to only fix the symptom of rank collapse in the Q-function, we find that CQL + \methodname\ attains a median improvement of \textbf{31.5\%} on 17 games over CQL, whereas the prior method only improves by 14.1\% over na\"ive CQL. Thus, CQL+\methodname\ improves by over \textbf{2x} relative to the penalty in \citet{kumar2021implicit}. 
-% % This indicates that by directly addressing the adverse impacts of implicit regularization, \methodname\ can substantially improve upon prior methods that only address its symptoms.  
-
-% %Notably, REM performs similar to a random policy in terms of average performance on the 1\%  setting, which is significantly improved by \methodname.
-% %%SL.2.1: I think we can cut this last sentence, and instead focus on the more positive takeaways.
-
-% % To evaluate whether the improvements from \methodname\ stem from penalizing unnormalized similarities $\simunnorm(\bs, \ba, \bs')$, we also compare \methodname\ to penalizing (1) $\simnorm(\bs, \ba, \bs')$, or (2) feature norms~($\|\phi(\bs)\|_2$) on the 5\% dataset on 5 games. The full results, shown in Appendix~\ref{}, confirms that both of these penalties perform substantially worse than \methodname, aligned with our theoretical analysis about effectiveness of \methodname~(Section~\ref{sec:method_analysis}).
-
-% %%SL.2.1: This last phrase is without context. What question is it trying to answer? What is the motivation? Start with a sentence of motivation or a question, then evidence, then answer. Something like: Is [whatever] true? To answer this question, we can [do something]. The full results, shown in [where], indicate [something]. This suggests that [something].
-
-% \begin{wrapfigure}{r}{0.5\textwidth}
-% \small \begin{center}
-% \vspace{-10pt}
-% \includegraphics[width=\linewidth]{figures/close_open_grasp (1).png}
-% \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
-% \vspace{-25pt}
-% \end{center}
-% \end{wrapfigure}
-% \textbf{Offline RL on robotic manipulation from images.} Our next set of experiments aim to evaluate the efficacy of \methodname\ on two robotic manipulation tasks, operating directly from raw pixel observations. We utilize robotic manipulation tasks from COG~\citep{singh2020cog}, visualized on the right (figure from \citep{singh2020cog}), that require offline RL methods to learn to stitch skills (e.g., opening a drawer, closing a drawer, picking an obstructive object, placing an object, etc.) over extended horizons in the presence of only a sparse 0-1 reward signal. To make these tasks more challenging, we reduce the amount of data available
-% to the algorithm to varying amounts: 5\% and 25\% of the original data.
-% Additionally, we make the relatively easier pick-and-place task harder by incorporating diverse 40 objects (instead of the single object setting utilized by \citep{singh2020cog}). We combine \methodname\ with COG~\citep{singh2020cog} 
-% %%AK: while it is probably gray area as to whether COG is a system or an algorithm or the algorithm is CQL, I wrote COG here so as to make it look like a diverse choice of algorithms
-% and report comparisons on both final and average performance in Figure~\ref{fig:cog_figure}. Observe in Figure~\ref{fig:cog_figure}, that \methodname\ not only improves over COG in terms of performance, but also learns faster and attains a better average performance.
-
-% % \vspace{-5pt}
-% \begin{wrapfigure}{l}{0.42\textwidth}
-% \vspace{-10pt}
-% \small \begin{center}
-% \vspace{-10pt}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v2.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerCloseOpenGraspNeutral-v0_cog_vs_dr3_25_v3.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25_v4.pdf}
-% % \includegraphics[width=0.49\linewidth]{figures/Widow250DoubleDrawerPickPlaceOpenGraspNeutral-v0_cog_vs_dr3_25.pdf}
-% \includegraphics[width=0.98\linewidth]{figures/cog_plots.pdf}
-% \end{center}
-% \vspace{-15pt}
-% \caption{\small{\textbf{Performance of \methodname\ + COG} on four robotic manipulation settings with different amounts of data. As is visible, COG + \methodname\ always outperforms COG and attains higher average and final performance.}}
-% \vspace{-20pt}
-% \label{fig:cog_figure}
-% \end{wrapfigure}
-% \textbf{Offline RL on D4RL~\citep{fu2020d4rl} tasks.} While prior methods have attained significant improvements on the Gym tasks from D4RL~\citep{kumar2020conservative,kostrikov2021offline,fakoor2021continuous}, harder tasks (\eg, antmazes, amd kitchen tasks) still remain challenging. In these domains, we evaluate the efficacy of \methodname\ combined with CQL, and report the comparisons in Table~\ref{tab:cql_d4rl}. On these tasks, we utilize default hyperparameters for CQL. To assess the stability of algorithms on these tasks, we report the final performance of the CQL and CQL + \methodname, at the end of 2M gradient steps with identical learning rates for both CQL and CQL + DR3. This is different prior works~\citep{kumar2020conservative,fakoor2021continuous,kostrikov2021offline} that report performance at the end of 1M steps. Observe in Table~\ref{tab:cql_d4rl}, that CQL + \methodname\ outperforms CQL, in some cases, substantially indicating the ability to train for more gradient steps with \methodname.
-% Further, we also compare the effect of addition of \methodname\ on policy constraint methods such as BRAC~\citep{wu2019behavior}. \methodname\ applied on BRAC improves final performance by \textbf{13.8} median normalized score and stability by \textbf{8.1} median normalized score across 15 MuJoCo tasks from D4RL~\citep{fu2020d4rl}. Complete numbers for BRAC can be found in Table~\ref{tab:brac}.
-
-% \begin{table}[t]
-% % \vspace{-0.8cm}
-% \fontsize{9}{9}
-% \centering
-% \caption{\small{Performance of CQL, CQL + \methodname\ after 2M (twice as long as prior work) gradient steps with a learning rate of 3e-4 for the Q-function averaged over 4 seeds. We also find that CQL + \methodname\ outperforms CQL at 2M steps, and is comparable to CQL when evaluated at 1M steps, which was the protocol followed originally.}}
-% \label{tab:cql_d4rl}
-% % \vspace{0.2cm}
-% \begin{tabular}{l||r|r}
-% \toprule
-% {\textbf{D4RL (-v0) Task}} & CQL & \textbf{CQL + \methodname} \\
-% \midrule
-% \texttt{kitchen-mixed} & 14.58 $\pm$ 20.49 & \textbf{37.04 $\pm$ 8.04} \\
-% \texttt{kitchen-partial} & 29.63 $\pm$ 19.58 & \textbf{43.54 $\pm$ 1.90}  \\
-% \texttt{kitchen-complete} & 22.27 $\pm$ 17.51 & 24.77 $\pm$ 15.3 \\
-% \midrule
-% \texttt{antmaze-medium-diverse} & 0.73 $\pm$ 0.12 & \textbf{0.90 $\pm$ 0.08} \\
-% \texttt{antmaze-medium-play} & 0.47 $\pm$ 0.36 & 0.36 $\pm$ 0.26 \\
-% \texttt{antmaze-large-diverse} & 0.10 $\pm$ 0.00 & \textbf{0.27 $\pm$ 0.16}\\
-% \texttt{antmaze-large-play} & 0.06 $\pm$ 0.09 & \textbf{0.1 $\pm$ 0.01} \\
-% \bottomrule
-% \end{tabular}
-% \vspace{-0.5cm}
-% \end{table}
-
-% \textbf{To summarize}, these results indicate that \methodname\ is a versatile explicit regularizer for TD learning that improves performance and stability of a wide range of offline RL methods, including conservative methods (e.g, CQL, COG), policy constraint methods (e.g., BRAC) and ensemble-based methods (e.g., REM). 
-% {We also empirically show that \methodname\ alleviates the feature rank collapse phenomenon~\citep{kumar2021implicit} in Appendix~\ref{app:extra_results}. Since \methodname\ is directly derived as a way to mitigate the undesirable effect of implicit regularization of the TD update, utilizing it directly address the rank collapse issue as compared to a penalty artificially created to tackle ths phenomenon.}
-
-% \begin{table}[H]
-% \fontsize{9}{9}
-% \centering
-% \caption{Performance of \methodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}. Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training.}
-% \label{tab:brac}
-% \vspace{0.2cm}
-% \begin{tabular}{ccccc}
-% \toprule
-% \multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Final Performance} \\
-% & BRAC & BRAC + \methodname & BRAC & BRAC + \methodname \\
-% \midrule
-% %('True', '0.1', '2')
-% halfcheetah-expert-v0 & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
-% halfcheetah-medium-v0 & 43.5 $\pm$ 0.2 & 43.2 $\pm$ 0.2  & 45.1 $\pm$ 0.8 & 44.9 $\pm$ 0.6 \\
-% halfcheetah-medium-expert-v0 & 17.0 $\pm$ 5.4 & 6.0 $\pm$ 5.5  & 24.8 $\pm$ 9.3 & 6.7 $\pm$ 7.3 \\
-% halfcheetah-random-v0 & 24.4 $\pm$ 0.4 & 18.4 $\pm$ 0.3  & 24.9 $\pm$ 0.8 & 18.2 $\pm$ 1.0 \\
-% halfcheetah-medium-replay-v0 & 44.9 $\pm$ 0.3 & 44.1 $\pm$ 0.4  & 45.0 $\pm$ 1.4 & 44.9 $\pm$ 0.5 \\
-% hopper-expert-v0 & 15.7 $\pm$ 1.5 & 21.8 $\pm$ 3.2  & 16.6 $\pm$ 6.0 & 20.8 $\pm$ 5.3 \\
-% hopper-medium-v0 & 32.8 $\pm$ 1.4 & 46.3 $\pm$ 7.1  & 36.2 $\pm$ 1.7 & 58.3 $\pm$ 13.7 \\
-% hopper-medium-expert-v0 & 40.2 $\pm$ 5.7 & 37.0 $\pm$ 2.9  & 31.7 $\pm$ 11.8 & 21.8 $\pm$ 4.9 \\
-% hopper-random-v0 & 11.7 $\pm$ 0.0 & 11.2 $\pm$ 0.0  & 12.2 $\pm$ 0.0 & 11.1 $\pm$ 0.0 \\
-% hopper-medium-replay-v0 & 31.6 $\pm$ 0.3 & 30.3 $\pm$ 0.8  & 31.3 $\pm$ 1.2 & 36.1 $\pm$ 5.7 \\
-% walker2d-expert-v0 & 25.5 $\pm$ 14.4 & 33.6 $\pm$ 11.8  & 54.0 $\pm$ 31.0 & 60.6 $\pm$ 20.2 \\
-% walker2d-medium-v0 & 81.3 $\pm$ 0.3 & 80.8 $\pm$ 0.2  & 83.8 $\pm$ 0.2 & 83.4 $\pm$ 0.3 \\
-% walker2d-medium-expert-v0 & 5.8 $\pm$ 5.2 & 6.4 $\pm$ 3.4  & 22.4 $\pm$ 22.0 & 39.5 $\pm$ 23.3 \\
-% walker2d-random-v0 & 1.4 $\pm$ 0.8 & 1.7 $\pm$ 0.9  & 0.0 $\pm$ 0.1 & 2.9 $\pm$ 2.1 \\
-% walker2d-medium-replay-v0 & 26.1 $\pm$ 6.4 & 47.4 $\pm$ 4.1  & 11.7 $\pm$ 7.0 & 38.7 $\pm$ 9.6 \\
-% \midrule
-% Median Normalized Performance & 25.5 & \textbf{33.6} & 24.9 & \textbf{38.7} \\
-% Mean Normalized Performance & 26.9 & \textbf{31.9} & 29.5 & \textbf{37.3} \\
-% \bottomrule
-% \end{tabular}
-% \end{table}
-
-% \vspace{-10pt}
-
-% \section{Related Work}
-% \label{sec:related}
-% \vspace{-5pt}
-% %%AK: removed headers to make sure we don't need to characterize works, and we can shorten this section
-% Prior analyses of learning dynamics in RL has focused primarily on analyzing error propagation in tabular or linear settings~\citep[\eg][]{chen2019information,duan2020minimax,xie2020q, wang2021what,wang2021instabilities,farahmand2010error,munos2003api} and providing convergence guarantees~\citep{de2002alp,maei09nonlineargtd}, but these appraoches do not reason about representation learning and implicit biases. Another line of work~\citep{ghosh2020representations} has focused on understanding the stability of TD-learning in linear settings, analyzing different representations. 
-% % While we utilize techniques from this literature to show stability guarantees in Theorem ??, our primary focus is to reason about learned representations.  
-% %%AK: add more papers here 
-% In deep Q-learning, recent works have focused on characterizing interference issues~\citep{achiam2019towards,bengio2020interference}, studying the impact of data distributions~\citep{fu2019diagnosing,kumar2020discor,du2019distributioncheck}, showing convergence under certain assumptions~\citep{yang2020theoretical,cai2019neural,zhang2020can,xu2019finite}, and analyzing the impact of non-stationarity in RL~\citep{igl2020impact,fedus2020catastrophic}. However, these issues are generally orthogonal to the evolution of representations and features of the Q-function, that are affected by the implicit regularization properties of the function approximator and the learning algorithm. While not a direct focus of our work, several methods have been proposed to handle distributional shift in offline RL by learning conservative Q-values~\citep{kumar2020conservative,wu2019behavior,kostrikov2021offline} or applying policy constraints~\citep{kumar2019stabilizing,fujimoto2018off,peng2019awr,jaques2019way,wu2019behavior,siegel2020keep} (see \citep{levine2020offline} for a review), our method is orthogonal and can be applied on any of these methods.
-
-% %%AK: need to also cite mobahi and a bucnh of other self regression papers
-% Recent work~\citep{kumar2021implicit} studies the learning dynamics of Q-learning and observes that the rank of the feature matrix, $\Phi$, drops during training. While this observation is related our ours, our analysis identifies feature co-adaptation (Theorem~\ref{thm:implicit_noise_reg}) as the primary culprit for aliasing and rank collapse. In other words, our analysis identifies the mechanism due to which bootstrapping learns features with pathological properties beyond noting the existence of these issues. Moreover, as we will show, our approach (DR3) outperforms $\srank(\Phi)$ penalty in \citep{kumar2021implicit} by more than \textbf{100\%}. Prior work \citep{lyle2021effect} has also studied the impact of auxilliary tasks on feature learning, which is orthogonal to the problem we explore. \citep{zanette2020exponential} identifies hard instances for offline RL with linear function approximation suffering from an issue similar to co-adaptation, where features may prevent learning along certain dimensions, even with enough data and high coverage. While this counter-example was specifically hand-designed, our analysis explains how features \emph{learned} by a network co-adapt just via the implicit regularization effect. Additionally, \citep{durugkar2018td,pohlen2018observe} attempt to add regularization similar to ours based on the intuition to encourage more stationary updates by preventing the target values from changing, which is distinct from our goal, but do not show much superior empirical performance. Finally, a similar co-adaptation phenomenon also arises in self-supervised learning (SSL) methods based on bootstrapping~\citep{grill2020bootstrap,chen2020exploring} allowing the network to learn a non-collapsed representation of the input, invariant to spurious correlations~\citep{tian2021understanding,tian2020understanding}. While such a co-adaptation is beneficial in SSL and aids invariant representation learning, it can be adverse in value-based RL as discussed in Section~\ref{sec:problem}.
-
-% % \section{Practical Implementation of \methodname}
-% % \label{app:method_details}
-% % Here we briefly discuss some of the practical implementation details of our explicit regularizer presented in \ref{sec:method}. Because per-example gradient dot products are costly to compute, we find that it suffices to approximate  $\mathcal{R}_\mathrm{exp}(\theta)$ with the contribution from the last layer parameters (\ie $\sum_i \nabla_\bw Q_\theta(\bs_i, \ba_i)^\top \nabla_\bw Q_\theta(\bs'_i, \ba'_i)$), thus, the practical version of our explicit regularizer is: $\bar{\mathcal{R}}_\mathrm{exp}(\theta) = \sum_{i \in \mathcal{D}} \phi(\bs_i, \ba_i)^\top \phi(\bs'_i, \ba'_i)$. In discrete action environments, where Q-learning algorithms utilize multi-head networks to parameterize Q-functions (one head per action), we apply \methodname\ on the state features $\phi(\bs)$. On continuous action domains, we apply \methodname\ to state-action features. The weighting factor, $\alpha$, is a constant across different tasks and depends on the base offline RL method. 
-
-\section{Experimental Details of Applying \methodname}
+\section{Experimental Details of Applying \drmethodname}
 \label{app:additional_background}
 
-In this section, we discuss the practical experimental details and hyperparameters in applying our method, \methodname\ to various offline RL methods. We first discuss an overview of the offline RL methods we considered in this paper, and then provide a discussion of hyperparameters for \methodname.
+In this section, we discuss the practical experimental details and hyperparameters in applying our method, \drmethodname\ to various offline RL methods. We first discuss an overview of the offline RL methods we considered in this paper, and then provide a discussion of hyperparameters for \drmethodname.
 
 \subsection{Background on Various Offline RL Algorithms}
 \label{app:details_algo}
@@ -901,25 +36,19 @@ In this paper, we consider four base offline RL algorithms that we apply DR3 on.
 \textbf{REM}. Random ensemble mixture~\citep{agarwal2019optimistic} is an uncertainty-based offline RL algorithm uses multiple parameterized Q-functions to estimate the Q-values. During the Bellman backup, REM computes a random convex combination of the target Q-values and then trains the Q-function to match this randomized target estimate. The randomized target value estimate provides a robust estimate of target values, and delays unlearning and performance degradation that we typically see with standard DQN-style algorithms in the offline setting. {For instantiating REM}, we follow the instantiation provided by the authors and instantiate a multi-headed Q-function with 200 heads, each of which serves as an estimate of the target value. These multiple heads branch off the last-but-one layer features of the base Q-network.
 The objective for REM is given by:
 \begin{equation}
-\!\!\!\!\!\!\!\!\!\min_{\theta} \expected_{\bs, \ba, r, \bs' \sim \mathcal{D}} \left[ \expected_{\alpha_{1}, \dots, \alpha_{K} \sim {\Delta}} \left[ \ld \left(
-\sum_{k} \alpha_{k} \Qt^{k}(\bs, \ba) - r - \gamma\max_{\ba'} \sum_{k} \alpha_{k}\Qtp^{k}(\bs', \ba') \right) \right]\right] \label{eq:sqn}
+\!\!\!\!\!\!\!\!\!\min_{\theta} \expected_{\bs, \mathbf{a}, r, \bs' \sim \mathcal{D}} \left[ \expected_{\alpha_{1}, \dots, \alpha_{K} \sim {\Delta}} \left[ \ld \left(
+\sum_{k} \alpha_{k} \Qt^{k}(\bs, \mathbf{a}) - r - \gamma\max_{\mathbf{a}'} \sum_{k} \alpha_{k}\Qtp^{k}(\bs', \mathbf{a}') \right) \right]\right] \label{eq:sqn}
 \end{equation} where $l_\lambda$ denotes the Huber loss while $P_\Delta$ denotes the probability distribution over the standard (K − 1)-simplex.
 
-\textbf{CQL}. Conservative Q-learning~\citep{kumar2020conservative} is an offline RL algorithm that learns a conservative value function such that the estimated performance of the policy under this learned value function lower-bounds its true value. CQL modifies the Q-function training to incorporate a term that minimizes the overestimated Q-values in expectation, while maximizing the Q-values observed in the dataset, in addition to standard TD error. This CQL regularizer is typically multiplied by a coefficient $\alpha$, and we pick $\alpha=0.1$ for all our Atari experiments following \citet{kumar2021implicit} and $\alpha=5.0$ for all our kitchen and antmaze D4RL experiments. Using $\overline{y}_k(\bs, \ba)$ to denote the target values computed via the Bellman backup (we use actor-critic backup for D4RL experiments and the $\max_{\ba'}$ backup for standard Q-learning in our Atari experiments following \citet{kumar2020conservative}), the objective for training CQL is given by: 
+\textbf{CQL}. Conservative Q-learning~\citep{kumar2020conservative} is an offline RL algorithm that learns a conservative value function such that the estimated performance of the policy under this learned value function lower-bounds its true value. CQL modifies the Q-function training to incorporate a term that minimizes the overestimated Q-values in expectation, while maximizing the Q-values observed in the dataset, in addition to standard TD error. This CQL regularizer is typically multiplied by a coefficient $\alpha$, and we pick $\alpha=0.1$ for all our Atari experiments following \citet{kumar2021implicit} and $\alpha=5.0$ for all our kitchen and antmaze D4RL experiments. Using $\overline{y}_k(\bs, \mathbf{a})$ to denote the target values computed via the Bellman backup (we use actor-critic backup for D4RL experiments and the $\max_{\mathbf{a}'}$ backup for standard Q-learning in our Atari experiments following \citet{kumar2020conservative}), the objective for training CQL is given by: 
 \begin{equation*}
-    \!\!\small{\min_{Q} \alpha \left(\E_{\bs \sim \mathcal{D}}\left[\log \sum_{\ba} \exp(Q(\bs, \ba))\right] - \E_{\bs, \ba \sim \mathcal{D}}\left[Q(\bs, \ba)\right] \right)\! +\! \frac{1}{2}\! \E_{\bs, \ba, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \ba) - \overline{y}_k(\bs, \ba) \right)^2 \right]}.
+    \!\!\small{\min_{Q} \alpha \left(\E_{\bs \sim \mathcal{D}}\left[\log \sum_{\mathbf{a}} \exp(Q(\bs, \mathbf{a}))\right] - \E_{\bs, \mathbf{a} \sim \mathcal{D}}\left[Q(\bs, \mathbf{a})\right] \right)\! +\! \frac{1}{2}\! \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \overline{y}_k(\bs, \mathbf{a}) \right)^2 \right]}.
 \end{equation*}
-The deep Q-network utilized by us is a ReLU network with four hidden layers of size $(256, 256, 256, 256)$ for the D4RL experiments, while for Atari we utilize the standard convolutional neural network from \citet{agarwal2019optimistic,kumar2021implicit} with 3 convolutional layers borrowed from the nature DQN network and then a hidden feedforward layer of size $512$.
+For Atari, we utilize the standard convolutional neural network from \citet{agarwal2019optimistic,kumar2021implicit} with 3 convolutional layers borrowed from the nature DQN network and then a hidden feedforward layer of size $512$.
 
-\textbf{BRAC}. Behavior-regularized actor-critic~\citep{wu2019behavior} is a policy-constraint based actor-critic offline RL algorithm which regularizes the policy to stay close to the behavior policy $\pi_\beta$ to prevent the selection of ``out-of-distribution'' actions. In addition, BRAC subtracts this divergence estimate from the target Q-values when performing the backup, to specifically penalize target values that come from out-of-distribution action inputs at the next state ($\bs', \ba')$. 
-\begin{align}
-    \text{Q-function:} ~~&~~ \min_\theta~~ \E_{\bs, \ba \sim \mathcal{D}}\left[\left(r(\bs, \ba) + \gamma \E_{\ba' \sim \pi_\phi(\cdot|\bs')}[\bar{Q}_\theta(\bs', \ba') + {\beta \log \hat{\pi}_\beta(\ba'|\bs')}] - Q_\theta(\bs, \ba) \right)^2 \right]. \nonumber\\
-    \text{Policy:} ~~&~~ \max_\phi~~ \E_{\bs \sim \mathcal{D}, \ba \sim \pi_\phi(\cdot|\bs)}\left[ Q_\theta(\bs, \ba) + {\beta \log \hat{\pi}_\beta(\ba|\bs)} - {\alpha \log \pi_\phi(\ba|\bs)} \right].  
-    \label{eqn:brac_eqns}
-\end{align}
-% We utilize the multiplier $\beta$ given by \todo{George, can you please fill this in?}
 
 \textbf{COG}. COG~\citep{singh2020cog} is an algorithmic framework for utilizing large, unlabeled datasets of diverse behavior to learn generalizable policies via offline RL. Similar to real-world scenarios where large unlabeled datasets are available alongside limited task-specific data, the agent is provided with two types of datasets. The task-specific dataset consists of behavior relevant for the task, but the prior dataset can consist of a number of random or scripted behaviors being executed in the same environment/setting. The goal in this task is to actually stitch together relevant and overlapping parts of different trajectories to obtain a good policy that can work from a new initial condition that was not seen in a trajectory that actually achieved the reward. COG utilizes CQL as the base offline RL algorithm, and following \citet{singh2020cog}, we fix the hyperparameter $\alpha=1.0$ in the CQL part for both base COG and COG + DR3. All other hyperparameters including network sizes, etc are kept fixed as the prior work~\citet{singh2020cog} as well.    
+
 
 \vspace{-0.2cm}
 \subsection{Tasks and Environments Used}
@@ -930,10 +59,11 @@ The deep Q-network utilized by us is a ReLU network with four hidden layers of s
 
 Following \citet{agarwal2021precipice}, we report interquartile mean~(IQM) normalized scores across all runs as mean scores can be dominated by performance on a few outlier tasks while median is independent of performance on all except 1 task -- zero score on half of the tasks would not affect the median. IQM which corresponds to 25\% trimmed mean and considers the performance on middle 50\% of the runs. IQM interpolates between mean and median, which correspond to 0\% and almost 50\% trimmed means across runs.
 
-{\bf D4RL tasks used.} For our experiments on D4RL, we utilize the Gym-MuJoCo-v0 environments for evaluating BRAC, since BRAC performed somewhat reasonably on these domains~\citep{fu2020d4rl}, whereas we use the harder AntMaze and Franka Kitchen domains for evaluating CQL, since these domains are challenging for CQL~\citep{kumar2020conservative}.
+% {\bf D4RL tasks used.} For our experiments on D4RL, we utilize the Gym-MuJoCo-v0 environments for evaluating BRAC, since BRAC performed somewhat reasonably on these domains~\citep{fu2020d4rl}, whereas we use the harder AntMaze and Franka Kitchen domains for evaluating CQL, since these domains are challenging for CQL~\citep{kumar2020conservative}.
 
 {\bf Robotic manipulation tasks from COG~\citep{singh2020cog}.} These tasks consist of a 6-DoF WidowX robot, placed in front of two drawers and a larger variety of objects. The robot can open or close a drawer, grasp objects from inside the drawer or on the table, and place them anywhere in the scene. The task here consists of taking an object out of a drawer. A reward of +1 is obtained when the object has been taken out, and zero otherwise. There are two variants of this domain: \textbf{(1)} in the first variant, the drawer starts out closed, the top drawer starts out open (which blocks the handle for the lower drawer), and an object starts out in front of the closed drawer,
 which must be moved out of the way before opening, and \textbf{(2)} in the second variant, the drawer is blocked by an object, and this object must be removed before the drawer can be opened and the target object can be grasped from the drawer. The prior data for this environment is collected from a collection of scripted randomized policies. These policies are capable of opening and closing both drawers with 40-50\% success rates, can grasp objects in the scene with about a 70\% success rate, and place those objects at random places in the scene (with a slight bias for putting them in the tray). 
+
 
 \begin{table*}[t]
 \small
@@ -974,11 +104,14 @@ $Q$-network: hidden units && 512 \\
 \vspace{-0.2cm}
 We utilize identical hyperparameters of the base offline RL algorithms when DR3 is used, where the base hyper-parameters correspond to the ones provided in the corresponding publications. DR3 requires us to tune the additional coefficient $c_0$, that weights the DR3 explicit regularizer term. In order to find this value on our domains, we followed the tuning strategy typically followed on Atari, where we evaluated four different values of $c_0 \in \{0.001, 0.01, 0.03, 0.3\}$ on 5 games (\textsc{Asterix}, \textsc{Seaquest}, \textsc{Breakout}, \textsc{Pong} and \textsc{SpaceInvaders}) on the 5\% replay dataset settings, picked $c_0$ that wprked best on just these domains, and used it to report performance on all 17 games, across all dataset settings (1\% replay and 10\% initial replay) in Section~\ref{sec:experiments}. This protocol is standard in Atari and has been used previously in \citet{agarwal2019optimistic,gulcehre2020rl,kumar2021implicit} in the context of offline RL. The value of the coefficient found using this strategy was $c_0 = 0.001$ for REM and $c_0 = 0.03$ for CQL.
 
-For CQL on D4RL, we ran DR3 with multiple values of $c_0 \in \{0.0001, 0.001, 0.01, 0.5, 1.0, 10.0\}$, and picked the smallest value of $c_0$ which did not lead to eventually divergent (either negatively diverging or positively diverging) Q-values, in average. For the antmaze domains, this corresponded to $c_0=0.001$ and for the FrankaKitchen domains, this corresponded to $c_0=1.0$. 
 
-% \section{\methodname\ Address Rank Collapse~\citep{kumar2021implicit} With Bootstrapping}
+
+
+% For CQL on D4RL, we ran DR3 with multiple values of $c_0 \in \{0.0001, 0.001, 0.01, 0.5, 1.0, 10.0\}$, and picked the smallest value of $c_0$ which did not lead to eventually divergent (either negatively diverging or positively diverging) Q-values, in average. For the antmaze domains, this corresponded to $c_0=0.001$ and for the FrankaKitchen domains, this corresponded to $c_0=1.0$. 
+
+% \section{\drmethodname\ Address Rank Collapse~\citep{kumar2021implicit} With Bootstrapping}
 % \label{app:extra_results}
-% In this section, we provide empirical evidence to show that utilizing \methodname\ alleviates the rank collapse issue pointed out by \citet{kumar2021implicit}, without explicitly aiming to address it. As shown in Figure~\ref{fig:iup_is_fixed}, we plot the effective rank $\mathrm{srank}(\Phi)$~\citep{kumar2021implicit} of the last-but-one layer representations of the Q-function. The effective rank of a matrix $\bM \in  \mathbb{R}^n \times d, n > d$, for a given threshold $\delta$ is given by: $\mathrm{srank}_\delta(\bM) = \min \{k: \frac{\sum_{i=1}^k \sigma_i(\bM)}{\sum_{i=1}^d \sigma_i(\bM)} \geq 1 - \delta \}$, where $\{\sigma_i(\bM)\}$ denotes the singular values of $\bM$ arranged in decreasing order. While it has been noted that bootstrapping can lead to rank collapse of these feature representations in the sense that the effective rank of features decreases, we find that DR3 addresses this issue allowing the Q-function to use its complete representational capacity as shown below.  
+% In this section, we provide empirical evidence to show that utilizing \drmethodname\ alleviates the rank collapse issue pointed out by \citet{kumar2021implicit}, without explicitly aiming to address it. As shown in Figure~\ref{fig:iup_is_fixed}, we plot the effective rank $\mathrm{srank}(\Phi)$~\citep{kumar2021implicit} of the last-but-one layer representations of the Q-function. The effective rank of a matrix $\bM \in  \mathbb{R}^n \times d, n > d$, for a given threshold $\delta$ is given by: $\mathrm{srank}_\delta(\bM) = \min \{k: \frac{\sum_{i=1}^k \sigma_i(\bM)}{\sum_{i=1}^d \sigma_i(\bM)} \geq 1 - \delta \}$, where $\{\sigma_i(\bM)\}$ denotes the singular values of $\bM$ arranged in decreasing order. While it has been noted that bootstrapping can lead to rank collapse of these feature representations in the sense that the effective rank of features decreases, we find that DR3 addresses this issue allowing the Q-function to use its complete representational capacity as shown below.  
 
 % \begin{figure}[ht]
 % \small \begin{center}
@@ -986,7 +119,7 @@ For CQL on D4RL, we ran DR3 with multiple values of $c_0 \in \{0.0001, 0.001, 0.
 % \includegraphics[width=0.7\linewidth]{figures/rank_trends_dr3_dqn.pdf}
 % % \includegraphics[width=\linewidth]{figures/pickplace_open_grasp.png}
 % % \vspace{-20pt}
-% \caption{Trend of effective rank, $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \methodname\ (blue, ``With DR3'') on three Atari games using the 5\% replay dataset~\citep{agarwal2019optimistic} in the offline RL regime. Note that the usage of \methodname\ clearly alleviates rank collapse, without actually explicitly correcting for the rank.}
+% \caption{Trend of effective rank, $\mathrm{srank}(\Phi)$ of features $\Phi$ learned by the Q-function when trained with TD error (red, ``Without DR3'') and with TD error + \drmethodname\ (blue, ``With DR3'') on three Atari games using the 5\% replay dataset~\citep{agarwal2019optimistic} in the offline RL regime. Note that the usage of \drmethodname\ clearly alleviates rank collapse, without actually explicitly correcting for the rank.}
 % \label{fig:iup_is_fixed}
 % \end{center}
 % \end{figure}
@@ -996,23 +129,24 @@ For CQL on D4RL, we ran DR3 with multiple values of $c_0 \in \{0.0001, 0.001, 0.
 % \subsection{Atari Results}
 % \label{app:atari_results}
 % ABCD 
-\section{Complete Results on All Domains}
+
+
+
+\section{Full Results for DR3}
 \label{app:full_results}
 
-
-
-In this section, we present the results obtained by running DR3 on the Atari and D4RL domains which were not discussed in the main paper due to lack of space. We first understand the effect of applying DR3 on BRAC~\citep{wu2019behavior}, which was missing from the main paper, and then present the per-game Atari results. 
+% In this section, we present the results obtained by running DR3 on the Atari and D4RL domains which were not discussed in the main paper due to lack of space. We first understand the effect of applying DR3 on BRAC~\citep{wu2019behavior}, which was missing from the main paper, and then present the per-game Atari results. 
 
 \begin{table}[H]
 \small
 \centering
- \caption{\small{Normalized interquartile mean~ (IQM) final performance (last iteration return) of CQL, CQL + \methodname, REM and REM + \methodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Intervals in brackets show 95\% CIs computed using stratified percentile bootstrap~\citep{agarwal2021precipice}}}.
+ \caption{\small{Normalized interquartile mean~ (IQM) final performance (last iteration return) of CQL, CQL + \drmethodname, REM and REM + \drmethodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Intervals in brackets show 95\% CIs computed using stratified percentile bootstrap~\citep{agarwal2021precipice}}}.
  \label{tab:cql_res_median}
     \vspace{0.1cm}
 \begin{tabular}{ccccc}
 \toprule
 % \multirow{2}{*}{\textbf{Data}} &  \multicolumn{4}{c|}{\textbf{Last iteration performance}} & \multicolumn{4}{c}{\textbf{Stability performance}} \\
-Data & CQL &  CQL + \methodname & REM & REM + \methodname \\
+Data & CQL &  CQL + \drmethodname & REM & REM + \drmethodname \\
 \midrule
 1\% & 44.4~\ss{(31.0, 54.3)} & \textbf{61.6}~\ss{(39.1, 71.5)} & 0.0~\ss{(-0.7, 0.1)} & \textbf{13.1}~\ss{(9.9, 18.3)} \\
 \midrule
@@ -1025,50 +159,50 @@ Data & CQL &  CQL + \methodname & REM & REM + \methodname \\
 \end{table}
 
 
-\begin{table}[H]
-\fontsize{9}{9}
-\centering
-\caption{\textbf{Performance of \methodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}.} Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training. %\todo{add bold}
-}
-\label{tab:brac}
-\vspace{0.2cm}
-\begin{tabular}{ccccc}
-\toprule
-\multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Final Performance} \\
-& BRAC & BRAC + \methodname & BRAC & BRAC + \methodname \\
-\midrule
-%('True', '0.1', '2')
-halfcheetah-expert-v0 & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
-halfcheetah-medium-v0 & 43.5 $\pm$ 0.2 & 43.2 $\pm$ 0.2  & 45.1 $\pm$ 0.8 & 44.9 $\pm$ 0.6 \\
-halfcheetah-medium-expert-v0 & 17.0 $\pm$ 5.4 & 6.0 $\pm$ 5.5  & 24.8 $\pm$ 9.3 & 6.7 $\pm$ 7.3 \\
-halfcheetah-random-v0 & 24.4 $\pm$ 0.4 & 18.4 $\pm$ 0.3  & 24.9 $\pm$ 0.8 & 18.2 $\pm$ 1.0 \\
-halfcheetah-medium-replay-v0 & 44.9 $\pm$ 0.3 & 44.1 $\pm$ 0.4  & 45.0 $\pm$ 1.4 & 44.9 $\pm$ 0.5 \\
-hopper-expert-v0 & 15.7 $\pm$ 1.5 & 21.8 $\pm$ 3.2  & 16.6 $\pm$ 6.0 & 20.8 $\pm$ 5.3 \\
-hopper-medium-v0 & 32.8 $\pm$ 1.4 & 46.3 $\pm$ 7.1  & 36.2 $\pm$ 1.7 & 58.3 $\pm$ 13.7 \\
-hopper-medium-expert-v0 & 40.2 $\pm$ 5.7 & 37.0 $\pm$ 2.9  & 31.7 $\pm$ 11.8 & 21.8 $\pm$ 4.9 \\
-hopper-random-v0 & 11.7 $\pm$ 0.0 & 11.2 $\pm$ 0.0  & 12.2 $\pm$ 0.0 & 11.1 $\pm$ 0.0 \\
-hopper-medium-replay-v0 & 31.6 $\pm$ 0.3 & 30.3 $\pm$ 0.8  & 31.3 $\pm$ 1.2 & 36.1 $\pm$ 5.7 \\
-walker2d-expert-v0 & 25.5 $\pm$ 14.4 & 33.6 $\pm$ 11.8  & 54.0 $\pm$ 31.0 & 60.6 $\pm$ 20.2 \\
-walker2d-medium-v0 & 81.3 $\pm$ 0.3 & 80.8 $\pm$ 0.2  & 83.8 $\pm$ 0.2 & 83.4 $\pm$ 0.3 \\
-walker2d-medium-expert-v0 & 5.8 $\pm$ 5.2 & 6.4 $\pm$ 3.4  & 22.4 $\pm$ 22.0 & 39.5 $\pm$ 23.3 \\
-walker2d-random-v0 & 1.4 $\pm$ 0.8 & 1.7 $\pm$ 0.9  & 0.0 $\pm$ 0.1 & 2.9 $\pm$ 2.1 \\
-walker2d-medium-replay-v0 & 26.1 $\pm$ 6.4 & 47.4 $\pm$ 4.1  & 11.7 $\pm$ 7.0 & 38.7 $\pm$ 9.6 \\
+% \begin{table}[H]
+% \fontsize{9}{9}
+% \centering
+% \caption{\textbf{Performance of \drmethodname\ when applied in conjunction with BRAC~\citep{wu2019behavior}.} Note that DR3 attains a larger final performance (at the end of 2M steps of training) as well as a higher average performance (i.e. stability score) across all iterations of training. %\todo{add bold}
+% }
+% \label{tab:brac}
+% \vspace{0.2cm}
+% \begin{tabular}{ccccc}
+% \toprule
+% \multirow{2}{*}{Task} & \multicolumn{2}{c}{Average Performance across Iterations}   & \multicolumn{2}{c}{Final Performance} \\
+% & BRAC & BRAC + \drmethodname & BRAC & BRAC + \drmethodname \\
 % \midrule
-% Median Normalized Performance & 25.5 & \textbf{33.6} & 24.9 & \textbf{38.7} \\
-% Mean Normalized Performance & 26.9 & \textbf{31.9} & 29.5 & \textbf{37.3} \\
-\bottomrule
-\end{tabular}
-\end{table}
+% %('True', '0.1', '2')
+% halfcheetah-expert-v0 & 1.7 $\pm$ 1.9 & 49.9 $\pm$ 16.7  & 2.1 $\pm$ 3.3 & 71.5 $\pm$ 24.9 \\
+% halfcheetah-medium-v0 & 43.5 $\pm$ 0.2 & 43.2 $\pm$ 0.2  & 45.1 $\pm$ 0.8 & 44.9 $\pm$ 0.6 \\
+% halfcheetah-medium-expert-v0 & 17.0 $\pm$ 5.4 & 6.0 $\pm$ 5.5  & 24.8 $\pm$ 9.3 & 6.7 $\pm$ 7.3 \\
+% halfcheetah-random-v0 & 24.4 $\pm$ 0.4 & 18.4 $\pm$ 0.3  & 24.9 $\pm$ 0.8 & 18.2 $\pm$ 1.0 \\
+% halfcheetah-medium-replay-v0 & 44.9 $\pm$ 0.3 & 44.1 $\pm$ 0.4  & 45.0 $\pm$ 1.4 & 44.9 $\pm$ 0.5 \\
+% hopper-expert-v0 & 15.7 $\pm$ 1.5 & 21.8 $\pm$ 3.2  & 16.6 $\pm$ 6.0 & 20.8 $\pm$ 5.3 \\
+% hopper-medium-v0 & 32.8 $\pm$ 1.4 & 46.3 $\pm$ 7.1  & 36.2 $\pm$ 1.7 & 58.3 $\pm$ 13.7 \\
+% hopper-medium-expert-v0 & 40.2 $\pm$ 5.7 & 37.0 $\pm$ 2.9  & 31.7 $\pm$ 11.8 & 21.8 $\pm$ 4.9 \\
+% hopper-random-v0 & 11.7 $\pm$ 0.0 & 11.2 $\pm$ 0.0  & 12.2 $\pm$ 0.0 & 11.1 $\pm$ 0.0 \\
+% hopper-medium-replay-v0 & 31.6 $\pm$ 0.3 & 30.3 $\pm$ 0.8  & 31.3 $\pm$ 1.2 & 36.1 $\pm$ 5.7 \\
+% walker2d-expert-v0 & 25.5 $\pm$ 14.4 & 33.6 $\pm$ 11.8  & 54.0 $\pm$ 31.0 & 60.6 $\pm$ 20.2 \\
+% walker2d-medium-v0 & 81.3 $\pm$ 0.3 & 80.8 $\pm$ 0.2  & 83.8 $\pm$ 0.2 & 83.4 $\pm$ 0.3 \\
+% walker2d-medium-expert-v0 & 5.8 $\pm$ 5.2 & 6.4 $\pm$ 3.4  & 22.4 $\pm$ 22.0 & 39.5 $\pm$ 23.3 \\
+% walker2d-random-v0 & 1.4 $\pm$ 0.8 & 1.7 $\pm$ 0.9  & 0.0 $\pm$ 0.1 & 2.9 $\pm$ 2.1 \\
+% walker2d-medium-replay-v0 & 26.1 $\pm$ 6.4 & 47.4 $\pm$ 4.1  & 11.7 $\pm$ 7.0 & 38.7 $\pm$ 9.6 \\
+% % \midrule
+% % Median Normalized Performance & 25.5 & \textbf{33.6} & 24.9 & \textbf{38.7} \\
+% % Mean Normalized Performance & 26.9 & \textbf{31.9} & 29.5 & \textbf{37.3} \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
 
 \begin{table*}[H]
 \small
- \caption{\small{Normalized median final performance (last iteration return) and mediann average performance (our metric for stability) of CQL, CQL + \methodname, REM and REM + \methodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Intervals in brackets show 95\% CIs computed using stratified percentile bootstrap~\citep{agarwal2021precipice}}}.
+ \caption{\small{Normalized median final performance (last iteration return) and mediann average performance (our metric for stability) of CQL, CQL + \drmethodname, REM and REM + \drmethodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Intervals in brackets show 95\% CIs computed using stratified percentile bootstrap~\citep{agarwal2021precipice}}}.
  \label{tab:cql_res_median}
     \vspace{0.1cm}
 \begin{tabular}{c|cccc|cccc}
 \toprule
 \multirow{2}{*}{\textbf{Data}} &  \multicolumn{4}{c|}{\textbf{Last iteration performance}} & \multicolumn{4}{c}{\textbf{Stability performance}} \\
-& CQL & CQL+\methodname & REM & REM+\methodname & CQL & CQL+\methodname & REM & REM+\methodname \\
+& CQL & CQL+\drmethodname & REM & REM+\drmethodname & CQL & CQL+\drmethodname & REM & REM+\drmethodname \\
 \midrule
 1\% & 44.4~\ss{(31.0, 54.3)} & 61.6~\ss{(39.1, 71.5)} & 0.0~\ss{(-0.7, 0.1)} & \textbf{13.1}~\ss{(9.9, 18.3)} & 43.6~\ss{(36.4, 52.7)} & 56.3~\ss{(46.9, 70.3)} & 4.1~\ss{(2.9, 4.9)} & \textbf{18.1}~\ss{(11.3, 22.5)}\\
 \midrule
@@ -1080,19 +214,18 @@ walker2d-medium-replay-v0 & 26.1 $\pm$ 6.4 & 47.4 $\pm$ 4.1  & 11.7 $\pm$ 7.0 & 
 \end{tabular}
 \end{table*}
 
+\iffalse
 
-
-
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean evaluation returns per Atari game across 5 runs with standard deviations for 1\% dataset}. The coefficient for \methodname\ is 0.03 with a CQL coefficient of 1.0.
+    \caption{\textbf{Mean evaluation returns per Atari game across 5 runs with standard deviations for 1\% dataset}. The coefficient for \drmethodname\ is 0.03 with a CQL coefficient of 1.0.
     The average performance is computed over 20 checkpoints spaced uniformly over training for 100 iterations where 1 iteration corresponds to 62,500 gradient updates.}
     \label{tab:cql_dqn_1}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+\resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& CQL & CQL + \methodname & CQL & CQL + \methodname \\
+& CQL & CQL + \drmethodname & CQL & CQL + \drmethodname \\
 \midrule
 Asterix       &      656.9 $\pm$ 91.0 &      821.4 $\pm$ 75.1 &      650.2 $\pm$ 65.3 &      814.1 $\pm$ 25.1 \\
 Breakout      &        23.9 $\pm$ 3.8 &        32.0 $\pm$ 3.2 &        23.8 $\pm$ 0.5 &        32.8 $\pm$ 3.1 \\
@@ -1112,21 +245,21 @@ IceHockey     &        -8.7 $\pm$ 1.3 &        -7.8 $\pm$ 0.9 &        -8.8 $\pm
 DoubleDunk    &       -15.1 $\pm$ 1.9 &       -14.0 $\pm$ 2.8 &       -15.3 $\pm$ 0.9 &       -14.5 $\pm$ 1.0 \\
 DemonAttack   &    1970.2 $\pm$ 161.3 &      386.2 $\pm$ 75.3 &    1338.8 $\pm$ 298.4 &      414.0 $\pm$ 46.0 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean evaluation returns per Atari game across 5 runs with standard deviations for 5\% dataset.} The coefficient for \methodname\ is 0.03 with a CQL coefficient of 0.1.
+    \caption{\textbf{Mean evaluation returns per Atari game across 5 runs with standard deviations for 5\% dataset.} The coefficient for \drmethodname\ is 0.03 with a CQL coefficient of 0.1.
     The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations where 1 iteration corresponds to 62,500 gradient updates.}
     \label{tab:cql_dqn_5}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+    \resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& CQL & CQL + \methodname & CQL & CQL + \methodname \\
+& CQL & CQL + \drmethodname & CQL & CQL + \drmethodname \\
 \midrule
 Asterix       &    1798.2 $\pm$ 168.6 &    3318.5 $\pm$ 301.7 &     1812.7 $\pm$ 64.0 &    3790.5 $\pm$ 218.0 \\
 Breakout      &       94.1 $\pm$ 44.4 &      166.0 $\pm$ 23.1 &      105.1 $\pm$ 10.4 &       196.5 $\pm$ 4.4 \\
@@ -1146,18 +279,18 @@ IceHockey     &       -17.3 $\pm$ 0.6 &       -15.0 $\pm$ 0.7 &       -16.6 $\pm
 DoubleDunk    &       -18.1 $\pm$ 1.5 &       -16.2 $\pm$ 1.7 &       -17.3 $\pm$ 1.0 &       -16.0 $\pm$ 1.6 \\
 DemonAttack   &    4055.8 $\pm$ 499.7 &   8517.4 $\pm$ 1065.9 &    4062.4 $\pm$ 465.8 &    8396.7 $\pm$ 689.4 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for initial 10\% dataset.} The coefficient for \methodname\ is 0.03 with a CQL coefficient of 0.1. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
+    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for initial 10\% dataset.} The coefficient for \drmethodname\ is 0.03 with a CQL coefficient of 0.1. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
     \label{tab:cql_dqn_10}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+    \resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& CQL & CQL + \methodname & CQL & CQL + \methodname \\
+& CQL & CQL + \drmethodname & CQL & CQL + \drmethodname \\
 \midrule
 Asterix       &    2803.9 $\pm$ 294.6 &    3906.2 $\pm$ 521.3 &    2903.2 $\pm$ 217.7 &    4692.2 $\pm$ 377.0 \\
 Breakout      &        64.7 $\pm$ 7.3 &        70.8 $\pm$ 5.5 &        65.6 $\pm$ 5.7 &        75.4 $\pm$ 6.0 \\
@@ -1177,18 +310,18 @@ IceHockey     &       -18.1 $\pm$ 0.7 &       -16.0 $\pm$ 1.3 &       -17.6 $\pm
 DoubleDunk    &       -21.2 $\pm$ 1.1 &       -20.6 $\pm$ 1.0 &       -20.6 $\pm$ 0.3 &       -19.7 $\pm$ 0.5 \\
 DemonAttack   &    4145.2 $\pm$ 400.6 &    7152.9 $\pm$ 723.2 &    4839.4 $\pm$ 586.7 &    7278.5 $\pm$ 701.3 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for 1\% dataset.} The coefficient for \methodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 100 iterations.}
+    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for 1\% dataset.} The coefficient for \drmethodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 100 iterations.}
     \label{tab:rem_dqn_1}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+    \resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& REM & REM + \methodname & REM & REM + \methodname \\
+& REM & REM + \drmethodname & REM & REM + \drmethodname \\
 \midrule
 Asterix       &     240.4 $\pm$ 29.1 &     405.7 $\pm$ 46.5 &     304.4 $\pm$ 9.3 &      413.7 $\pm$ 39.6 \\
 Breakout      &        0.7 $\pm$ 0.7 &       14.3 $\pm$ 2.8 &       6.3 $\pm$ 1.0 &        10.3 $\pm$ 1.1 \\
@@ -1208,18 +341,18 @@ IceHockey     &      -16.7 $\pm$ 0.9 &       -9.1 $\pm$ 5.1 &     -12.1 $\pm$ 0.
 DoubleDunk    &      -21.8 $\pm$ 1.0 &      -17.6 $\pm$ 1.5 &     -20.4 $\pm$ 0.6 &       -17.1 $\pm$ 1.6 \\
 DemonAttack   &     102.0 $\pm$ 17.3 &     162.0 $\pm$ 34.7 &    124.0 $\pm$ 10.7 &      145.6 $\pm$ 27.2 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for the 5\% dataset.} The coefficient for \methodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
+    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for the 5\% dataset.} The coefficient for \drmethodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
     \label{tab:rem_dqn_5}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+    \resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& REM & REM + \methodname & REM & REM + \methodname \\
+& REM & REM + \drmethodname & REM & REM + \drmethodname \\
 \midrule
 Asterix       &      876.8 $\pm$ 201.1 &    2317.0 $\pm$ 838.1 &      958.9 $\pm$ 50.9 &    1252.6 $\pm$ 395.1 \\
 Breakout      &         15.2 $\pm$ 4.9 &        33.4 $\pm$ 4.0 &        16.3 $\pm$ 3.4 &        17.7 $\pm$ 2.4 \\
@@ -1239,18 +372,18 @@ IceHockey     &         -9.7 $\pm$ 4.2 &        -6.5 $\pm$ 3.1 &        -8.1 $\p
 DoubleDunk    &        -18.4 $\pm$ 0.9 &       -17.6 $\pm$ 2.6 &       -19.6 $\pm$ 1.0 &       -17.8 $\pm$ 1.9 \\
 DemonAttack   &      507.7 $\pm$ 120.1 &   5602.3 $\pm$ 1855.5 &     581.6 $\pm$ 207.0 &    1452.3 $\pm$ 765.0 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for initial 10\% dataset.} The coefficient for \methodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
+    \caption{\textbf{Mean returns per Atari game across 5 runs with standard deviations for initial 10\% dataset.} The coefficient for \drmethodname\ is 0.001 while we use a multi-headed REM with 200 Q-heads~\citep{agarwal2019optimistic}. The average performance is computed over 20 checkpoints spaced uniformly over training for 200 iterations.}
     \label{tab:rem_dqn_10}
     \vspace{0.2cm}
-\begin{tabular}{ccccc}
+    \resizebox{0.99\textwidth}{!}{\begin{tabular}{ccccc}
 \toprule
 \multirow{2}{*}{Game} & \multicolumn{2}{c}{Final Performance}   & \multicolumn{2}{c}{Average Performance across Iterations} \\
-& REM & REM + \methodname & REM & REM + \methodname \\
+& REM & REM + \drmethodname & REM & REM + \drmethodname \\
 \midrule
 Asterix       &    2254.7 $\pm$ 403.6 &    5122.9 $\pm$ 328.9 &   2684.6 $\pm$ 184.4 &    3432.1 $\pm$ 257.5 \\
 Breakout      &       81.2 $\pm$ 13.9 &       96.8 $\pm$ 21.2 &       63.5 $\pm$ 4.6 &        62.4 $\pm$ 6.1 \\
@@ -1270,18 +403,18 @@ IceHockey     &        -4.3 $\pm$ 0.6 &        -5.9 $\pm$ 5.1 &       -7.0 $\pm$
 DoubleDunk    &       -17.7 $\pm$ 3.9 &       -19.5 $\pm$ 2.5 &      -16.9 $\pm$ 0.5 &       -16.7 $\pm$ 1.0 \\
 DemonAttack   &   6097.9 $\pm$ 1251.3 &   9674.7 $\pm$ 1600.6 &   4649.1 $\pm$ 514.6 &    5141.9 $\pm$ 361.4 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 
 
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
     \caption{Average returns across 5 runs for the random agent and the average performance of the trajectories in the DQN~(Nature) dataset. For Atari normalized scores reported in the paper, the random agent is assigned a score of 0 while the average DQN replay is assigned a score of 100. Note that the random agent scores are also evaluated on Atari 2600 games with sticky actions.}
     \label{tab:random_dqn_scores}
     \vspace{0.2cm}
-\begin{tabular}{ccc}
+    \resizebox{0.6\textwidth}{!}{\begin{tabular}{ccc}
 \toprule
 Game &  Random &  Average DQN-Replay \\
 \midrule
@@ -1303,20 +436,24 @@ IceHockey     &    -9.8 &                -8.5 \\
 DoubleDunk    &   -18.4 &               -11.3 \\
 DemonAttack   &   166.0 &              4407.5 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
+
+
+
+\fi
 
 % \begin{table*}[t]
 % \fontsize{9}{9}\selectfont
 %     \centering
 %     \vspace{-0.1cm}
-%     \caption{\small{Normalized final performance (last iteration return) and average performance (our metric for stability) of CQL, CQL + \methodname, REM and REM + \methodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performance for all 17 games are provided in the Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \methodname\ improves the performance of both CQL and REM.} As recommended by \citet{agarwal2021precipice}, we report interquartile mean~(IQM) performance that trims 50\% of outlier runs and computes the mean of the remaining runs.}
+%     \caption{\small{Normalized final performance (last iteration return) and average performance (our metric for stability) of CQL, CQL + \drmethodname, REM and REM + \drmethodname\ after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performance for all 17 games are provided in the Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \drmethodname\ improves the performance of both CQL and REM.} As recommended by \citet{agarwal2021precipice}, we report interquartile mean~(IQM) performance that trims 50\% of outlier runs and computes the mean of the remaining runs.}
 %     \label{tab:cql_res}
 %     \vspace{0.1cm}
 % \begin{tabular}{c|cccc|cccc}
 % \toprule
 % \multirow{2}{*}{\textbf{Data}} &  \multicolumn{4}{c|}{\textbf{Last iteration performance}} & \multicolumn{4}{c}{\textbf{Stability performance}} \\
-% & CQL & CQL+\methodname & REM & REM+\methodname & CQL & CQL+\methodname & REM & REM+\methodname \\
+% & CQL & CQL+\drmethodname & REM & REM+\drmethodname & CQL & CQL+\drmethodname & REM & REM+\drmethodname \\
 % \midrule
 % 1\%  & 44.0~\ss{(38.1, 49.8)} & \textbf{50.9}~\ss{(45.8, 56.3)} & -0.1~\ss{(-0.7, 0.6)} & \textbf{13.4}~\ss{(11.1, 16.4)} & 43.7~\ss{(39.6, 48.6)} & \textbf{56.9}~\ss{(52.5, 61.2)} & 4.0~\ss{(3.3, 4.8)} & \textbf{16.5}~\ss{(14.5, 18.6)}  \\
 % \midrule
@@ -1328,47 +465,45 @@ DemonAttack   &   166.0 &              4407.5 \\
 % \end{tabular}
 % \end{table*}
 
-\clearpage
-
-\subsection{\rebuttal{Per-Game Learning Curves for Atari Games}}
-\label{per_game_figures}
+% \subsection{\rebuttal{Per-Game Learning Curves for Atari Games}}
+% \label{per_game_figures}
 
 
-\begin{figure}[H]
-    \centering
-    \vspace{-0.3cm}
-    \includegraphics[width=0.92\textwidth]{rebuttal/cql_dr3_5m.pdf}
-    \vspace{-0.2cm}
-    \caption{\footnotesize{\label{fig:cql_5_percent_all_games} \rebuttal{\textbf{Per-game learning curves of CQL and CQL + DR3 on the 5\% uniform replay dataset, for which the normalized average learning curve is shown in Figure~\ref{fig:atari_all_combined}.} Note that CQL + DR3 attains a higher performance than CQL for a majority of games, and rises up to a higher peak. }}}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \vspace{-0.3cm}
+%     \includegraphics[width=0.85\textwidth]{chapters/dr3/rebuttal/cql_dr3_5m.pdf}
+%     \vspace{-0.2cm}
+%     \caption{\footnotesize{\label{fig:cql_5_percent_all_games} \rebuttal{\textbf{Per-game learning curves of CQL and CQL + DR3 on the 5\% uniform replay dataset, for which the normalized average learning curve is shown in Figure~\ref{fig:atari_all_combined}.} Note that CQL + DR3 attains a higher performance than CQL for a majority of games, and rises up to a higher peak. }}}
+% \end{figure}
 
-\begin{figure}[t]
-    \centering
-    \vspace{-5pt}
-    \includegraphics[width=0.93\textwidth]{rebuttal/rem_vs_rem_dr3_5p.pdf}
-    \vspace{-5pt}
-    \caption{\footnotesize{\label{fig:rem_5_percent_all_games} \rebuttal{\textbf{Per-game learning curves of REM and REM + DR3 on the 5\% uniform replay dataset, for which the normalized average learning curve is shown in Figure~\ref{fig:atari_all_combined}.} Note that REM + DR3 attains a higher performance than REM for a majority of games. }}}
-    \vspace{-0.5cm}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \vspace{-5pt}
+%     \includegraphics[width=0.85\textwidth]{chapters/dr3/rebuttal/rem_vs_rem_dr3_5p.pdf}
+%     \vspace{-5pt}
+%     \caption{\footnotesize{\label{fig:rem_5_percent_all_games} \rebuttal{\textbf{Per-game learning curves of REM and REM + DR3 on the 5\% uniform replay dataset, for which the normalized average learning curve is shown in Figure~\ref{fig:atari_all_combined}.} Note that REM + DR3 attains a higher performance than REM for a majority of games. }}}
+%     \vspace{-0.5cm}
+% \end{figure}
 
 
-\subsection{\rebuttal{Dot Product Similarities For CQL+DR3 and REM+DR3 on 17 Games}}
-\begin{figure}[H]
-    \centering
-    \vspace{-0.3cm}
-    \includegraphics[width=0.95\textwidth]{rebuttal/cql_vs_dr3_dot_products.pdf}
-    \vspace{-0.2cm}
-    \caption{\footnotesize{\label{fig:cql_5_percent_all_games_dot_products} \rebuttal{\textbf{Per-game feature dot products (\underline{in log scale}) of CQL and CQL + DR3 on the 5\% uniform replay dataset}. Note that CQL + DR3 attains a smaller value of the feature dot product.}}}
-\end{figure}
+% \subsection{\rebuttal{Dot Product Similarities For CQL+DR3 and REM+DR3 on 17 Games}}
+% \begin{figure}[H]
+%     \centering
+%     \vspace{-0.3cm}
+%     \includegraphics[width=0.85\textwidth]{chapters/dr3/rebuttal/cql_vs_dr3_dot_products.pdf}
+%     \vspace{-0.2cm}
+%     \caption{\footnotesize{\label{fig:cql_5_percent_all_games_dot_products} \rebuttal{\textbf{Per-game feature dot products (\underline{in log scale}) of CQL and CQL + DR3 on the 5\% uniform replay dataset}. Note that CQL + DR3 attains a smaller value of the feature dot product.}}}
+% \end{figure}
 
-\begin{figure}[t]
-    \centering
-    \vspace{-5pt}
-    \includegraphics[width=0.95\textwidth]{rebuttal/rem_vs_dr3_dot_products.pdf}
-    \vspace{-5pt}
-    \caption{\footnotesize{\label{fig:rem_5_percent_all_games_dot_products} \rebuttal{\textbf{Per-game feature dot products (\underline{in log scale}) of REM and REM + DR3 on the 5\% uniform replay dataset} Note that REM + DR3 attains a higher performance than REM for a majority of games. Note that the dot products for REM+DR3 stabilize are small, and decreases for a majority of the training steps for a number of games, or stabilize at a small value. }}}
-    \vspace{-0.5cm}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \vspace{-5pt}
+%     \includegraphics[width=0.85\textwidth]{chapters/dr3/rebuttal/rem_vs_dr3_dot_products.pdf}
+%     \vspace{-5pt}
+%     \caption{\footnotesize{\label{fig:rem_5_percent_all_games_dot_products} \rebuttal{\textbf{Per-game feature dot products (\underline{in log scale}) of REM and REM + DR3 on the 5\% uniform replay dataset} Note that REM + DR3 attains a higher performance than REM for a majority of games. Note that the dot products for REM+DR3 stabilize are small, and decreases for a majority of the training steps for a number of games, or stabilize at a small value. }}}
+%     \vspace{-0.5cm}
+% \end{figure}
 
 
 
