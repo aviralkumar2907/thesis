@@ -33,7 +33,7 @@ In this chapter, we will discuss our notion and background definition, followed 
 \section{Reinforcement Learning Preliminaries}
 \label{sec:rl_prelims}
 
-In this section, we will define basic reinforcement learning (RL) concepts, following standard textbook definitions~\citep{suttonrlbook}. RL addresses the problem of learning to control a dynamical system, in a general sense. The dynamical system is fully defined by a fully-observed or partially-observed Markov decision process (MDP). We only consider problems where the dnynamical system is defined by a fully-observed MDP in this dissertation. 
+In this section, we will define reinforcement learning (RL) concepts, following standard definitions~\citep{suttonrlbook}. RL addresses the problem of learning to control a dynamical system. The dynamical system is fully defined by a fully-observed or partially-observed Markov decision process (MDP). We only consider problems where the dnynamical system is defined by a fully-observed MDP in this dissertation. 
 
 \begin{definition}[Markov decision process]
 A Markov decision process is defined as a tuple \mbox{$\mdp = (\states,\actions,\transitions,\initstate,\reward,\discount)$}, where $\states$ is a set of states $\bs \in \states$, which may be either discrete or continuous (i.e., multi-dimensional vectors), $\actions$ is a set of actions $\mathbf{a} \in \actions$, which similarly can be discrete or continuous, $\transitions$ defines a conditional probability distribution of the form $\transitions(\bs_{t+1} | \bs_t, \mathbf{a}_t)$ that describes the dynamics of the system,\footnote{We will sometimes use time subscripts (i.e., $\bs_{t+1}$ follows $\bs_t$), and sometimes ``prime'' notation (i.e., $\bs'$ is the state that follows $\bs$). Explicit time subscripts can help clarify the notation in finite-horizon settings, while ``prime'' notation is simpler in infinite-horizon settings where absolute time step indices are less meaningful.} $\initstate$ defines the initial state distribution $\initstate(\bs_0)$, $\reward : \states \times \actions \rightarrow \real$ defines a reward function, and $\gamma \in (0, 1]$ is a scalar discount factor.
@@ -62,11 +62,7 @@ When $H$ is infinite, it is typical to consider the expected reward under the $\
 
 Next, we will briefly summarize some types reinforcement learning algorithms and present definitions. At a high level, all standard reinforcement learning algorithms follow the same basic learning loop: the agent \emph{interacts} with the MDP $\mdp$ by using some sort of \emph{behavior policy}, which may or may not match $\policy(\mathbf{a}|\bs)$, by observing the current state $\bs_t$, selecting an action $\mathbf{a}_t$, and then observing the resulting next state $\bs_{t+1}$ and reward value $\reward_t = \reward(\bs_t,\mathbf{a}_t)$. This may repeat for multiple steps, and the agent then uses the observed transitions $(\bs_t,\mathbf{a}_t,\bs_{t+1},\reward_t)$ to update its policy. This update might also utilize previously observed transitions. We will use $\data = \{ (\bs^i_t,\mathbf{a}^i_t,\bs^i_{t+1},\reward^i_t) \}$ to denote the set of transitions that are available for the agent to use for updating the policy (``learning''), which may consist of either all transitions seen so far, or some subset thereof.
 
-~
-
 \niparagraph{\large{Dynamic Programming with Function Approximators}} 
-
-~
 
 One way to optimize the reinforcmeent learning objective relies on the following observation: if we can accurately estimate a state or state-action \emph{value function}, then it is easy to then recover a near-optimal policy. A value function provides an estimate of the expected cumulative reward that will be obtained by following some policy $\policy(\mathbf{a}_t|\bs_t)$ when starting from a given state $\bs_t$, in the case of the state-value function $V^\policy(\bs_t)$, or when starting from a state-action tuple $(\bs_t,\mathbf{a}_t)$, in the case of the state-action value function $Q^\policy(\bs_t,\mathbf{a}_t)$. We can define these value functions as:
 \begin{align*}
@@ -128,14 +124,6 @@ We can again express this as ${Q} = \bellman^\star {Q}$ in vector notation, wher
 
 Classic Q-learning can be derived as the limiting case where the buffer size is 1, and we take $G=1$ gradient steps and collect $S=1$ transition samples per iteration, while classic fitted Q-iteration runs the inner gradient descent phase to convergence (i.e., $G=\infty$), and uses a buffer size equal to the number of sampling steps $S$. Note that many modern implementations also employ a \emph{target network}, where the target value $r_i + \discount \max_{\mathbf{a}'} Q_{\phi_k}(\bs',\mathbf{a}')$ actually uses $\phi_{L}$, where $L$ is a lagged iteration (e.g., the last $k$ that is a multiple of 1000). Note that these approximations violate the assumptions under which Q-learning algorithms can be proven to converge. However, recent work suggests that high-capacity function approximators, which correspond to a very large set $\qset$, generally do tend to make this method convergent in practice, yielding a Q-function that is close to ${Q}^\policy$~\citep{fu2019diagnosing,van2018deep}.
 
-~
-
-\niparagraph{\large{Actor-Critic Algorithms}} 
-
-~
-
-Actor-critic algorithms employ \emph{both} a parameterized policy and a parameterized value function, and use the value function to provide training signal for the policy. Typically, the learned value function is used to provide a better estimate of policy performance (or advantage $\hat{A}(\bs,\mathbf{a})$) in a policy gradient objective. There are a number of different variants of actor-critic methods, including on-policy variants that directly estimate $V^\policy(\bs)$~\citep{konda2000actor}, and off-policy variants that estimate $Q^\policy(\bs,\mathbf{a})$ via a parameterized state-action value function $Q^\policy_\phi(\bs,\mathbf{a})$~\citep{sac,haarnoja2017reinforcement,heess2015learning}. 
-
 \begin{algorithm}[H]
     \caption{Generic off-policy actor-critic \label{alg:actorcritic}}
     \begin{algorithmic}[1]
@@ -169,6 +157,10 @@ Actor-critic algorithms employ \emph{both} a parameterized policy and a paramete
     \end{algorithmic}
 \end{algorithm}
 
+\niparagraph{\large{Actor-Critic Algorithms}} 
+
+Actor-critic algorithms employ \emph{both} a parameterized policy and a parameterized value function, and use the value function to provide training signal for the policy. Typically, the learned value function is used to provide a better estimate of policy performance (or advantage $\hat{A}(\bs,\mathbf{a})$) in a policy gradient objective. There are a number of different variants of actor-critic methods, including on-policy variants that directly estimate $V^\policy(\bs)$~\citep{konda2000actor}, and off-policy variants that estimate $Q^\policy(\bs,\mathbf{a})$ via a parameterized state-action value function $Q^\policy_\phi(\bs,\mathbf{a})$~\citep{sac,haarnoja2017reinforcement,heess2015learning}. 
+
 We will focus on the latter class of algorithms, since they can be easily extended to the offline setting. The basic design of such an algorithm is a straightforward combination of the ideas in dynamic programming and policy gradients. Unlike Q-learning, which directly attempts to learn the optimal Q-function, actor-critic methods aim to learn the Q-function corresponding to the current parameterized policy $\policy_\theta(\mathbf{a} | \bs)$, which must obey the equation
 \[
 Q^\policy(\bs_t, \mathbf{a}_t) = \reward(\bs_t,\mathbf{a}_t) + \discount \E_{\bs_{t+1} \sim \transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t), \mathbf{a}_{t+1} \sim \policy_\theta(\mathbf{a}_{t+1} | \bs_{t+1})}\left[
@@ -182,11 +174,7 @@ Actor-critic algorithms are closely related with another class of methods that f
 
 %Besides the model-free reinforcement learning algorithms discussed in this section, a wide range of model-based reinforcement learning algorithms have also been proposed in the literature. Such methods utilize explicit estimates of the transition or dynamics function $\transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, and then use this estimated dynamics function in a variety of ways~\citep{sutton1991dyna,deisenroth2011pilco,nagabandi2018neural,pets,pipps,simpl,mbpo}. A discussion of model-based reinforcement learning methods is outside the scope of this tutorial, though we will briefly discuss the potential of model-based offline reinforcement learning methods in Section~\ref{sec:discussion}.
 
-~
-
 \niparagraph{\large{Model-Based Reinforcement Learning}} 
-
-~
 
 Model-based reinforcement learning is a general term that refers to a broad class of methods that utilize explicit estimates of the transition or dynamics function $\transitions(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, parameterized by a parameter vector $\psi$, which we will denote $\transitions_\psi(\bs_{t+1}|\bs_t,\mathbf{a}_t)$. There is no single recipe for a model-based reinforcement learning method. Some commonly used model-based reinforcement learning algorithms learn only the dynamics model $\transitions_\psi(\bs_{t+1}|\bs_t,\mathbf{a}_t)$, and then utilize it for planning at test time, often by means of model-predictive control (MPC)~\citep{tassa2012synthesis} with various trajectory optimization methods~\citep{nagabandi2018neural,pets}. Other model-based reinforcement learning methods utilize a learned policy $\policy_\theta(\mathbf{a}_t|\bs_t)$ in addition to the dynamics model, and employ backpropagation through time to optimize the policy with respect to the expected reward objective~\citep{deisenroth2011pilco}. Yet another set of algorithms employ the model to generate ``synthetic'' samples to augment the sample set available to model-free reinforcement learning methods. The classic Dyna algorithm uses this recipe in combination with Q-learning and one-step predictions via the model from previously seen states~\citep{sutton1991dyna}, while a variety of recently proposed algorithms employ synthetic model-based rollouts with policy gradients~\citep{pipps,simpl} and actor-critic algorithms~\citep{mbpo}. 
 % Since there are so many variants of model-based reinforcement learning algorithms, we will not go into detail on each of them in this section, but we will discuss some considerations for offline model-based reinforcement learning in Section~\ref{sec:model_based}.

@@ -1,11 +1,13 @@
+\vspace{-0.2cm}
 \subsection{Conservative Q-Learning for Offline Policy Optimization}
 \label{sec:framework}
+\vspace{-0.2cm}
 % Define the optimiziation problem
-We now present a general approach for offline policy learning, which we refer to as conservative Q-learning (CQL). 
+We now present a general approach for model-free offline policy learning, which we refer to as conservative Q-learning (CQL). 
 As discussed in Section~\ref{sec:policy_eval}, we can obtain Q-values that lower-bound the value of a policy $\policy$
 %%SL.5.17: but we don't use the "every state" version?
 % it is the same version actually, but I removed the term "every state" from the above sentence
-by solving Equation~\ref{eqn:modified_policy_eval} with $\mu = \policy$. How should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, $\hat{\policy}^k$, and one step of policy improvement. However, this can be computationally expensive. Alternatively, since the policy $\hat{\policy}^k$ is typically derived from the Q-function, we could instead choose $\mu(\mathbf{a}|\bs)$ to approximate the policy that would maximize the current Q-function iterate, 
+by solving Equation~\ref{eqn:modified_policy_eval} with $\mu = \policy$. How should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, $\hat{\policy}^k$, and one step of policy improvement. However, this can be expensive. Alternatively, since the policy $\hat{\policy}^k$ is typically derived from the Q-function, we could instead choose $\mu(\mathbf{a}|\bs)$ to approximate the policy that would maximize the current Q-function iterate, 
 % \ak{alternating partial policy evaluation and improvement},
 %%SL.5.30: I don't think the bit in red is necessary -- what is that supposed to fix?
 thus giving rise to an online algorithm.
@@ -20,12 +22,9 @@ We can formally capture such online algorithms by defining a family of optimizat
     \small{+ \frac{1}{2}~ \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \hat{\bellman}^{\policy_k} \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right] + \textcolor{red}{\mathcal{R}(\mu)} ~~~ \left(\text{CQL}(\mathcal{R})\right).}
 \end{multline}
 
-% provide examples, to build intuition, and mention the one we use in practice
-~
-
 \niparagraph{\large{\textbf{Variants of CQL}}} 
 
-\noindent To demonstrate the generality of the CQL family of objectives, we discuss two specific instances within this family that are of special interest, and we evaluate them empirically in Section~\ref{sec:experiments}. 
+To demonstrate the generality of the CQL family of objectives, we discuss two specific instances within this family that are of special interest, and we evaluate them empirically in Section~\ref{sec:experiments}. 
 %%AK.5.29: commenitng out since we don't evaluate this in practice
 % First, if we choose $\mathcal{R}(\mu) = 0$, we obtain \mbox{$\mu(\mathbf{a}|\bs) = \delta(\mathbf{a} = \arg\max_{a} {Q}(\bs, \mathbf{a}))$}, which is the ``greedy" distribution (analogous to a greedy policy) corresponding to $Q$. 
 If we choose $\mathcal{R}(\mu)$ to be the KL-divergence against a prior distribution, $\rho(\mathbf{a}|\bs)$, i.e., $\mathcal{R}(\mu) = -D_{\mathrm{KL}}(\mu, \rho)$, then we get $\mu(\mathbf{a}|\bs) \propto \rho(\mathbf{a}|\bs) \cdot \exp (Q(\bs, \mathbf{a}))$ (for a derivation, see Appendix~\ref{app:cql_variants}). Frist, if $\rho = \text{Unif}(\mathbf{a})$,
@@ -34,14 +33,13 @@ then the first term in Equation~\ref{eqn:cql_framework} corresponds to a soft-ma
     \small{\min_{Q}~ \alpha \E_{\bs \sim \mathcal{D}}\left[\log \sum_{\mathbf{a}} \exp(Q(\bs, \mathbf{a}))\!-\!\E_{\mathbf{a} \sim \hatbehavior(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right]\right]\!+\!\frac{1}{2} \E_{\bs, \mathbf{a}, \bs' \sim \mathcal{D}}\left[\left(Q - \hat{\bellman}^{\policy_k} \hat{Q}^{k} \right)^2 \right]\!.}
     \label{eqn:practical_objective}
 \end{equation}
-Second, if $\rho(\mathbf{a}|\bs)$ is chosen to be the previous policy $\hat{\policy}^{k-1}$, the first term in Equation~\ref{eqn:practical_objective} is replaced by an exponential weighted average of Q-values of actions from the chosen $\hat{\policy}^{k-1}(\mathbf{a}|\bs)$. Empirically, we find that this variant can be more stable with high-dimensional action spaces (e.g., Table~\ref{table:adroit_antmaze}) where it is challenging to estimate $\log \sum_{\mathbf{a}} \exp$ via sampling due to high variance. In Appendix~\ref{app:cql_variants}, we discuss an additional variant of CQL, drawing connections to distributionally robust optimization~\citep{namkoong2017variance}.  
+Second, if $\rho(\mathbf{a}|\bs)$ is chosen to be the previous policy $\hat{\policy}^{k-1}$, the first term in Equation~\ref{eqn:practical_objective} is replaced by an exponential weighted average of Q-values of actions from the chosen $\hat{\policy}^{k-1}(\mathbf{a}|\bs)$. Empirically, we find that this variant can be more stable with high-dimensional action spaces (e.g., Table~\ref{table:adroit_antmaze}) where it is challenging to estimate $\log \sum_{\mathbf{a}} \exp$ via sampling due to high variance. 
+In Appendix~\ref{app:cql_variants}, we discuss an additional variant of CQL, drawing connections to distributionally robust optimization~\citep{namkoong2017variance}.  
 We will discuss a practical instantiation of a CQL deep RL algorithm in Section~\ref{sec:practical_alg}. CQL can be instantiated as either a Q-learning algorithm (with $\bellman^*$ instead of $\bellman^{\policy}$ in Equations~\ref{eqn:cql_framework}, \ref{eqn:practical_objective}) or as an actor-critic algorithm. 
-
-~
 
 \niparagraph{\large{\textbf{Theoretical Analysis of CQL}}}
 
-\noindent Next, we will theoretically analyze CQL to show that the policy updates derived in this way are indeed ``conservative'', in the sense that each successive policy iterate is optimized against a lower bound on its value. For clarity, we state the results in the absence of finite-sample error, in this section, but sampling error can be incorporated in the same way as Theorems~\ref{thm:min_q_underestimates} and \ref{thm:cql_underestimates}, and we discuss this in Appendix~\ref{app:missing_proofs}.   Theorem~\ref{thm:cql_underestimation} shows that CQL($\mathcal{H}$) learns Q-value estimates that lower-bound the actual Q-function under the action-distribution defined by the policy, $\policy^{k}$, under mild regularity conditions (slow updates on the policy).
+Next, we will theoretically analyze CQL to show that the policy updates derived in this way are indeed ``conservative'', in the sense that each successive policy iterate is optimized against a lower bound on its value. For clarity, we state the results in the absence of finite-sample error, in this section, but sampling error can be incorporated in the same way as Theorems~\ref{thm:min_q_underestimates} and \ref{thm:cql_underestimates}, and we discuss this in Appendix~\ref{app:missing_proofs}.  Theorem~\ref{thm:cql_underestimation} shows that CQL($\mathcal{H}$) learns Q-value estimates that lower-bound the actual Q-function under the action-distribution defined by the policy, $\policy^{k}$, under mild regularity conditions (slow updates on the policy).
 %% TODO: mentioning we don't have sampling error here, but we can account for that in the appendix.
 %%% TODO: add in the appendix
 %%AK.5.29: perhaps we can remove this completely?
@@ -63,7 +61,7 @@ if the learned policy were equal to soft-optimal policy for $\hat{Q}^k$, i.e., w
 %%SL.5.30: In general, I'm getting concerned that the theory section is getting extremely long, to the point where it swallows the rest of the paper. This paragraph is hard to understand, and it's not entirely clear why this part is important. Maybe in the balance, it would take too much time to explain it fully, and perhaps including it here is not really effective. Maybe better to informally summarize the intuition, and refer to an appendix, instead freeing up more space for empirical results.
 % changed, added more intuition.
 % This was also when this para was too long and had some stuff that we didnt quite justify...
-Our final result shows that CQL Q-function update is ``gap-expanding'', by which we mean that the difference in Q-values at in-distribution actions and over-optimistically erroneous out-of-distribution actions is higher than the corresponding difference under the actual Q-function. This implies that the policy $\policy^k(\mathbf{a}|\bs) \propto \exp(\hat{Q}^k(\bs, \mathbf{a}))$, is constrained to be closer to the dataset distribution, $\hatbehavior(\mathbf{a}|\bs)$, thus the CQL update implicitly prevents the detrimental effects of OOD action and distribution shift, which has been a major concern in offline RL settings~\citep{kumar2019stabilizing,levine2020offline,fujimoto2018off}.
+Our final result shows that CQL Q-function update is ``gap-expanding'', by which we mean that the difference in Q-values at in-distribution actions and over-optimistically erroneous out-of-distribution actions is higher than the corresponding difference under the actual Q-function. This implies that the policy $\policy^k(\mathbf{a}|\bs) \propto \exp(\hat{Q}^k(\bs, \mathbf{a}))$, is constrained to be closer to the dataset distribution, $\hatbehavior(\mathbf{a}|\bs)$, thus the CQL update implicitly prevents the detrimental effects of OOD action and distribution shift, which has been a major concern in offline RL settings~\citep{kumar2019stabilizing,fujimoto2018off}.
 
 \begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=3pt,bottom=5pt]
 \begin{theorem}[CQL is gap-expanding] 
@@ -77,9 +75,11 @@ When function approximation or sampling error makes OOD actions have higher lear
 %%SL.5.17: Above sentence is very hard to parse because it has too many clauses, split it into two sentences.
 As we will empirically show in Appendix~\ref{app:gap_amplify}, prior offline RL methods that do not explicitly constrain or regularize the Q-function may not enjoy such robustness properties.
 
-\textbf{To summarize}, we showed that the CQL algorithm learns lower-bound Q-values with large enough $\alpha$, meaning that the final policy attains \emph{at least} the estimated value. We also showed that the Q-function is \emph{gap-expanding}, meaning that it should only ever \emph{over-estimate} the gap between in-distribution and out-of-distribution actions, preventing OOD actions.
+\textbf{To summarize}, we showed that the CQL algorithm learns lower-bound Q-values with large enough $\alpha$, meaning that the final policy attains \emph{at least} the estimated value. We also showed that the Q-function is \emph{gap-expanding}, meaning that it should only ever \emph{over-estimate} the gap between in-distribution and OOD actions, preventing OOD actions.
 
+\vspace{-0.2cm}
 \subsection{Robust / Safe Policy Improvement Guarantees}
+\vspace{-0.2cm}
 
 In Section~\ref{sec:policy_eval} we proposed novel objectives for Q-function training such that the expected value of a policy under the resulting Q-function lower bounds the actual performance of the policy. In Section~\ref{sec:framework}, we used the learned conservative Q-function for policy improvement. In this section, we show that this procedure actually optimizes a well-defined objective and provide a safe policy improvement result for CQL, along the lines of Theorems 1 and 2 in \citet{laroche2017safe}.
 
@@ -114,8 +114,10 @@ The expression of $\zeta$ in Theorem~\ref{thm:zeta_safe} consists of two terms: 
 
 \textbf{To summarize,} CQL optimizes a well-defined, penalized empirical RL objective, and performs high-confidence safe policy improvement over the behavior policy. The extent of improvement is negatively influenced by higher sampling error, which decays as more samples are observed.  
 
+\vspace{-0.2cm}
 \subsection{Practical Conservative Q-Learning Algorithm}
 \label{sec:practical_alg}
+\vspace{-0.2cm}
 
 % \begin{algorithm}[h]
 %     \caption{Object Size Estimation}
@@ -135,8 +137,6 @@ The expression of $\zeta$ in Theorem~\ref{thm:zeta_safe} consists of two terms: 
 %     \end{algorithmic}
 %     \label{alg:sizeEstimation}
 %     \end{algorithm}
-
-\vspace{-7pt}
 
 \begin{center}
 \begin{algorithm}[H]
@@ -162,7 +162,5 @@ unlike prior offline RL methods~\citep{kumar2019stabilizing,wu2019behavior,siege
 Hence, we do not require fitting an additional behavior policy estimator, simplifying our method. %This prevents the detrimental effects of using an inaccurately fitted behavior policy in an offline RL algorithm~\citep{levine2020offline}.
 
 \textbf{Implementation details.} Our algorithm requires an addition of only \textbf{20} lines of code on top of standard implementations of soft actor-critic (SAC)~\citep{haarnoja} for continuous control experiments and on top of QR-DQN~\citep{dabney2018distributional} for the discrete control. The tradeoff factor, $\alpha$
-is is fixed at constant values described in Appendix~\ref{sec:experimental_details} for gym tasks and discrete control and is automatically tuned via Lagrangian dual gradient descent for other domains. We use default hyperparameters from SAC, except that the learning rate for the policy was chosen from \{3e-5, 1e-4, 3e-4\}, and is less than or equal to the Q-function, as dictated by Theorem~\ref{thm:cql_underestimation}. 
-Elaborate details are provided in Appendix~\ref{sec:experimental_details}.  
+is is fixed at constant values described in Appendix~\ref{sec:experimental_details} for gym tasks and discrete control and is automatically tuned via Lagrangian dual gradient descent for other domains. We use default hyperparameters from SAC, except that the learning rate for the policy was chosen from \{3e-5, 1e-4, 3e-4\}, and is less than or equal to the Q-function, as dictated by Theorem~\ref{thm:cql_underestimation}. Elaborate details are provided in Appendix~\ref{sec:experimental_details}.  
 
-\vspace{0.4cm}

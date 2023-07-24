@@ -1,8 +1,12 @@
+\vspace{-0.2cm}
 \section{Implementation details of Cal-QL}
-Our algorithm, \methodname\ is illustrated in Algorithm~\ref{alg:practical_alg}. A complete implementation of the functions in python-style is provided in Appendix~\ref{app:calql_algo}.
+\vspace{-0.2cm}
+Our algorithm, \methodname\ is illustrated in Algorithm~\ref{alg:practical_alg}. 
 
+\vspace{-0.2cm}
 \subsection{\methodname\ Algorithm}
-We use $J_Q(\theta)$ to denote the calibrated conservative regularizer for the Q network update:
+\vspace{-0.2cm}
+We use $J_Q(\theta)$ to denote the conservative regularizer for the Q network update:
 \begin{align}
     \label{eqn:calql_training_J}
     J_Q(\theta):=&\;{{\alpha \underbrace{\left(\mathbb{E}_{\bs \sim \mathcal{D}, \mathbf{a} \sim \pi} \brac{{\color[HTML]{B85450}{\max \left( Q_\theta(s,a), Q^\mu(s,a) \right)}} } - \mathbb{E}_{s, a \sim \mathcal{D}}\left[Q_\theta(s,a)\right]\right)}_{\text{Calibrated conservative regularizer }\mathcal{R}(\theta)}}}\\
@@ -10,7 +14,7 @@ We use $J_Q(\theta)$ to denote the calibrated conservative regularizer for the Q
 \end{align}
 
 \begin{center}
-\begin{minipage}{0.62\linewidth}
+\begin{minipage}{0.64\linewidth}
     \begin{algorithm}[H]
     \caption{\methodname\ pseudo-code}
     \label{alg:practical_alg}
@@ -31,66 +35,11 @@ We use $J_Q(\theta)$ to denote the calibrated conservative regularizer for the Q
 \end{minipage}
 \end{center}
 
-\iffalse
-
-\subsection{Python Implementation}
-\label{app:calql_algo}
-\vspace{-0.1cm}
-\begin{python}[caption={Training Q networks given a batch of data}]
-q_data = critic(batch['observations'], batch['actions'])
-
-next_dist = actor(batch['next_observations'])
-next_pi_actions, next_log_pis = next_dist.sample()
-
-target_qval = target_critic(batch['observations'], next_pi_actions)
-target_qval = batch['rewards'] + self.gamma * (1 - batch['dones']) * target_qval
-
-td_loss = mse_loss(q_data, target_qval)
-
-num_samples = 4
-random_actions = uniform((num_samples, batch_size, action_dim), min=-1, max=1)
-random_pi = 0.5 ** batch['actions'].shape[-1]
-
-pi_actions, log_pis = actor(batch['observations'])
-
-q_rand_is = critic(batch['observations'], random_actions) - random_pi
-q_pi_is = critic(batch['observations'], pi_actions) - log_pis
-
-# Cal-QL's modification
-mc_return = batch['mc_return'].repeat(num_samples)
-q_pi_is = max(q_pi_is, mc_return)
-
-cat_q = concatenate([q_rand_is, q_pi_is], new_axis=True)
-cat_q = logsumexp(cat_q, axis=0) # sum over num_samples
-critic_loss = td_loss + ((cat_q - q_data).mean() * cql_alpha)
-
-critic_optimizer.zero_grad()
-critic_loss.backward()
-critic_optimizer.step()
-\end{python}
-\newpage
-\begin{python}[caption={Training the policy (or the actor) given a batch of data }]
-# return distribution of actions
-pi_actions, log_pis = actor(batch['observations'])
-
-# calculate q value of actor actions
-qpi = critic(batch['observations'], actions)
-qpi = qpi.min(axis=0) 
-
-# same objective as CQL (kumar et al.)
-actor_loss = (log_pis * self.alpha - qpi).mean()
-
-# optimize loss
-actor_optimizer.zero_grad()
-actor_loss.backward()
-actor_optimizer.step()
-\end{python}
-
-\fi
-
+\vspace{-0.2cm}
 \section{Regret Analysis of \methodname}
+\vspace{-0.2cm}
 We provide a theoretical version of \methodname\ in Algorithm~\ref{algo:CalQL-thm}. Policy fine-tuning has been studied in different settings~\citep{xie2021policy,song2023hybrid,wagenmaker2022leveraging}. Our analysis largely adopts the settings and results in \citet{song2023hybrid}, with additional changes in Assumption~\ref{assump:conservative-realizability-completeness}, Assumption~\ref{assump:conservative-bilinear-rank}, and Definition~\ref{def:bellman-error-coeff-ref}. Note that the goal of this proof is to demonstrate that
-{\em a pessimistic functional class (Assumption~\ref{assump:conservative-realizability-completeness})} allows one to utilize the offline data efficiently, rather than providing a new analytical technique for regret analysis. See comparisons between Section~\ref{subsec:CalQL-assumptions} and Section~\ref{subsec:HyQ-assumptions}. Note that we use $f$ instead of $Q_\theta$ in the main text to denote the estimated $Q$ function for notation simplicity.
+{\em a pessimistic functional class (Assumption~\ref{assump:conservative-realizability-completeness})} allows one to utilize the offline data efficiently, rather than providing a new analytical technique for regret analysis. Note that we use $f$ instead of $Q_\theta$ in the main text to denote the estimated $Q$ function for notation simplicity.
 
 \begin{algorithm}[H]
 
@@ -129,8 +78,10 @@ We provide a theoretical version of \methodname\ in Algorithm~\ref{algo:CalQL-th
 % \end{equation}
 % where $R(s,a)\in \Delta[0,1]$ represents a stochastic reward function.
 
+\vspace{-0.2cm}
 \subsection{Notations}
 \label{appendix:notations}
+\vspace{-0.2cm}
 \begin{itemize}
     \item Feature covariance matrix $\Sigma_{k;h}$: 
     \begin{equation}
@@ -184,7 +135,9 @@ For any policy $\pi$, we define the calibrated transfer coefficient w.r.t. to a 
 where $Q^\mr{ref} = Q^{\pi^\mr{ref}}$.
 \end{definition}
 
+\vspace{-0.2cm}
 \subsection{Discussions on the Assumptions}
+\vspace{-0.2cm}
 The pessimistic realizability and completeness assumption (Assumption~\ref{assump:conservative-realizability-completeness}) is motivated by some theoretical studies of the pessimistic offline methods~\cite{xie2021bellman,cheng2022adversarially} with regularizers:
 
 \begin{align}
@@ -204,7 +157,9 @@ where the constraint set is equivalent to Assumption~\ref{assump:conservative-re
 
 Assumption~\ref{assump:conservative-realizability-completeness} allows us to restrict the functional class of interest to a smaller conservative function class $\mc C\subset\mc F$, which leads to a smaller Bellman rank of the reference policy $(d_\mr{ref}\leq d)$ suggested in Assumption~\ref{assump:conservative-bilinear-rank}, and a smaller concentrability coefficient $(C^\mr{ref}_\pi\leq C_\pi)$ defined in Definition~\ref{def:bellman-error-coeff-ref}, and \ref{def:bellman-error-coeff-hy-q}. Assumption~\ref{assump:conservative-bilinear-rank} and Definition~\ref{def:bellman-error-coeff-hy-q} provide the Bellman Bilinear rank and Bellman error transfer coefficient of the pessimistic functional class $\mc C$ of interest.
 
+\vspace{-0.2cm}
 \subsection{Proof Structure Overview}
+\vspace{-0.2cm}
 We provide an overview of the proof structure and its dependency on different assumptions below:
 \begin{itemize}
     \item Theorem~\ref{thm:CalQL-regret-main}: the total regret is decomposed into {\em offline regrets} and {\em online regrets}.
@@ -326,10 +281,9 @@ Setting $\moff = K,\mon=1$ in the above equation completes the proof, we have
 where the last inequality holds because $K_1,K_2\leq K$, which completes the proof.
 \end{proof}
 
-\iffalse
 
 \section{Key Results of HyQ~\citep{song2023hybrid}}
-In this section, we restate the major theoretical results of Hy-Q~\citep{song2023hybrid} for completeness. 
+In this section, we restate the major theoretical results of Hy-Q~\citep{song2023hybrid}. 
 % \begin{algorithm}[ht]
 
 %   \caption{Hybrid Q-learning using offline and online data~\citep{song2023hybrid}}\label{algo:HybridQ}
@@ -351,9 +305,10 @@ In this section, we restate the major theoretical results of Hy-Q~\citep{song202
 %     \State \textbf{Output:} $\pi^K$
 %   \end{algorithmic}
 % \end{algorithm}
+\vspace{-0.2cm}
 \subsection{Assumptions}
-
 \label{subsec:HyQ-assumptions}
+\vspace{-0.2cm}
 
 \begin{assumption}[Realizability and Bellman completeness]
 \label{assump:realizability-completeness}
@@ -490,6 +445,7 @@ where we define $f_H(s,a)=0,\forall (s,a)$.
     \end{equation}
     where we define $f_H(s,a)=0,\forall s,a$.
 \end{lemma}
+
 \begin{lemma}[Lemma 8 of \citet{song2023hybrid}, upper bounding bilinear class]
     \label{lemma:bilinear-upper-bound}
     For any $k\geq2$ and $h\in [H-1]$, we have
@@ -526,8 +482,6 @@ where we define $f_H(s,a)=0,\forall (s,a)$.
     where we define $\mb \Sigma_{k;h}:=\sum_{\tau=1}^kX_h(f^\tau)X_h(f^\tau)^T+\lambda \mb I$ and we assume $\lambda\geq B_X^2$ holds $\forall k\in[K]$.
 \end{lemma}
 
-\fi
-
 
 \section{Environment Details}
 \label{appendix:env_details}
@@ -545,7 +499,7 @@ The Adroit domain involves controlling a 24-DoF shadow hand robot. There are 3 t
 The Visual Manipulation domain consists of a pick-and-place task. This task is a multitask formulation explored in the work, Pre-training for Robots (PTR) \cite{2022arXiv221005178K}. Here each task is defined as placing an object in a bin. A distractor object was present in the scene as an adversarial object which the agent had to avoid picking. There were 10 unique objects and no overlap between the task objects and the interfering/distractor objects. The episode length is 40. For the offline phase, we pre-trained the policy with offline data for 50K steps. We then performed online fine-tuning for 100K environment steps for each method, taking 5 gradient steps per environment step.
 
 \section{Experiment Details}
-\label{app:hyperparam}
+\label{app:calql_hyperparam}
 
 \subsection{Normalized Scores}
 \label{appendix:normalized_score}
@@ -565,7 +519,7 @@ We list the hyperparameters for IQL in Table~\ref{table:hyper_all_iql}. To condu
 \subsection{Details and Hyperparameters for AWAC and ODT}
 We used the JAX implementation of AWAC from \url{https://github.com/ikostrikov/jaxrl}~\cite{jaxrl}. We primarily followed the author's recommended parameters, where we used the Lagrange multiplier $\lambda = 1.0$ for the Antmaze and Franka Kitchen domains, and $\lambda = 0.3$ for the Adroit domain. In the visual-manipulation domain, we performed a parameter sweep over $\lambda = 0.1, 0.3, 1, 3, 10$ and selected the best-performing value of $\lambda = 1$ for our final results. For ODT, we used the author's official implementation from \url{https://github.com/facebookresearch/online-dt}, with the author's recommended parameters they used in the Antmaze domain. In addition, in support of our result of AWAC and ODT (as shown in Table~\ref{tab:performance}), the poor performance of Decision Transformers and AWAC in the Antmaze domain can also be observed in Table 1 and Table 2 of the IQL paper~\citep{kostrikov2021offlineb}.
 
-\subsection{Details and Hyperparameters for SAC, SAC + Offline Data, Hybrid RL and CQL + SAC}
+\subsection{Details and Hyperparameters for SAC, SAC + Offline Data, and CQL + SAC}
 We used the standard hyperparameters for SAC as derived from the original implementation in~\cite{sac}. We used the same other hyperparameters as CQL and \methodname. We used automatic entropy tuning for the policy and critic entropy terms, with a target entropy of the negative action dimension. For SAC, the agent is only trained with the online explored data. For SAC + Offline Data, the offline data and online explored data is combined together and sampled uniformly. For Hybrid RL, we use the same mixing ratio used for CQL and \methodname\ presented in Table~\ref{table:hyper_all_cql}. For CQL + SAC, we first pre-train with CQL and then run online fine-tuning using both offline and online data, also using the same mixing ratio presented in Table~\ref{table:hyper_all_cql}. 
 
 \begin{table}[H]
@@ -618,7 +572,7 @@ We used the standard hyperparameters for SAC as derived from the original implem
 
 
 
-\section{Extended Discussion on Limitations of Existing Fine-Tuning Methods}
+\section{Discussion on Limitations of Existing Fine-Tuning Methods}
 \label{appendix:more_discussion_on_finetuning}
 
 \begin{figure}[h]
@@ -643,22 +597,22 @@ We used the standard hyperparameters for SAC as derived from the original implem
 
 \end{figure}
 
-In this section, we aim to highlight some potential reasons behind the slow improvement of other methods in our empirical analysis experiment in Section~\ref{sec:empirical_analysis}, and specifically, we use IQL for the analysis. We first swept over the temperature $\beta$ values used in the online fine-tuning phase for IQL, which controls the constraint on how closely the learned policy should match the behavior policy. As shown in Figure~\ref{fig:beta_ablation}, the change in the temperature $\beta$ has little to no effect on the sample efficiency. Another natural hypothesis is that IQL improves slowly because we are not making enough updates per unit of data collected by the environment. To investigate this, we ran IQL with \textbf{(a)} five times as many gradient steps per step of data collection ($\text{UTD}=5$), and \textbf{(b)} with a more aggressive policy update. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(a)} does not improve the asymptotic performance of IQL, although it does improve CQL meaning that there is room for improvement on this task by making more gradient updates. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(b)} often induces policy unlearning, similar to the failure mode in CQL. These two observations together indicate that a policy constraint approach can slow down learning asymptotically, and we cannot increase the speed by making more aggressive updates as this causes the policy to find erroneously optimistic out-of-distribution actions, and unlearn the policy learned from offline data. 
+In this section, we aim to highlight some potential reasons behind the slow improvement of other methods in our empirical analysis experiment in Section~\ref{sec:calql_empirical_analysis}, and specifically, we use IQL for the analysis. We first swept over the temperature $\beta$ values used in the online fine-tuning phase for IQL, which controls the constraint on how closely the learned policy should match the behavior policy. As shown in Figure~\ref{fig:beta_ablation}, the change in the temperature $\beta$ has little to no effect on the sample efficiency. Another natural hypothesis is that IQL improves slowly because we are not making enough updates per unit of data collected by the environment. To investigate this, we ran IQL with \textbf{(a)} five times as many gradient steps per step of data collection ($\text{UTD}=5$), and \textbf{(b)} with a more aggressive policy update. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(a)} does not improve the asymptotic performance of IQL, although it does improve CQL meaning that there is room for improvement on this task by making more gradient updates. Observe in Figure~\ref{fig:cql_iql_finetune_app} that \textbf{(b)} often induces policy unlearning, similar to the failure mode in CQL. These two observations together indicate that a policy constraint approach can slow down learning asymptotically, and we cannot increase the speed by making more aggressive updates as this causes the policy to find erroneously optimistic out-of-distribution actions, and unlearn the policy learned from offline data. 
 
 
 \section{Impact of Estimation Errors in the Reference Value Function}
 \label{app:nn_value_function}
 
-\begin{wrapfigure}{r}{0.3\columnwidth}
-\vspace{-0.9cm}
+\begin{figure}[t]
+\vspace{-0.3cm}
 \begin{center}
-\includegraphics[width=0.9\linewidth]{chapters/cal_ql/figs-sample/kitchen-analysis.png}
+\includegraphics[width=0.35\linewidth]{chapters/cal_ql/figs-sample/kitchen-analysis.png}
 \vspace{-0.2cm}
 \caption{\footnotesize{The performance of \methodname\ using a neural net approximator for the reference value function is comparable to using the Monte-Carlo return.}}
 \label{fig:kitchen-regress}
-\vspace{-0.8cm}
+\vspace{-0.5cm}
 \end{center}
-\end{wrapfigure}
+\end{figure}
 
 In our experiments, we compute the reference value functions using Monte-Carlo return estimates. However, this may not be available in all tasks. How does \methodname\ behave when reference value functions must be estimated using the offline dataset itself? To answer this, we ran an experiment on the \texttt{kitchen} domain, where instead of using an estimate for $Q^\mu$ based on the Monte-Carlo return, we train a neural network function approximator $Q^\mu_\theta$ to approximate $Q^\mu$ via supervised regression on to Monte-Carlo return, which is then utilized by \methodname. 
 Observe in Figure \ref{fig:kitchen-regress}, that the performance of \methodname\ largely remains unaltered. This implies as long as we can obtain a reasonable function approximator to estimate the Q-function of the reference policy (in this case, the behavior policy), errors in the reference Q-function do not affect the performance of \methodname\ significantly.
@@ -672,7 +626,7 @@ Observe in Figure \ref{fig:kitchen-regress}, that the performance of \methodname
 \begin{center}    
 {\includegraphics[clip,width=1.0\linewidth]{chapters/cal_ql/figs-sample/kitchen-cog-zoom-in.pdf}} {\includegraphics[clip,width=0.75\linewidth]{chapters/cal_ql/figs-sample/adroit-zoom-in.pdf}}
 \end{center}
-\vspace{-0.45cm}
+\vspace{-0.35cm}
 \caption{\label{fig:dip_zoom} \footnotesize{While CQL experiences initial unlearning, \methodname\ effectively mitigates it and quickly recovers its performance.}}
 \vspace{-0.4cm}
 \end{figure}
@@ -716,7 +670,7 @@ with regularizers $\alpha,\alpha^\prime$ and behavior policies $\pi_\beta,\pi_{\
     \frac{\alpha}{\pi_\beta(a|s)}-\frac{\alpha^\prime}{\pi_{\beta^\prime}(a|s)}=\frac{\alpha-\alpha^\prime}{\pi(a|s)},\;\forall (s,a)\in \mc S\times \mc A.}
 \end{equation}
 \end{theorem}
-The proof of Theorem~\ref{thm:mixing-dip-main} is provided in Appendix~\ref{appendix:proof:mixing-dip-main}. Theorem~\ref{thm:mixing-dip-main} implies that one shall expect a performance change in the fine-tuning phase, whenever Equation~\ref{eq:inv-cond} becomes invalid. Unfortunately, Equation~\ref{eq:inv-cond} is generally hard to enforce in practice since the new behavior policy $\pi_{\beta^\prime}$ and the updated policy $\pi$ may be intractable, as suggested by the performance dip in Section~\ref{sec:empirical_analysis}.
+The proof of Theorem~\ref{thm:mixing-dip-main} is provided in Appendix~\ref{appendix:proof:mixing-dip-main}. Theorem~\ref{thm:mixing-dip-main} implies that one shall expect a performance change in the fine-tuning phase, whenever Equation~\ref{eq:inv-cond} becomes invalid. Unfortunately, Equation~\ref{eq:inv-cond} is generally hard to enforce in practice since the new behavior policy $\pi_{\beta^\prime}$ and the updated policy $\pi$ may be intractable, as suggested by the performance dip in Section~\ref{sec:calql_empirical_analysis}.
 
 \paragraph{Preventing unlearning via calibration.}
 Since the standard CQL training objective suffers from reward bias, which may continue to deteriorate during fine-tuning. The next corollary provides a condition under which $r^\pi_{\alpha,\beta}(s,a)$ becomes unbiased.

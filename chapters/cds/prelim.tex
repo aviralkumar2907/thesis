@@ -1,14 +1,14 @@
-\vspace{-5pt}
-\section{Preliminaries and Problem Statement}
-\vspace{-5pt}
+\vspace{-0.2cm}
+\subsection{Notation and Problem Statement}
+\vspace{-0.2cm}
 \label{sec:prelims}
 % In this section, we introduce notation, present our problem formulation, and review the base offline RL methods that our algorithm utilizes.
 
 \textbf{Multi-task offline RL.} The goal in multi-task RL is to find a policy that maximizes expected return in a multi-task Markov decision process (MDP), defined as   $\mdp =(\states, \actions, P, \gamma, \{R_i, i \}_{i=1}^N)$, with state space $\states$, action space $\actions$, dynamics $P(\bs' | \bs, \mathbf{a})$, a discount factor $\gamma \in [0, 1)$, and a finite set of task indices $1, \cdots, N$
 with corresponding reward functions $R_1, \cdots, R_N$. Each task $i$ presents a different reward function $R_i$, but we assume that the dynamics $P$ are shared across tasks. While this setting is not fully general, there are a wide variety of practical problem settings for which only the reward changes including various goal navigation tasks~\cite{fu2020d4rl}, distinct object manipulation objectives~\cite{xie2018few}, and different user preferences~\cite{christiano2017deep}.
-In this work, we focus on learning a policy $\pi(\mathbf{a}|\bs, i)$, which in practice could be modelled as independent policies $\{\pi_1(\mathbf{a}|\bs), \cdots, \pi_N(\mathbf{a}|\bs)\}$ that do not share any parameters, or as a single task-conditioned policy, $\pi(\mathbf{a}|\bs, i)$ with parameter sharing. Our goal in this paper is to analyze and devise methods for data sharing and the choice of parameter sharing is orthogonal, and can be made independently.
-We formulate the policy optimization problem as finding a policy that maximizes expected return over all the tasks: $\pi^*(\mathbf{a}|\bs, \cdot) := \arg \max_{\pi} \mathbb{E}_{i \sim [N]} \mathbb{E}_{\pi(\cdot|\cdot, i)}[\sum_{t} \gamma^t R_i(\bs_t, \mathbf{a}_t)]$.
-The Q-function, $Q^\pi(\bs, \mathbf{a}, i)$, of a policy $\pi(\cdot|\cdot, i)$ is the long-term discounted reward obtained in task $i$ by executing action $\mathbf{a}$ at state $\bs$ and following policy $\pi$ thereafter.
+In this work, we focus on learning a policy $\pi(\mathbf{a}|\bs, i)$, which in practice could be modelled as independent policies $\{\pi_1(\mathbf{a}|\bs), \cdots, \pi_N(\mathbf{a}|\bs)\}$ that do not share any parameters, or as a single task-conditioned policy, $\pi(\mathbf{a}|\bs, i)$ with parameter sharing. Our goal in this chapter is to analyze and devise methods for data sharing and the choice of parameter sharing is orthogonal, and can be made independently.
+We formulate the policy optimization problem as finding a policy that maximizes expected return over all the tasks: $\pi^*(\mathbf{a}|\bs, \cdot) := \arg \max_{\pi} \mathbb{E}_{i \sim [N]} \mathbb{E}_{\pi(\cdot|\cdot, i)}[\sum_{t} \gamma^t R_i(\bs_t, \mathbf{a}_t)]$. 
+% The Q-function, $Q^\pi(\bs, \mathbf{a}, i)$, of a policy $\pi(\cdot|\cdot, i)$ is the long-term discounted reward obtained in task $i$ by executing action $\mathbf{a}$ at state $\bs$ and following policy $\pi$ thereafter.
 %%CF.5.22: the above paragraph seems to be a lot more than just notation and definitions, especially the part about the reward being the same across tasks (since that is part of our problem definition). How about you have the multi-task offline RL paragraph header for this paragraph? (and then no header for the next paragraph)
 %%CF.5.22: Need to make it clear that we assume that we know the form of the reward function r_i, a common assumption in goal-conditioned RL~\cite{}, and which often holds in robotics applications through the use of learned classifiers~\cite{annie_flo,qtopt} and discriminators~\cite{vice,chen_dvd}.
 
@@ -17,10 +17,9 @@ The Q-function, $Q^\pi(\bs, \mathbf{a}, i)$, of a policy $\pi(\cdot|\cdot, i)$ i
 Standard offline RL is concerned with learning policies $\pi(\mathbf{a}|\bs)$ using only a given static dataset of transitions $\mathcal{D} =  \{(\bs_j, \mathbf{a}_j, \bs'_j, r_j)\}_{j=1}^N$, collected by a behavior policy $\pi_\beta(\mathbf{a}|\bs)$, without any additional environment interaction. In the multi-task offline RL setting, the dataset $\mathcal{D}$ is partitioned into per-task subsets, $\mathcal{D} = \cup_{i=1}^N \mathcal{D}_i$,
 where $\mathcal{D}_i$ consists of experience from task $i$. While algorithms can choose to train the policy for task $i$ (i.e., $\pi(\cdot|\cdot, i)$) only on $\mathcal{D}_{i}$, in this paper, we are interested in data-sharing schemes that correspond to relabeling data from a different task, $j \neq i$ with the reward function $r_i$, and learn $\pi(\cdot|\cdot, i)$ on the combined data. To be able to do so, we assume access to the functional form of the reward $r_i$, a common assumption in goal-conditioned RL~\cite{andrychowicz2017hindsight,eysenbach2020rewriting}, and which often holds in robotics applications through the use of learned classifiers~\cite{xie2018few,kalashnikov2018scalable}, and discriminators~\cite{fu2018variational,chen2021learning}.
 
-We assume that relabeling data $\mathcal{D}_j$ from task $j$ to task $i$ generates a dataset $\mathcal{D}_{j \rightarrow i}$, which is then additionally used to train on task $i$. Thus, the effective dataset for task $i$ after relabeling is given by $\mathcal{D}^\mathrm{eff}_i := \mathcal{D}_i \cup \left( \cup_{j \neq i} \mathcal{D}_{j \rightarrow i} \right)$. This notation simply formalizes data sharing and relabeling strategies explored in prior work~\citep{eysenbach2020rewriting,kalashnikov2021mt}. Our aim in this paper will be to improve on this na\"{i}ve strategy, which we will show leads to significantly better results. 
+We assume that relabeling data $\mathcal{D}_j$ from task $j$ to task $i$ generates a dataset $\mathcal{D}_{j \rightarrow i}$, which is then additionally used to train on task $i$. Thus, the effective dataset for task $i$ after relabeling is given by $\mathcal{D}^\mathrm{eff}_i := \mathcal{D}_i \cup \left( \cup_{j \neq i} \mathcal{D}_{j \rightarrow i} \right)$. This notation simply formalizes data sharing and relabeling strategies explored in prior work~\citep{eysenbach2020rewriting,kalashnikov2021mt}. Our aim in this paper will be to improve on this na\"{i}ve strategy, which we will show leads to better results. 
 
-\textbf{Offline RL algorithms.} A central challenge in offline RL is distributional shift: differences between the learned policy and the behavior policy can lead to erroneous target values, where the Q-function is queried at actions $\mathbf{a} \sim \pi(\mathbf{a}|\bs)$ that are far from the actions it is trained on, leading to massive overestimation~\citep{levine2020offline,kumar2019stabilizing}.
-A number of offline RL algorithms use some kind of regularization on either the policy~\citep{kumar2019stabilizing,fujimoto2018off,wu2019behavior,jaques2019way,siegel2020keep,peng2019advantage} or on the learned Q-function~\citep{kumar2020conservative,kostrikov2021offline} to ensure that the learned policy does not deviate too far from the behavior policy. For our analysis in this work, we will abstract these algorithms into a generic constrained policy optimization problem~\citep{kumar2020conservative}:
+\textbf{Offline RL algorithms.} For our analysis in this chapter, we will abstract offline RL algorithms into a generic constrained policy optimization problem~\citep{kumar2020conservative}:
 \begin{equation}
 \label{eqn:generic_offline_rl}
     \pi^*(\mathbf{a}|\bs) := \arg \max_{\pi}~~ J_{\mathcal{D}}(\pi) - \alpha D(\pi, \pi_\beta).
@@ -36,13 +35,14 @@ $J_{\mathcal{D}}(\pi)$ denotes the average return of policy $\pi$ in the empiric
 %     %%SL.5.23: maybe label it as "offline RL with a policy constraint" or something?
 % \end{equation}
 % $J_{\mathcal{D}}(\pi)$ denotes the average return of policy $\pi$ in the empirical MDP induced by the transitions in the dataset, and $D(\pi, \pi_\beta)$ denotes a divergence measure (e.g., KL-divergence~\citep{jaques2019way}, MMD distance~\citep{kumar2019stabilizing}) between the learned policy $\pi$ and the behavior policy $\pi_\beta$. 
+
 In the multi-task offline RL setting with data-sharing, the generic optimization problem in Equation~\ref{eqn:generic_offline_rl} for a task $i$ utilizes the effective dataset $\mathcal{D}^\mathrm{eff}_i$. In addition, we define $\pi_\beta^\mathrm{eff}(\mathbf{a}|\bs, i)$ as the effective behavior policy for task $i$ and it is given by: $\pi_\beta^\mathrm{eff}(\mathbf{a}|\bs, i) := |\mathcal{D}^\mathrm{eff}_i(\bs, \mathbf{a})| / |\mathcal{D}^\mathrm{eff}_i(\bs)|$. Hence, the counterpart of Equation~\ref{eqn:generic_offline_rl} in the multi-task offline RL setting with data sharing is given by:
 \begin{equation}
 \label{eqn:generic_multitask_offline_rl}
      \forall i \in [N], ~~\pi^*(\mathbf{a}|\bs, i) := \arg \max_{\pi}~~ J_{\mathcal{D}^\mathrm{eff}_i}(\pi) - \alpha D(\pi, \pi^\mathrm{eff}_\beta).
      %%CF.5.22: are J_\data(\pi, \task_i) and D(\pi, \pi_\beta; \mathcal{T}_i) ever defined? and should it be J_\mathcal{D} or J_\mathcal{D}(\task) or something else?
 \end{equation}
-We will utilize this generic optimization problem to motivate our method in Section~\ref{sec:method}.
+We will utilize this generic optimization problem to motivate our method in Section~\ref{sec:cds_method}.
 
 % Given an MDP $\mdp =(\states, \actions, R, P, \gamma)$ \citep{puterman1994markov}, with state space $\states$, action space $\actions$, a reward function $R(\bs, \mathbf{a})$, dynamics $P(\bs' | \bs, \mathbf{a})$ and a discount factor $\gamma \in [0, 1)$, the goal of  The Q-function $Q^\pi(\bs, \mathbf{a})$ for a policy $\pi(\mathbf{a}|\bs)$ is the expected long-term discounted reward obtained by executing action $\mathbf{a}$ at state $\bs$ and following $\pi(\mathbf{a}|\bs)$ thereafter, 
 % $Q^\pi(\bs, \mathbf{a}) := \E\left[ \sum\nolimits_{t=0}^\infty \gamma^t R(\bs_t, \mathbf{a}_t) \right]$.

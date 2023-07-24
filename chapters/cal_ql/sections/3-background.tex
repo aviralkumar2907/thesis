@@ -1,6 +1,6 @@
 \vspace{-0.2cm}
 \section{Problem Statement and Additional Notation}
-\vspace{-0.15cm}
+\vspace{-0.2cm}
 % The goal in RL is to learn the optimal policy for an MDP $\mathcal{M} = (\mathcal{S}, \mathcal{A}, P, r, \rho, \gamma)$. $\mathcal{S}, \mathcal{A}$ denote the state and action spaces.  $P(s' | s, a)$ and $r(s,a)$
 % are the dynamics and reward functions. $\rho(s)$ denotes the initial state distribution.  $\gamma \in (0,1)$ denotes the discount factor. Formally, the goal is to learn a policy $\pi:\mc S\mapsto \mc A$ that maximizes cumulative discounted value function, denoted by $V^\pi(s) = {\frac{1}{1-\gamma}\sum_{t} \bb E_{a_t \sim \pi(s_t)}\brac{\gamma^t r(s_t, a_t)|s_0=s}}$. The Q-function of a given policy $\pi$ is defined as ${Q^\pi(s,a) = {\frac{1}{1-\gamma}\sum_{t} \bb E_{a_t \sim \pi(s_t)}\brac{\gamma^t r(s_t, a_t)|s_0=s,a_0=a}}}$, and we use $Q_\theta^\pi$ to denote the estimate of the Q-function of a policy $\pi$ as obtained via a neural network with parameters $\theta$.
 

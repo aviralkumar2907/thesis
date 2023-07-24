@@ -1,5 +1,7 @@
+\vspace{-0.2cm}
 \subsection{Analysis: Uncertainty Calibration in Offline Model-Based RL}
 \label{sec:uq}
+\vspace{-0.2cm}
 
 \begin{figure}[t]
     \vspace{-0.5cm}
@@ -20,8 +22,10 @@ In this section, we first analyze the efficacy of uncertainty estimation in exis
 
 We consider two tasks \texttt{halfcheetah-jump} and \texttt{ant-angle} (more details about the task in Appendix ??). We normalize both the model prediction error and the uncertainty estimates to be within scale $[0, 1]$ and performs linear regression that learns the mapping between the uncertainty estimates and the true model error. As shown in Figure~\ref{fig:uq}, on both tasks, \textbf{Max Var} is unable to accurately predict the true model error, suggesting that uncertainty estimation used by offline model-based methods is not accurate and might be the major factor that results in its poor performance. On the other hand, our approach, COMBO, alleviates the need for accurate uncertainty quantification by viewing model-based offline RL from the lens of conservative value function learning.
 
+\vspace{-0.2cm}
 \subsection{Conservative Offline Model-Based Policy Optimization}
 \label{sec:combo}
+\vspace{-0.2cm}
  
 Our goal in this section is to develop a model-based offline RL algorithm that enables optimizing a lower bound on the policy performance, but without requiring uncertainty quantification. We achieve this by extending conservative Q-learning, from the previous section, into the model-based setting. Our algorithm, summarized in Algorithm~\ref{alg:combo}, alternates between a conservative policy evaluation step and a policy improvement step, which we outline below.
 
@@ -66,25 +70,28 @@ We will show in Section~\ref{sec:theory} that the Q function learned by repeatin
 \end{small}
 \end{algorithm}
 
-{\bf Policy Improvement Using a Conservative Critic:} After learning a conservative critic $\hat{Q}^\policy$, we improve the policy as:
+{\bf Policy improvement using a conservative critic:} After learning a conservative critic $\hat{Q}^\policy$, we improve the policy as:
 \begin{equation}
 \label{eq:combo_policy_improvement}
 \policy' \leftarrow \arg \max_{\policy} \ \mathbb{E}_{\bs \sim \rho, \mathbf{a} \sim \policy(\cdot|\bs)} \left[ \hat{Q}^{\policy} (\bs, \mathbf{a}) \right]
 \end{equation}
 where $\rho(\bs)$ is the state marginal of $\rho(\bs,\mathbf{a})$. When policies are parameterized with neural networks, we approximate the $\arg \max$ with a few steps of gradient descent. In addition, entropy regularization can also be used to prevent the policy from becoming degenerate if required~\cite{haarnoja2018soft}. In Section~\ref{sec:policy_improvement_theory}, we show that the resulting policy is guaranteed to improve over the behavior policy.
 
-\textbf{Practical Implementation Details.} Our practical implementation largely follows MOPO, with the key exception that we perform conservative policy evaluation as outlined in this section, rather than using uncertainty-based reward penalties. Following MOPO, we represent the probabilistic dynamics model using a neural network, with parameters $\theta$, that produces a Gaussian distribution over the next state and reward: $\widehat{T}_\theta(\bs_{t+1}, r| \bs, \mathbf{a}) = \mathcal{N}(\mu_\theta(\bs_t, \mathbf{a}_t), \Sigma_\theta(\bs_t, \mathbf{a}_t))$. The model is trained via maximum likelihood. For training the conservative critic, which is the major distinction between COMBO and MOPO, the fixed constant $\beta$ is tuned with an offline cross-validation scheme for all low-dimensional continuous control tasks and is decided with a limited number of rollouts in the actual environment in the vision-based environments. We set the ratio $f = 0.5$ to have an equal split between model rollouts and data from the offline dataset. For conservative policy evaluation (eq.~\ref{eq:implicit_update}) and policy improvement (eq.~\ref{eq:combo_policy_improvement}), we augment $\rho$ with states sampled from the offline dataset, which shows more stable improvement in practice. Additional details about practical implementation are provided in Appendix~\ref{app:combo_details}.
+\textbf{Practical implementation details.} Our practical implementation largely follows MOPO, with the key exception that we perform conservative policy evaluation as outlined in this section, rather than using uncertainty-based reward penalties. Following MOPO, we represent the probabilistic dynamics model using a neural network, with parameters $\theta$, that produces a Gaussian distribution over the next state and reward: $\widehat{T}_\theta(\bs_{t+1}, r| \bs, \mathbf{a}) = \mathcal{N}(\mu_\theta(\bs_t, \mathbf{a}_t), \Sigma_\theta(\bs_t, \mathbf{a}_t))$. The model is trained via maximum likelihood. For training the conservative critic, which is the major distinction between COMBO and MOPO, the fixed constant $\beta$ is tuned with an offline cross-validation scheme for all low-dimensional continuous control tasks and is decided with a limited number of rollouts in the actual environment in the vision-based environments. We set the ratio $f = 0.5$ to have an equal split between model rollouts and data from the offline dataset. For conservative policy evaluation (eq.~\ref{eq:implicit_update}) and policy improvement (eq.~\ref{eq:combo_policy_improvement}), we augment $\rho$ with states sampled from the offline dataset, which shows more stable improvement in practice. Additional details about practical implementation are provided in Appendix~\ref{app:combo_details}.
 
-
+\vspace{-0.2cm}
 \subsection{Theoretical Analysis of COMBO}
 \label{sec:combo_theory}
+\vspace{-0.2cm}
 In this section, we theoretically analyze COMBO and show that, like CQL, it continues to optimize a lower-bound on the expected return of the learned policy. This lower bound is close to the actual policy performance (modulo sampling error) when the policy's state-action marginal distribution is in support of the state-action marginal of the behavior policy and conservatively estimates the performance of a policy otherwise. By optimizing the policy against this lower bound, COMBO guarantees policy improvement beyond the behavior policy. {Furthermore, we use these insights to discuss cases when COMBO is less conservative compared to model-free CQL}.
 
-\begin{subsubsection}{COMBO Optimizes a Lower Bound}
+\vspace{-0.2cm}
+\subsubsection{COMBO Optimizes a Lower Bound}
 \label{sec:combo_lower_bound}
+\vspace{-0.2cm}
 We first show that training the Q-function using Equation~\ref{eq:implicit_update} produces a Q-function such that the expected off-policy policy improvement objective~\citep{degris2012off} 
 %%AK.1.30: define this in the section on prelims, rather than the expected return, the expected policy improvement objective is E_{s, a \sim d_f}[Q(s, a)], which we optimize in practice and cite a number of papers (silver2014dpg, lillicrap2015ddpg, degris2021offpac).
-computed using this learned Q-function lower-bounds its actual value. We will reuse notation for $d_f$ and $d$ from Sections~\ref{sec:prelim} and~\ref{sec:combo}. 
+computed using this learned Q-function lower-bounds its actual value. We will reuse notation for $d_f$ and $d$ from Section~\ref{sec:combo}. 
 % With a slight abuse of notation, we will assume that $d_f$ and $\data$ denote (empirical) distributions over the state-action space.
 %%TY.1.31: it's a bit unclear what D_f is. In Section 4, it is currently defined as the interpolation, but here it seems to refer to an arbitrary state-action distribution.
 Assuming that the Q-function is tabular, the Q-function found by approximate dynamic programming in iteration $k$, can be obtained by differentiating Equation~\ref{eq:implicit_update} with respect to $Q^k$ (see App.~\ref{app:proofs} for details):
@@ -177,9 +184,11 @@ COMBO's objective (Equation~\ref{eq:implicit_update}) only penalizes Q-values un
 %%SL.5.24: I'm not sure I follow this logic -- why should we expect it to be negative?
 % COMBO does not underestimate the value function at every state in the dataset like \citet{kumar2020conservative}, but only lower-bounds the expected value function under the initial state distribution as discussed in Corollary~\ref{thm:lower_bound}. We elaborate on how COMBO is less conservative as it attains tighter lower bounds in Remark~\ref{remak:tighter_lower_bound} (Appendix~\ref{app:proof_lower_bound}).
 
+\vspace{-0.2cm}
 \subsubsection{Model-Based Safe Policy Improvement}
-
 \label{sec:policy_improvement_theory}
+\vspace{-0.2cm}
+
 Now that we have shown various aspects of the lower-bound on the Q-function induced by COMBO, we provide policy improvement guarantees for the COMBO algorithm. Formally, Proposition~\ref{thm:policy_improvement} discuss safe improvement guarantees over the behavior policy. building on prior work~\citep{petrik2016safe,laroche2019safe,kumar2020conservative}. 
 
 \begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=3pt,bottom=5pt]
@@ -198,12 +207,8 @@ Let $\hat{\pi}_{\text{out}}(\mathbf{a}|\bs)$ be the policy obtained by COMBO. Th
 The complete statement (with constants and terms that grow smaller than quadratic in the horizon) and proof for Proposition~\ref{thm:policy_improvement} is provided in Appendix~\ref{app:proof_policy_improvement}. $D_{\text{CQL}}$ denotes a notion of probabilistic distance between policies~\citep{kumar2020conservative} which we discuss further in Appendix~\ref{app:proof_policy_improvement}. The expression for $\zeta$ in Proposition~\ref{thm:policy_improvement} consists of three terms: term (1)~captures the decrease in the policy performance due to limited data, and decays as the size of $\mathcal{D}$ increases. The second term (2)~captures the suboptimality induced by the bias in the learned model. Finally, as we show in Appendix~\ref{app:proof_policy_improvement}, the third term (3)~is equivalent to the improvement in policy performance as a result of running COMBO in the empirical and model MDPs. Since the learned model is trained on the dataset $\data$ with transitions generated from the behavior policy $\behavior$, the marginal distribution $\rho^\beta(\bs, \mathbf{a})$ is expected to be closer to $d(\bs, \mathbf{a})$ for $\behavior$ as compared to the counterpart for the learned policy, $\rho^\pi$. Thus, term (3) is expected to be positive in practice, and in such cases, an appropriate (large) choice of $\beta$ will make term (3) large enough to counteract terms (1) and (2) that reduce policy performance. We discuss this elaborately in Appendix~\ref{app:proof_policy_improvement} (Remark~\ref{remark:remark1}). 
 
 Further note that in contrast to Proposition 3.6 in \citet{kumar2020conservative}, note that our result indicates the sampling error (term (1)) is reduced (multiplied by a fraction $f$) when a near-accurate model is used to augment data for training the Q-function, \neurips{and similarity, it can avoid the bias of model-based methods by relying more on the model-free component. This allows COMBO to attain the best-of-both model-free and model-based methods, via a suitable choice of the fraction $f$.}
-
 % \textcolor{red}{[if the above stuff makes sense -- it is just setting model error and Q-function sampling error in a way so as to optimize for a non-zero f -- I can formally write it down. However the assumption is a bit adhoc -- it is unclear why model-bias is large when sampling error ir small, but we will have to assume this.]}
-
-
 To summarize, through an appropriate choice of $f$, Proposition~\ref{thm:policy_improvement} guarantees safe improvement over the behavior policy without requiring access to an oracle uncertainty estimation algorithm.
 % Proposition~\ref{thm:policy_improvement} only depends on an appropriate choice single, scalar $f \in [0, 1]$, which can be controlled in practice and gets rid of the strict requirement of oracle access to a uniformly-accurate uncertainty metric.   
 %%CF: Can we put this in the opposite order to match the order in the previous sentences?
-\end{subsection}
 

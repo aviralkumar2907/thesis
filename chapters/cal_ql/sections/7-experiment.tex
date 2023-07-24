@@ -1,12 +1,10 @@
 \vspace{-0.09cm}
 \section{Experimental Evaluation}
 \vspace{-0.22cm}
-\label{sec:experiments}
+\label{sec:calql_experiments}
 The goal of our experimental evaluation is to study how well \methodname\ can facilitate sample-efficient online fine-tuning. To this end, we compare \methodname\ with several other state-of-the-art fine-tuning methods on a variety of offline RL benchmark tasks from D4RL~\cite{fu2020d4rl}, \citet{singh2020cog}, and \citet{nair2020accelerating}, evaluating performance before and after fine-tuning. We also study the effectiveness of \methodname\ on higher-dimensional tasks, where the policy and value function must process raw image observations. Finally, we perform empirical studies to understand the efficacy of \methodname\ with different dataset compositions and the impact of errors in the reference value function estimation.
 % to understand the efficacy of \methodname\ with different dataset compositions 
 % Finally, we perform several empirical studies to understand the efficacy of \methodname\ with different dataset compositions and to understand the impact of errors in reference function value estimation on \methodname.  
-
-~
 
 \begin{wrapfigure}{r}{0.48\linewidth}
 \centering
@@ -44,9 +42,8 @@ Finally, to evaluate the efficacy of \methodname\ on more challenging tasks wher
 \vspace{-0.5cm}
 \end{figure}
 
-~
 
-\noindent \textbf{Comparisons, prior methods, and evaluation protocol.} We compare \methodname\ to running online SAC~\cite{haarnoja2018soft} from scratch, as well as prior approaches that leverage offline data. This includes na\"ively fine-tuning offline RL methods such as CQL~\cite{kumar2020conservative} and IQL~\cite{kostrikov2021offlineb}, as well as fine-tuning with AWAC~\citep{nair2020accelerating}, O3F~\cite{mark2022fine} and online decision transformer (ODT)~\citep{zheng2022online}, methods specifically designed for offline RL followed by online fine-tuning. In addition, we also compare to a baseline that trains SAC~\cite{haarnoja2018soft} using both online data and offline data (denoted by ``SAC + offline data'') that mimics DDPGfD~\citep{vecerik2017leveraging} but utilizes SAC instead of DDPG. We also compare to Hybrid RL~\citep{song2023hybrid}, a recently proposed method that improves the sample efficiency of the ``SAC + offline data'' approach, and ``CQL+SAC'', which first pre-train with CQL and then run fine-tuning with SAC on a mixture of offline and online data without conservatism. More details of each method can be found in Appendix~\ref{app:hyperparam}.
+\noindent \textbf{Comparisons, prior methods, and evaluation protocol.} We compare \methodname\ to running online SAC~\cite{haarnoja2018soft} from scratch, as well as prior approaches that leverage offline data. This includes na\"ively fine-tuning offline RL methods such as CQL~\cite{kumar2020conservative} and IQL~\cite{kostrikov2021offlineb}, as well as fine-tuning with AWAC~\citep{nair2020accelerating}, O3F~\cite{mark2022fine} and online decision transformer (ODT)~\citep{zheng2022online}, methods specifically designed for offline RL followed by online fine-tuning. In addition, we also compare to a baseline that trains SAC~\cite{haarnoja2018soft} using both online data and offline data (denoted by ``SAC + offline data'') that mimics DDPGfD~\citep{vecerik2017leveraging} but utilizes SAC instead of DDPG. We also compare to Hybrid RL~\citep{song2023hybrid}, a recently proposed method that improves the sample efficiency of the ``SAC + offline data'' approach, and ``CQL+SAC'', which first pre-train with CQL and then run fine-tuning with SAC on a mixture of offline and online data without conservatism. More details of each method can be found in Appendix~\ref{app:calql_hyperparam}.
 We present learning curves for online fine-tuning and also quantitatively evaluate each method on its ability to improve the initialization learned from offline data measured in terms of \textbf{(i)} final performance after a pre-defined number of steps per domain and \textbf{(ii)} the cumulative regret over the course of online fine-tuning. In Section~\ref{subsec:highutd}, we run \methodname\ with a higher update-to-data (UTD) ratio and compare it to RLPD~\cite{rlpd}, a more sample-efficient version of ``SAC + offline data''.
 
 \vspace{-0.2cm}
@@ -59,7 +56,7 @@ We first present a comparison of \methodname\ in terms of the normalized perform
 
 \textbf{\methodname\ enables fast fine-tuning.} 
 % To understand the efficacy of \methodname\ in enabling learning quickly during online fine-tuning, we measure the cumulative regret accumulated over the course of fine-tuning. 
-Observe in Table~\ref{tab:results_regret} that \methodname\ achieves the smallest regret on \textbf{8 out of 11} tasks, attaining an average regret of 0.22 which improves over the next best method (IQL) by \textbf{42\%}. Intuitively, this means that \methodname\ does not require running highly sub-optimal policies. In tasks such as \texttt{relocate-binary}, \methodname\ enjoys the fast online learning benefits associated with na\"ive online RL methods that incorporate the offline data in the replay buffer (SAC + offline data and \methodname\ are the only two methods to  attain a score of $\geq$ 90\% on this task) unlike prior offline RL methods. As shown in Figure~\ref{fig:all_tasks}, in the \texttt{kitchen} and \texttt{antmaze} domains, \methodname\ brings the benefits of fast online learning together with a good offline initialization, improving drastically on the regret metric. Finally, observe that the initial unlearning at the beginning of fine-tuning with conservative methods observed in Section~\ref{sec:empirical_analysis} is greatly alleviated in all tasks (see Appendix~\ref{app:cql_dip_zoom_in} for details).
+Observe in Table~\ref{tab:results_regret} that \methodname\ achieves the smallest regret on \textbf{8 out of 11} tasks, attaining an average regret of 0.22 which improves over the next best method (IQL) by \textbf{42\%}. Intuitively, this means that \methodname\ does not require running highly sub-optimal policies. In tasks such as \texttt{relocate-binary}, \methodname\ enjoys the fast online learning benefits associated with na\"ive online RL methods that incorporate the offline data in the replay buffer (SAC + offline data and \methodname\ are the only two methods to  attain a score of $\geq$ 90\% on this task) unlike prior offline RL methods. As shown in Figure~\ref{fig:all_tasks}, in the \texttt{kitchen} and \texttt{antmaze} domains, \methodname\ brings the benefits of fast online learning together with a good offline initialization, improving drastically on the regret metric. Finally, observe that the initial unlearning at the beginning of fine-tuning with conservative methods observed in Section~\ref{sec:calql_empirical_analysis} is greatly alleviated in all tasks (see Appendix~\ref{app:cql_dip_zoom_in} for details).
 
 
 \begin{table*}[h]
@@ -86,16 +83,14 @@ Task & CQL & IQL & AWAC & O3F & ODT & CQL+SAC & Hybrid SRL & SAC+od & SAC & Cal-
 \end{tabular}}
 \vspace{-0.15cm}
 a\caption{\footnotesize{\textbf{Normalized score before \& after online fine-tuning.} Observe that \methodname\ improves over the best prior fine-tuning method and attains a much larger performance improvement over the course of online fine-tuning. The numbers represent the normalized score out of 100 following the convention in \citep{fu2020d4rl}.} \label{tab:performance}}
-
-\vspace{-0.3cm}
+% \vspace{-0.1cm}
 \end{center}
 }
 \end{table*}
 
 % \begin{wraptable}{r}{0.66\linewidth}
 \begin{table*}[h]
-
-\vspace{-0.4cm}
+\vspace{-0.3cm}
 \small{
 \begin{center}
 \resizebox{1.0\textwidth}{!}{
@@ -192,7 +187,7 @@ Observe that for the diverse dataset, both na\"ive CQL and \methodname\ perform 
 \end{wrapfigure}
 
 
-This suggests that in settings with narrow datasets (e.g., in the experiment above and in the \texttt{adroit} and \texttt{visual-manipulation} domains from Figure~\ref{fig:all_tasks}), Q-values learned by na\"ive conservative methods are more likely to be smaller than the ground-truth Q-function of the behavior policy due to function approximation errors. Hence utilizing \methodname\ to calibrate the Q-function against the behavior policy can be significantly helpful. On the other hand, with significantly high-coverage datasets, especially in problems where the behavior policy is also random and sub-optimal, Q-values learned by na\"ive methods are likely to already be calibrated with respect to those of the behavior policy. Therefore no explicit calibration might be needed (and indeed, the bounding rate tends to be very close to 0 as shown in Figure~\ref{fig:ant-narrow}). In this case, \methodname\ will revert back to standard CQL, as we observe in the case of the diverse dataset above. This intuition is also reflected in Theorem~\ref{thm:main-thm-informal}: when the reference policy $\mu$ is close to a narrow, expert policy, we would expect \methodname\ to be especially effective in controlling the efficiency of online fine-tuning. \textbf{We also present a diagnostic study of \methodname\ when the reference value function is estimated by fitting a neural network in Appendix~\ref{app:nn_value_function}}, and find that estimation errors in this model of the reference function do not affect performance significantly. 
+This suggests that in settings with narrow datasets (e.g., in the experiment above and in the \texttt{adroit} and \texttt{visual-manipulation} domains from Figure~\ref{fig:all_tasks}), Q-values learned by na\"ive conservative methods are more likely to be smaller than the ground-truth Q-function of the behavior policy due to function approximation errors. Hence utilizing \methodname\ to calibrate the Q-function against the behavior policy can be significantly helpful. On the other hand, with significantly high-coverage datasets, especially in problems where the behavior policy is also random and sub-optimal, Q-values learned by na\"ive methods are likely to already be calibrated with respect to those of the behavior policy. Therefore no explicit calibration might be needed (and indeed, the bounding rate tends to be very close to 0 as shown in Figure~\ref{fig:ant-narrow}). In this case, \methodname\ will revert back to standard CQL, as we observe in the case of the diverse dataset above. This intuition is also reflected in Theorem~\ref{thm:main-thm-informal}: when the reference policy $\mu$ is close to a narrow, expert policy, we would expect \methodname\ to be especially effective in controlling the efficiency of online fine-tuning. {We also present a diagnostic study of \methodname\ when the reference value function is estimated by fitting a neural network in Appendix~\ref{app:nn_value_function}}, and find that estimation errors in this model of the reference function do not affect performance significantly. 
 
 
 

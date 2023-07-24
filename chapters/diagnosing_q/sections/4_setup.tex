@@ -1,115 +1,118 @@
+\vspace{-0.2cm}
 \section{Experimental Setup}
-\label{sec:setup}
+\label{sec:diagnosing_setup}
+\vspace{-0.2cm}
 % Our experimental setup is centered around \emph{unit-testing}. We evaluate a spectrum of Q-learning algorithms, starting with exact dynamic programming and replacing exact components with practical approximations, until the algorithm resembles modern deep Q-learning methods. 
 % %We then introduce a suite of tabular environments where oracle solutions can be computed, to aid in diagnosis, as well as testing in high-dimensional environments to verify our hypotheses.
 
-Our goal is to understand various challenges in offline RL. While it is definitely possible to study these challenges in common benchmark tasks utilized in deep RL (e.g., OpenAI Gym environments), these tasks do not necessarily provide us with the ability to compute oracle solutions and isolate challenges individually. Therefore, we perform our study in a "unit-testing" setup, consisting of gridworld environments with varying difficulty levels, where it is possible to compute oracle solutions and control for different factors independently. We release this suite of tasks at: \url{https://github.com/justinjfu/diagnosing_qlearning}.    
+While it is definitely possible to study challenges with off-policy RL methods in offline RL on common deep RL benchmark tasks (e.g., OpenAI Gym~\citep{gym} environments), these tasks do not necessarily provide us with the ability to compute oracle solutions and isolate challenges individually. Therefore, we perform our study in a ``unit-testing'' setup, consisting of gridworld and other tabular environments with varying difficulty levels, where it is possible to compute oracle solutions and control for different factors independently.
+% We release this suite of tasks at: \url{https://github.com/justinjfu/diagnosing_qlearning}.    
 
 
-\iffalse
+% \iffalse
 
-\subsection{Algorithms}
-\label{sec:setup_algos}
-We use three different Q-learning variants, each of which controls for a specific source of approximation error -- 
-Exact-FQI, Sampling-FQI, and Replay-FQI. 
-We use FQI as a basis for our controlled analysis, as it strongly resembles modern deep RL algorithms while allowing us to separately isolate target values, update rates, and the number of samples used for each iteration. We then confirm that the observed trends hold with several state-of-the-art deep RL methods (SAC~\citep{Haarnoja2017}, TD3~\citep{pmlr-v80-fujimoto18a}) on standard benchmark problems.
-%Although FQI is not exactly identical to commonly used deep RL methods, such as DQN~\citep{Mnih2015}, DDPG~\citep{Lillicrap2015},TD3~\citep{pmlr-v80-fujimoto18a}, and SAC~\citep{Haarnoja2017}, it is structurally similar and, when the replay buffer for the commonly used methods becomes large, the difference becomes negligible, since the sampling distribution changes very little between target network updates. 
-%However, FQI methods are much more amenable for controlled analysis, since we can separately isolate target values, update rates, and the number of samples used for each iteration. We therefore use variants of FQI as the basis for our analysis, but we also confirm that similar trends hold with more commonly used algorithms on standard benchmark problems.
+% \subsection{Algorithms}
+% \label{sec:setup_algos}
+% We use three different Q-learning variants, each of which controls for a specific source of approximation error -- 
+% Exact-FQI, Sampling-FQI, and Replay-FQI. 
+% We use FQI as a basis for our controlled analysis, as it strongly resembles modern deep RL algorithms while allowing us to separately isolate target values, update rates, and the number of samples used for each iteration. We then confirm that the observed trends hold with several state-of-the-art deep RL methods (SAC~\citep{Haarnoja2017}, TD3~\citep{pmlr-v80-fujimoto18a}) on standard benchmark problems.
+% %Although FQI is not exactly identical to commonly used deep RL methods, such as DQN~\citep{Mnih2015}, DDPG~\citep{Lillicrap2015},TD3~\citep{pmlr-v80-fujimoto18a}, and SAC~\citep{Haarnoja2017}, it is structurally similar and, when the replay buffer for the commonly used methods becomes large, the difference becomes negligible, since the sampling distribution changes very little between target network updates. 
+% %However, FQI methods are much more amenable for controlled analysis, since we can separately isolate target values, update rates, and the number of samples used for each iteration. We therefore use variants of FQI as the basis for our analysis, but we also confirm that similar trends hold with more commonly used algorithms on standard benchmark problems.
 
-\begin{figure*}[ttt!]
-\begin{small}
-\begin{minipage}[t]{0.33\linewidth}
-\begin{algorithm}[H]
-\small
-\caption{Exact-FQI}
-\label{alg:fqiexact}
-\begin{algorithmic}[1]
-    \STATE Initialize Q-value approximator $Q_\theta(s,a)$.
-    \FOR{step $t$ in \{1, \dots, N\}}
-        \item[]
-        \item[]
-        \item[]
-        \STATE Evaluate $Q_{\theta^t}(s,a)$ at all states.
-        \STATE Compute exact target values at all states. \\
-        $y(s,a) = r(s,a) + \gamma E_{s'}[ V_{\theta^t}(s')]$ 
-        \STATE Minimize projection loss with respect to $\mu$: \\
-        $\argmin{\theta} E_\mu[(Q_\theta(s,a) - y(s,a))^2]$
-    \ENDFOR
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\begin{minipage}[t]{0.33\linewidth}
-\begin{algorithm}[H]
-\small
-\caption{Sampled-FQI}
-\label{alg:fqisampled}
-\begin{algorithmic}[1]
-    \STATE Initialize Q-value approximator $Q_\theta(s,a)$.
-    \FOR{step $t$ in \{1, \dots, N\}}
-        \item[]
-        \item[]
-        \STATE \textdiff{Collect $M$ samples from $\mu$.}
-        \STATE Evaluate $Q_{\theta^t}(s,a)$ \textdiff{on samples.}
-        \STATE Compute sampled target values \textdiff{on samples.}\\
-        $\hat{y}_i = r_i + \gamma V_{\theta^t}(s'_i)$ 
-        \STATE Minimize projection loss with respect to \textdiff{samples}: \\
-        $ \argmin{\theta} \frac{1}{M}\sum_{i=1}^M (Q_\theta(s_i,a_i) - y_i)^2$
-    \ENDFOR
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\begin{minipage}[t]{0.33\linewidth}
-\begin{algorithm}[H]
-\small
-\caption{Replay-FQI}
-\label{alg:fqireplay}
-\begin{algorithmic}[1]
-    \STATE Initialize Q-value approximator $Q_\theta(s,a)$, \textdiff{replay buffer $\ReplayBuffer$}.
-    \FOR{step $t$ in \{1, \dots, N\}}
-        \STATE \textdiff{Collect $K$ online samples from $\mu$.}
-        \STATE \textdiff{Append online samples to buffer $\ReplayBuffer$.}
-        \STATE Collect $M$ samples from $\ReplayBuffer$.
-        %\STATE \textbf{Collect $K$ replay samples $(s_k, a_k, s'_k, r_k)$ from $\ReplayBuffer$}.
-        \STATE Evaluate $Q_{\theta^t}(s,a)$ on samples.
-        \STATE Compute sampled target values on samples\\
-        $\hat{y}_i = r_i + \gamma V_{\theta^t}(s'_i)$ 
-        \STATE Minimize projection loss with respect to samples: \\
-        $ \argmin{\theta} \frac{1}{M}\sum_{i=1}^M (Q_\theta(s_i,a_i) - y_i)^2$
-    \ENDFOR
-\end{algorithmic}
-\end{algorithm}
-\end{minipage}
-\end{small}
-\end{figure*}
+% \begin{figure*}[ttt!]
+% \begin{small}
+% \begin{minipage}[t]{0.33\linewidth}
+% \begin{algorithm}[H]
+% \small
+% \caption{Exact-FQI}
+% \label{alg:fqiexact}
+% \begin{algorithmic}[1]
+%     \STATE Initialize Q-value approximator $Q_\theta(s,a)$.
+%     \FOR{step $t$ in \{1, \dots, N\}}
+%         \item[]
+%         \item[]
+%         \item[]
+%         \STATE Evaluate $Q_{\theta^t}(s,a)$ at all states.
+%         \STATE Compute exact target values at all states. \\
+%         $y(s,a) = r(s,a) + \gamma E_{s'}[ V_{\theta^t}(s')]$ 
+%         \STATE Minimize projection loss with respect to $\mu$: \\
+%         $\argmin{\theta} E_\mu[(Q_\theta(s,a) - y(s,a))^2]$
+%     \ENDFOR
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \begin{minipage}[t]{0.33\linewidth}
+% \begin{algorithm}[H]
+% \small
+% \caption{Sampled-FQI}
+% \label{alg:fqisampled}
+% \begin{algorithmic}[1]
+%     \STATE Initialize Q-value approximator $Q_\theta(s,a)$.
+%     \FOR{step $t$ in \{1, \dots, N\}}
+%         \item[]
+%         \item[]
+%         \STATE \textdiff{Collect $M$ samples from $\mu$.}
+%         \STATE Evaluate $Q_{\theta^t}(s,a)$ \textdiff{on samples.}
+%         \STATE Compute sampled target values \textdiff{on samples.}\\
+%         $\hat{y}_i = r_i + \gamma V_{\theta^t}(s'_i)$ 
+%         \STATE Minimize projection loss with respect to \textdiff{samples}: \\
+%         $ \argmin{\theta} \frac{1}{M}\sum_{i=1}^M (Q_\theta(s_i,a_i) - y_i)^2$
+%     \ENDFOR
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \begin{minipage}[t]{0.33\linewidth}
+% \begin{algorithm}[H]
+% \small
+% \caption{Replay-FQI}
+% \label{alg:fqireplay}
+% \begin{algorithmic}[1]
+%     \STATE Initialize Q-value approximator $Q_\theta(s,a)$, \textdiff{replay buffer $\ReplayBuffer$}.
+%     \FOR{step $t$ in \{1, \dots, N\}}
+%         \STATE \textdiff{Collect $K$ online samples from $\mu$.}
+%         \STATE \textdiff{Append online samples to buffer $\ReplayBuffer$.}
+%         \STATE Collect $M$ samples from $\ReplayBuffer$.
+%         %\STATE \textbf{Collect $K$ replay samples $(s_k, a_k, s'_k, r_k)$ from $\ReplayBuffer$}.
+%         \STATE Evaluate $Q_{\theta^t}(s,a)$ on samples.
+%         \STATE Compute sampled target values on samples\\
+%         $\hat{y}_i = r_i + \gamma V_{\theta^t}(s'_i)$ 
+%         \STATE Minimize projection loss with respect to samples: \\
+%         $ \argmin{\theta} \frac{1}{M}\sum_{i=1}^M (Q_\theta(s_i,a_i) - y_i)^2$
+%     \ENDFOR
+% \end{algorithmic}
+% \end{algorithm}
+% \end{minipage}
+% \end{small}
+% \end{figure*}
 
 
-\textbf{Exact-FQI} (Algorithm~\ref{alg:fqiexact}): Exact-FQI uses known dynamics and reward functions and computes the backup and projection on all state-action tuples, without sampling error. We use Exact-FQI to study convergence, distribution shift (by varying weighting distributions on transitions), and function approximation in the absence of sampling error. 
-%Exact-FQI eliminates errors due to sampling states, and computing inexact, sampled backups.
+% \textbf{Exact-FQI} (Algorithm~\ref{alg:fqiexact}): Exact-FQI uses known dynamics and reward functions and computes the backup and projection on all state-action tuples, without sampling error. We use Exact-FQI to study convergence, distribution shift (by varying weighting distributions on transitions), and function approximation in the absence of sampling error. 
+% %Exact-FQI eliminates errors due to sampling states, and computing inexact, sampled backups.
 
-\textbf{Sampled-FQI} (Algorithm~\ref{alg:fqisampled}): Sampled-FQI is a special case of Exact-FQI,
-where the Bellman error is approximated with Monte-Carlo estimates from a sampling distribution $\mu$, and the Bellman backup is approximated with samples from the dynamics as $r(s,a) + \gamma \max_{a'}Q(s', a')$. We use Sampled-FQI to study effects of overfitting. Sampled-FQI incorporates errors arising from function approximation, sampling, and distribution shift.
+% \textbf{Sampled-FQI} (Algorithm~\ref{alg:fqisampled}): Sampled-FQI is a special case of Exact-FQI,
+% where the Bellman error is approximated with Monte-Carlo estimates from a sampling distribution $\mu$, and the Bellman backup is approximated with samples from the dynamics as $r(s,a) + \gamma \max_{a'}Q(s', a')$. We use Sampled-FQI to study effects of overfitting. Sampled-FQI incorporates errors arising from function approximation, sampling, and distribution shift.
 
-\textbf{Replay-FQI} (Algorithm~\ref{alg:fqireplay}): Replay-FQI is a special case of Sampled-FQI that uses a \textit{replay buffer}~\citep{lin1992replay},
-that saves past transition samples $(s, a, s', r)$, which are used for computing Bellman error. Replay-FQI strongle resembles DQN~\cite{Mnih2015}, but lacking the online updates that allow $\mu$ to change within an FQI iteration. 
-With large replay buffers, we expect the difference between Replay-FQI and DQN to be minimal as $\mu$ changes slowly.
+% \textbf{Replay-FQI} (Algorithm~\ref{alg:fqireplay}): Replay-FQI is a special case of Sampled-FQI that uses a \textit{replay buffer}~\citep{lin1992replay},
+% that saves past transition samples $(s, a, s', r)$, which are used for computing Bellman error. Replay-FQI strongle resembles DQN~\cite{Mnih2015}, but lacking the online updates that allow $\mu$ to change within an FQI iteration. 
+% With large replay buffers, we expect the difference between Replay-FQI and DQN to be minimal as $\mu$ changes slowly.
 
-We additionally investigate the following choices of weighting distributions ($\mu$) for the Bellman error:
-%When sampling the Bellman error, these can be implemented by sampling directly from the distribution, or via importance sampling.
+% We additionally investigate the following choices of weighting distributions ($\mu$) for the Bellman error:
+% %When sampling the Bellman error, these can be implemented by sampling directly from the distribution, or via importance sampling.
 
-\textbf{Unif$(s,a)$}: Uniform weights over state-action space. 
-%This is the weighting distribution typically used by dynamic programming algorithms, such as FQI.
+% \textbf{Unif$(s,a)$}: Uniform weights over state-action space. 
+% %This is the weighting distribution typically used by dynamic programming algorithms, such as FQI.
 
-\textbf{$\pi(s,a)$}: The on-policy state-action marginal induced by $\pi$.
+% \textbf{$\pi(s,a)$}: The on-policy state-action marginal induced by $\pi$.
 
-\textbf{$\pi^*(s,a)$}: The state-action marginal induced by $\pi^*$.
+% \textbf{$\pi^*(s,a)$}: The state-action marginal induced by $\pi^*$.
 
-\textbf{Random$(s,a)$}: State-action marginal induced by executing uniformly random actions.
+% \textbf{Random$(s,a)$}: State-action marginal induced by executing uniformly random actions.
 
-\textbf{Prioritized$(s,a)$}: Weights Bellman errors proportional to $|Q(s,a)-\backup Q(s,a)|$. This is similar to prioritized replay~\citep{Schaul2015} with $\beta=0$.
+% \textbf{Prioritized$(s,a)$}: Weights Bellman errors proportional to $|Q(s,a)-\backup Q(s,a)|$. This is similar to prioritized replay~\citep{Schaul2015} with $\beta=0$.
 
-\textbf{Replay$(s,a)$} and \textbf{Replay10$(s,a)$}: Averaged state-action marginal of all policies (or the last 10) produced during training. This simulates sampling from a replay buffer. 
+% \textbf{Replay$(s,a)$} and \textbf{Replay10$(s,a)$}: Averaged state-action marginal of all policies (or the last 10) produced during training. This simulates sampling from a replay buffer. 
 
-\fi
+% \fi
 
 
 For our study, we selected eight tabular domains, each with different qualitative attributes, including: gridworlds of varying sizes and observations, blind Cliffwalk~\citep{Schaul2015}, discretized Pendulum and Mountain Car based on OpenAI Gym~\citep{gym},

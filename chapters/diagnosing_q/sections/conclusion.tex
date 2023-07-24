@@ -1,3 +1,5 @@
+
+\iffalse
 \section{Discussion and Perspectives}
 
 % From our analysis, we have several broad takeaways for the design of deep Q-learning algorithms. 
@@ -6,11 +8,12 @@
 %This impact goes beyond just approximation error, suggesting that Q-learning methods do find suboptimal solutions (within the given function class) with smaller function approximators.
 % Expressive architectures in general suffer less from bootstrapping error, converge faster, and more stable with moving targets.
 
-\textbf{Sampling error} can cause substantial overfitting problems with Q-learning. However, replay buffers and early stopping can mitigate this problem, and the biases incurred from small function approximators outweigh any benefits they may have in terms of overfitting. We believe a good strategy is to use large architectures but tune the number of gradient steps used per sample, or intelligently use early stopping to dynamically control the number of gradient steps. 
+\textbf{Sampling error} can cause overfitting problems with off-policy Q-learning methods. However, replay buffers and early stopping can mitigate this problem, and the biases incurred from small function approximators outweigh any benefits they may have in terms of overfitting. We believe a good strategy is to use large architectures but tune the number of gradient steps used per sample, or intelligently use early stopping to dynamically control the number of gradient steps. 
 %This motivates a future research direction of devising early stopping techniques to dynamically control the number of gradient steps in Q-learning, rather than setting it as a hyperparameter as this can give rise to big difference in performance.
 
 \textbf{The choice of sampling or weighting distribution} has significant effect on solution quality, even in the absence of sampling error. Surprisingly, we do not find on-policy distributions to be the most performant, but rather methods which have high state-entropy are highly effective. Based on these insights, we propose a new weighting algorithm which balances high-entropy and state aliasing, AFM, that yields fair improvements in both tabular and continuous domains with state-of-the-art off-policy RL algorithms.
 
+\fi
 
 % Finally, we note that there are several topics that we did not investigate, such as overestimation bias and multi-step returns. We believe that understanding these issues could also be benefit from unit-testing.
 

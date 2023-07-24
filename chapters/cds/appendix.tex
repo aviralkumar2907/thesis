@@ -21,9 +21,9 @@ We present the summary of the pseudocode of CDS in Algorithm~\ref{alg:cds}.
 \vspace{-0.5cm}
 
 \section{Analysis of \cdsmethodname}
-\label{app:proofs}
+\label{app:cds_proofs}
 
-In this section, we will analyze the key idea behind our method \cdsmethodname\ (Section~\ref{sec:method}) and show that the abstract version of our method (Equation~\ref{eqn:optimize_behavior}) provides better policy improvement guarantees than na\"ive data sharing and that the practical version of our method (Equation~\ref{eqn:method}) approximates Equation~\ref{eqn:optimize_behavior} resulting in an effective practical algorithm.
+In this section, we will analyze the key idea behind our method \cdsmethodname\ (Section~\ref{sec:cds_method}) and show that the abstract version of our method (Equation~\ref{eqn:optimize_behavior}) provides better policy improvement guarantees than na\"ive data sharing and that the practical version of our method (Equation~\ref{eqn:method}) approximates Equation~\ref{eqn:optimize_behavior} resulting in an effective practical algorithm.
 
 \subsection{Analysis of the Algorithm in Equation~\ref{eqn:optimize_behavior}}
 We begin with analyzing Equation~\ref{eqn:optimize_behavior},
@@ -123,7 +123,7 @@ This lemma can be proved via a simple application of the Cauchy-Schwarz inequali
 where we note that $\mathbb{E}_{\bs \sim d^{\pi^*}_{\mathcal{D}^\mathrm{eff}_i}}\left[D_{\text{CQL}}(\pi^*, \pi_\beta^*)(\bs)\right] = D_\text{CQL}(\pi^*, \pi^*_\beta) \leq \varepsilon$ (based on the given information in the Lemma) and that $\sqrt{\sum_i w_i \frac{1}{x_i}} \leq \sum_i w_i \frac{1}{\sqrt{x_i}}$ for $x_i, w_i > 0$ and $\sum_i w_i = 1$, via Jensen's inequality for concave functions.
 \end{proof}
 
-\textbf{To summarize,} combining Lemmas~\ref{lemma:a_gt_0} and \ref{lemma:sampling_error} with Proposition~\ref{prop:spi}, we conclude that utilizing Equation~\ref{eqn:optimize_behavior} controls the increase in sampling error due to distributional shift, and provides improvement guarantees on the learned policy beyond the behavior policy of the original dataset. We also briefly now discuss the comparison between \cdsmethodname\ and complete data sharing. Complete data sharing would try to reduce sampling error by increasing $|\mathcal{D}^\mathrm{eff}_i(\bs)|$, but then it can also increase distributional shift, $D_\text{CQL}(\pi^*, \pi^*_\beta)$ as discussed in Section~\ref{sec:analysis}. On the other hand, CDS increases the dataset size while also controlling for distributional shift (as we discussed in the analysis above), making it enjoy the benefits of complete data sharing and avoiding its pitfalls, intuitively. On the other hand, no data sharing will just incur high sampling error due to limited dataset size. 
+\textbf{To summarize,} combining Lemmas~\ref{lemma:a_gt_0} and \ref{lemma:sampling_error} with Proposition~\ref{prop:spi}, we conclude that utilizing Equation~\ref{eqn:optimize_behavior} controls the increase in sampling error due to distributional shift, and provides improvement guarantees on the learned policy beyond the behavior policy of the original dataset. We also briefly now discuss the comparison between \cdsmethodname\ and complete data sharing. Complete data sharing would try to reduce sampling error by increasing $|\mathcal{D}^\mathrm{eff}_i(\bs)|$, but then it can also increase distributional shift, $D_\text{CQL}(\pi^*, \pi^*_\beta)$ as discussed in Section~\ref{sec:cds_analysis}. On the other hand, CDS increases the dataset size while also controlling for distributional shift (as we discussed in the analysis above), making it enjoy the benefits of complete data sharing and avoiding its pitfalls, intuitively. On the other hand, no data sharing will just incur high sampling error due to limited dataset size. 
 
 \subsection{From Equation~\ref{eqn:optimize_behavior} to Practical \cdsmethodname\ (Equation~\ref{eqn:method})}
 \label{sec:practical_cds}
@@ -139,12 +139,12 @@ This practical approximation in Equation~\ref{eqn:practical_eqn4} is even more j
 The last step in our practical algorithm is to modify the solution of Equation~\ref{eqn:practical_eqn4} to still retain the benefits of reduced sampling error as discussed in Proposition~\ref{prop:spi}. To do so, we want to relabel as many points as possible, thus increasing $|\mathcal{D}^\mathrm{eff}_i(\bs)|$, which leads to reduced sampling error. Since quantifying $|\mathcal{D}^\mathrm{eff}_i(\bs)|$ in continuous state-action spaces will require additional machinery such as density-models, we avoid these for the sake of simplicity, and instead choose to relabel every datapoint $(\bs, \mathbf{a}) \in \mathcal{D}_{j \rightarrow i}$ that satisfies $Q^\pi(\bs, \mathbf{a}; i) \geq \mathbb{E}_{\bs, \mathbf{a} \sim \mathcal{D}_i}[\hat{Q}^\pi(\bs, \mathbf{a}; i)] \geq 0$ to task $i$. These datapoints definitely increase the conservative Q-value and hence increase the objective in Equation~\ref{eqn:practical_eqn4} (though do not globally maximize it), while also enjoying properties of reduced sampling error (Proposition~\ref{prop:spi}). This discussion motivates our practical algorithm in Equation~\ref{eqn:method}.  
 
 \section{Experimental details}
-\label{app:details}
+\label{app:cds_details}
 
 In this section, we provide the training details of CDS in Appendix~\ref{app:training_details} and also include the details on the environment and datasets that we use for the evaluation in Appendix~\ref{app:env_data_details}. Finally, we include the discussion on the compute information in Appendix~\ref{app:compute_details}. \arxiv{We also compare CDS to an offline RL with pretrained representations from multi-task datasets method~\citep{yang2021representation}.}
 
 \subsection{Training details}
-\label{app:training_details}
+\label{app:cds_training_details}
 
 The pseudocode of CDS is summarized in Algorithm~\ref{alg:cds} in Appendix~\ref{app:alg}. The complete variant of CDS can be directly implemented using the rule in Equation~\ref{eqn:method} with conservative Q-value estimates obtained via any offline RL method that constrains the learned policy to the behavior policy. For implementing \cdsmethodname\ (basic), we reparameterize the divergence $D$ in Equation~\ref{eqn:pessimistically_conservative} to use the learned conservative Q-values. This is especially useful for our implementation since we utilize CQL as the base offline RL method, and hence we do not have access to an explicit divergence. In this case, $\Delta^\pi(\bs, \mathbf{a})$ can be redefined as, $\Delta^\pi(\bs, \mathbf{a}) :=$
 \begin{align}
@@ -209,10 +209,10 @@ For generating the offline datasets, we train each task with online SAC using th
 % Due to the high compute complexity of the image-based experiment, we just run one random seed of each method, but we will run at least three random seeds in the final version of the paper.
 To collect data for vision-based experiments, we train a policy for each task individually by running QT-Opt~\citep{kalashnikov2018scalable} with default hyperparameters until the task reaches 40\% success rate for picking skills and 80\% success rate for placing skills. We take the whole replay buffer of each task and combine all of such replay buffers to form the multi-task offline dataset with total 100K episodes where each episode has 25 transitions.
 
-\subsection{Computation Complexity}
-\label{app:compute_details}
+% \subsection{Computation Complexity}
+% \label{app:compute_details}
 
-For all the state-based experiments, we train CDS on a single NVIDIA GeForce RTX 2080 Ti for one day. For the image-based robotic manipulation experiments, we train it on 16 TPUs for three days.
+% For all the state-based experiments, we train CDS on a single NVIDIA GeForce RTX 2080 Ti for one day. For the image-based robotic manipulation experiments, we train it on 16 TPUs for three days.
 
 \arxiv{\section{Visualizations, Comparisons and Additional Experiments}
 \label{app:additional_exp}
@@ -385,7 +385,7 @@ Meta-World~\citep{yu2020metaworld}& drawer open / medium-replay & \textbf{57.9\%
 % \vspace{-0.2cm}
 % \end{table*}
 
-% Additionally, we also provide the full table of the empirical analysis as discussed in Section~\ref{sec:analysis}. In Table~\ref{tab:analysis_full}, we provide 
+% Additionally, we also provide the full table of the empirical analysis as discussed in Section~\ref{sec:cds_analysis}. In Table~\ref{tab:analysis_full}, we provide 
 
 % \begin{table*}[t]
 %   \centering

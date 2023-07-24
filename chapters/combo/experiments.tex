@@ -1,19 +1,23 @@
+\vspace{-0.2cm}
 \subsection{Experimental Evaluation of COMBO}
-\label{sec:exp}
+\label{sec:combo_exp}
+\vspace{-0.2cm}
 
 In our experiments, we aim to answer the follow questions: \textbf{(1)} Can COMBO generalize better than previous offline model-free and model-based approaches in a setting that requires generalization to tasks that are different from what the behavior policy solves? \textbf{(2)} How does COMBO compare with prior work in tasks with high-dimensional image observations?, \textbf{(3)} How does COMBO compare to prior offline model-free and model-based methods in standard offline RL benchmarks?
 
 To answer those questions, we compare COMBO to several prior methods. In the domains with compact state spaces, we compare with recent model-free algorithms like BEAR~\citep{kumar2019stabilizing}, BRAC~\citep{wu2019behavior}, and the CQL~\citep{kumar2020conservative} algorithm presented in the previous section; as well as MOPO~\citep{yu2020mopo} {and MOReL~\citep{kidambi2020morel} which are two recent model-based algorithms}. In addition, we also compare with an offline version of SAC~\citep{haarnoja2018soft} (denoted as SAC-off), and behavioral cloning (BC). In high-dimensional image-based domains, which we use to answer question (3), we compare to LOMPO~\citep{Rafailov2020LOMPO}, which is a latent space offline model-based RL method that handles image inputs, latent space MBPO (denoted LMBPO), similar to \citet{janner2019trust} which uses the model to generate additional synthetic data, the fully offline version of SLAC \citep{lee2019SLAC} (denoted SLAC-off), which only uses a variational model for state representation purposes, and CQL from image inputs. To our knowledge, CQL, MOPO, and LOMPO are representative of state-of-the-art model-free and model-based offline RL methods. Hence we choose them as comparisons to COMBO. For more details of our experimental set-up, comparisons, and hyperparameters, see Appendix~\ref{app:details}.
 
+\vspace{-0.1cm}
 \subsubsection{Results on tasks that require generalization}
 \label{sec:generalization_exps}
+\vspace{-0.2cm}
 
 \begin{table}
 \centering
 \scriptsize
-\scalebox{0.95}{\begin{tabular}{l|r|r|r|r|r|r}
+\resizebox{0.99\textwidth}{!}{\begin{tabular}{l|r|r|r|r|r|r}
 \toprule 
-\textbf{Environment} & \stackanchor{\textbf{Batch}}{\textbf{Mean}} & \stackanchor{\textbf{Batch}}{\textbf{Max}} & \stackanchor{\textbf{COMBO}}{\textbf{(Ours)}} & \textbf{MOPO} & {\textbf{MOReL}} & \textbf{CQL}\\ \midrule
+\textbf{Environment} & \stackanchor{\textbf{Batch}}{\textbf{Mean}} & \stackanchor{\textbf{Batch}}{\textbf{Max}} & \stackanchor{\textbf{COMBO}} {\textbf{(Ours)}} & \textbf{MOPO} & {\textbf{MOReL}} & \textbf{CQL}\\ \midrule
 halfcheetah-jump & -1022.6 & 1808.6 & \textbf{5392.7} & 4016.6 & {3228.7} & 741.1\\
 ant-angle & 866.7 & 2311.9 & \textbf{2764.8} & 2530.9 & {2660.3} & 2473.4\\
 sawyer-door-close & 5\% & 100\% & \textbf{100}\% & 65.8\% & 42.9\% & 36.7\%\\
@@ -28,7 +32,7 @@ sawyer-door-close & 5\% & 100\% & \textbf{100}\% & 65.8\% & 42.9\% & 36.7\%\\
 \normalsize
 \end{table}
 
-To answer question (1), we use the two environments \texttt{halfcheetah-jump} and \texttt{ant-angle} constructed in \citet{yu2020mopo}, which requires the agent to solve a task that is different from what the behavior policy solved. In both environments, the offline dataset is collected by policies trained with the original reward functions of \texttt{halfcheetah} and \texttt{ant}, which reward the halfcheetah and the ant to run as fast as possible. The behavior policies are trained with SAC with 1M steps and we take the full replay buffer as the offline dataset. Following \citet{yu2020mopo}, we relabel the rewards in the offline datasets to reward the halfcheetah to jump as high as possible and the ant to run to the top corner with a 30 degree angle as fast as possible. Following the same manner, we construct a third task \texttt{sawyer-door-close} based on the environment in \citet{yu2020meta, Rafailov2020LOMPO}. In this task, we collect the offline data with SAC policies trained with a sparse reward function that only gives a reward of 1 when the door is \textit{opened} by the sawyer robot and 0 otherwise. The offline dataset is similar to the ``medium-expert`` dataset in the D4RL benchmark since we mix equal amounts of data collected by a fully-trained SAC policy and a partially-trained SAC policy. We relabel the reward such that it is 1 when the door is \textit{closed} and 0 otherwise. Therefore, in these datasets, the offline RL methods must generalize beyond behaviors in the offline data in order to learn the intended behaviors. We visualize the \texttt{sawyer-door-close} environment in the right image in Figure~\ref{fig:visual} in Appendix~\ref{app:image_details}.
+To answer question (1), we use the two environments \texttt{halfcheetah-jump} and \texttt{ant-angle} constructed in \citet{yu2020mopo}, which requires the agent to solve a task that is different from what the behavior policy solved. In both environments, the offline dataset is collected by policies trained with the original reward functions of \texttt{halfcheetah} and \texttt{ant}, which reward the halfcheetah and the ant to run as fast as possible. The behavior policies are trained with SAC with 1M steps and we take the full replay buffer as the offline dataset. Following \citet{yu2020mopo}, we relabel the rewards in the offline datasets to reward the halfcheetah to jump as high as possible and the ant to run to the top corner with a 30 degree angle as fast as possible. Following the same manner, we construct a third task \texttt{sawyer-door-close} based on the environment in \citet{yu2020meta, Rafailov2020LOMPO}. In this task, we collect the offline data with SAC policies trained with a sparse reward function that only gives a reward of 1 when the door is \textit{opened} by the sawyer robot and 0 otherwise. The offline dataset is similar to the ``medium-expert`` dataset in the D4RL benchmark since we mix equal amounts of data collected by a fully-trained SAC policy and a partially-trained SAC policy. We relabel the reward such that it is 1 when the door is \textit{closed} and 0 otherwise. Therefore, in these datasets, the offline RL methods must generalize beyond behaviors in the offline data in order to learn the intended behaviors. We visualize \texttt{sawyer-door-close} on the right in Figure~\ref{fig:visual} in Appendix~\ref{app:image_details}.
 
 We present the results on the three tasks in Table~\ref{tbl:generalize}. {COMBO significantly outperforms MOPO, MOReL and CQL, two representative model-based methods and one representative model-free methods respectively}, in the \texttt{halfcheetah-jump} and \texttt{sawyer-door-close} tasks, and {achieves an approximately 8\%, 4\% and 12\% improvement over MOPO, MOReL and CQL respectively on the \texttt{ant-angle} task}. {These results validate that COMBO achieves better generalization results in practice by behaving less conservatively than prior model-free offline methods (compare to CQL, which doesn't improve much) and more robustly than prior model-based offline methods (compare to MOReL and MOPO).}
 
@@ -54,15 +58,16 @@ We present the results on the three tasks in Table~\ref{tbl:generalize}. {COMBO 
 
 % We consider two tasks \texttt{halfcheetah-jump} and \texttt{ant-angle}. We normalize both the model error and the uncertainty estimates to be within scale $[0, 1]$ and performs linear regression that learns the mapping between the uncertainty estimates and the true model error. As shown in Figure~\ref{fig:uq}, on both tasks, \textbf{Max Var} is unable to accurately predict the true model error, suggesting that uncertainty estimation used by offline model-based methods is not accurate and might be the major factor that results in its poor performance. Meanwhile, COMBO circumvents challenging uncertainty quantification problem and achieves better performances on those tasks, indicating the effectiveness of the method.}
 
-\subsubsection{Results on image-based tasks}
-
+\vspace{-0.2cm}
+\subsubsection{Results on Image-Based Tasks}
+\vspace{-0.2cm}
 To answer question (2), we evaluate COMBO on two image-based tasks: the standard walker (\texttt{walker-walk}) task from the the DM Control suite \cite{tassa2018deepmind} and a visual door opening environment with a Sawyer robotic arm (\texttt{sawyer-door}) as used in Section~\ref{sec:generalization_exps}. For the walker task we construct 4 datasets: medium-replay (M-R), medium (M), medium-expert (M-E), and expert, similar to \citet{fu2020d4rl}, each consisting of 200 trajectories. For \texttt{sawyer-door} task we use only the medium-expert and the expert datasets, due to the sparse reward -- the agent is rewarded only when it successfully opens the door. Both environments are visulized in Figure~\ref{fig:visual} in Appendix~\ref{app:image_details}. To extend COMBO to the image-based setting, we follow \citet{Rafailov2020LOMPO} and train a recurrent variational model using the offline data and use train COMBO in the latent space of this model.
 
 \begin{table}
 \vspace{-0.2cm}
 \centering
 \scriptsize
-\scalebox{0.8}{\begin{tabular}{l|l|r|r|r|r|r}
+\resizebox{0.75\textwidth}{!}{\begin{tabular}{l|l|r|r|r|r|r}
 \toprule
 \textbf{\!\!\!Dataset\!\!} & \textbf{Environment} & \vtop{\hbox{\bf \strut COMBO (Ours)}}  & \textbf{LOMPO}& \textbf{LMBPO}& \vtop{\hbox{\bf \strut SLAC-Off}} & \textbf{CQL}\\ \midrule
 \!\!\!M-R           & walker\_walk & \textbf{69.2}  & 66.9 & 59.8  & 45.1 & 15.6          \\
@@ -86,17 +91,18 @@ We present results in Table~\ref{tbl:vision}. On the \texttt{walker-walk} task, 
 %%RR: Added a sentence, perhaps shouldn't focus on it too much - pefromance is comparable to LOMPO?
 
 
-\vspace*{-5pt}
-\subsubsection{Results on the D4RL tasks}
+\vspace{-0.2cm}
+\subsubsection{Results on the D4RL Tasks}
 \label{sec:d4rl_exps}
+\vspace{-0.2cm}
 
-{Finally, to answer the question (3)}, we evaluate COMBO on the OpenAI Gym~\citep{brockman2016openai} domains in the D4RL benchmark~\citep{fu2020d4rl}, which contains three environments (halfcheetah, hopper, and walker2d) and four dataset types (random, medium, medium-replay, and medium-expert). We include the results in Table~\ref{tbl:d4rl}. The numbers of BC, SAC-off, BEAR, BRAC-P and BRAC-v are taken from the D4RL paper, while the results for MOPO, {MOReL} and CQL are based on their respective papers~\citep{yu2020mopo,kumar2020conservative}. 
+{Finally, to answer the question (3)}, we evaluate COMBO on the OpenAI Gym~\citep{brockman2016openai} domains in the D4RL benchmark~\citep{fu2020d4rl}\footnote{Note that these results are on the older ``v0'' versions of the D4RL tasks, which are different from ``v2'' versions. Methods attain significantly different performance numbers on v2 compared to v0.}, which contains three environments (halfcheetah, hopper, and walker2d) and four dataset types (random, medium, medium-replay, and medium-expert). We include the results in Table~\ref{tbl:d4rl}. The numbers of BC, SAC-off, BEAR, BRAC-P and BRAC-v are taken from the D4RL paper, while the results for MOPO, {MOReL} and CQL are based on their respective papers~\citep{yu2020mopo,kumar2020conservative}. 
 {COMBO achieves the best performance in 9 out of 12 settings and comparable result in 1 out of the remaining 3 settings (hopper medium-replay).}
 % COMBO achieves the best performance in 9 out of 12 settings while attaining similar performance to the best-performing method in the remaining 3 settings. 
 As noted by \citet{yu2020mopo} and \citet{Rafailov2020LOMPO}, model-based offline methods are generally more performant on datasets that are collected by a wide range of policies and have diverse state-action distributions (random, medium-replay datasets)
 %%CF: This disputes the results because CQL does better on medium-expert than MOPO.
 %%TY.2.3: I moved medium-expert to datasets with narrow distributions since it's collected by a mixture of just 2 distributions.
-while model-free approaches do better on datasets with narrow distributions (medium, medium-expert datasets). However, in these results, {COMBO generally performs well across dataset types compared to existing model-free and model-based approaches, suggesting that COMBO is robust to different dataset types.} 
+while model-free approaches do better on datasets with narrow distributions (medium, medium-expert datasets). However, in these results, {COMBO generally performs well across dataset types compared to existing model-free and model-based approaches, suggesting that COMBO is robust to different datasets.} 
 % \question{Such results can be explained by COMBO being less conservative compared to prior model-free offline methods and enjoying lower worst-case suboptimality when the learned model is inaccurate compared to previous model-based offline approaches as shown in Section~\ref{sec:theory}.} 
 % COMBO also does not rely on the heuristics of uncertainty estimation as in prior model-based offline RL methods, which also potentially leads to COMBO's superior performance in various dataset types since uncertainty estimation is particularly challenging in settings where the learned model is not precise. We also empirically show that the heuristics of uncertainty estimation used in prior model-based offline RL methods are inaccurate on the medium datasets in D4RL in Appendix~\ref{app:uq}
 %%CF.5.25: need to update this if you do end up putting the UQ results in the main text.
@@ -127,7 +133,7 @@ while model-free approaches do better on datasets with narrow distributions (med
 \end{tabular}}
 % \vspace{0.1cm}
 \vspace*{-0.3cm}
-\caption{\footnotesize Results for D4RL datasets. %
+\caption{\footnotesize Results on v0-D4RL datasets. %
 Each number is the normalized score proposed in \cite{fu2020d4rl} of the policy at the last iteration of training, averaged over 3 random seeds. We take the results of MOPO, {MOReL} and CQL from their original papers and results of other model-free methods from \citep{fu2020d4rl}.
 We include the performance of behavior cloning (\textbf{BC}) from offline datasets for comparison. We bold the highest score across all methods.
 }
