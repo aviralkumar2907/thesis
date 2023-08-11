@@ -1,8 +1,8 @@
 \section{Additional Experiments}
-In this section, we present additional experiments compared to the method of \citet{trabucco2021conservative}, present some additional results obtained by jointly optimizing multiple applications (Appendix~\ref{app:additional_experiments_multi}), provide an analysis of the designed accelerators (Appendix~\ref{app:analysis}) and finally, discuss how our trained conservative surrogate can be used with a different evaluation time constraint (Appendix~\ref{app:transfer}).
+In this section, we present some additional results obtained by jointly optimizing multiple applications (Appendix~\ref{app:additional_experiments_multi}), provide an analysis of the designed accelerators (Appendix~\ref{app:prime_analysis}) and finally, discuss how our trained conservative surrogate can be used with a different evaluation time constraint (Appendix~\ref{app:transfer}).
 
 \subsection{Comparison to Other Baseline Methods}
-\label{app:additional_experiments}
+\label{app:prime_additional_experiments}
 
 % \paragraph{Comparison to COMs.} 
 % %
@@ -70,7 +70,7 @@ In this section, we present additional experiments compared to the method of \ci
 % While our method \primemethodname\ could also benefit from a generative optimizer (i.e., by using a generative optimizer in place of $\mathrm{Opt}(\cdot)$ with a conservative surrogate), we leave it for future work to design effective generative optimizers on the accelerator manifold.
 
 
-\paragraph{Comparison to P3BO.}
+\textbf{Comparison to P3BO.}
 %
 We perform a comparison against P3BO, a state-of-the-art online method in biological sequence design~\citep{p3bo:arxiv:2020}.
 %
@@ -120,7 +120,7 @@ t-RNN Enc&\textbf{130.67}&1139.48\\\bottomrule
 \subsection{Learned Surrogate Model Reuse for Accelerator Design}
 \label{app:additional_experiments_multi}
 %
-Extending our results in Table~\ref{table:results_multi_task}, we present another variant of optimizing accelerators jointly for multiple applications. In that scenario, the learned conservative model is reused to architect an accelerator for a subset of applications used for training. We train a contextual conservative model on the variants of MobileNet (Table~\ref{tab:models}) as discussed in Section~\ref{sec:method}, but generated optimized designs by only optimizing the average surrogate on only two variants of MobileNet (MobileNetEdgeTPU and MobileNetV2). This tests the ability of our approach \primemethodname\ to provide a general contextual conservative surrogates, that can be trained \textit{only once} and optimized multiple times with respect to different subsets of applications. Observe in Table~\ref{table:results_edge_v2}, \primemethodname\ architects high-performing accelerator configurations (better than the best point in the dataset by 3.29$\times$ -- last column) while outperforming the online optimization methods by 7\%.
+Extending our results in Table~\ref{table:results_multi_task}, we present another variant of optimizing accelerators jointly for multiple applications. In that scenario, the learned conservative model is reused to architect an accelerator for a subset of applications used for training. We train a contextual conservative model on the variants of MobileNet (Table~\ref{tab:models}) as discussed in Section~\ref{sec:prime_method}, but generated optimized designs by only optimizing the average surrogate on only two variants of MobileNet (MobileNetEdgeTPU and MobileNetV2). This tests the ability of our approach \primemethodname\ to provide a general contextual conservative surrogates, that can be trained \textit{only once} and optimized multiple times with respect to different subsets of applications. Observe in Table~\ref{table:results_edge_v2}, \primemethodname\ architects high-performing accelerator configurations (better than the best point in the dataset by 3.29$\times$ -- last column) while outperforming the online optimization methods by 7\%.
 %
 \begin{table}[t!]
 \small
@@ -182,7 +182,7 @@ This would impose additional overhead in terms of total simulation time (\S~Figu
 
 
 \subsection{Analysis of Designed Accelerators}
-\label{app:analysis}
+\label{app:prime_analysis}
 %
 \begin{table}[t!]
 \small
@@ -261,7 +261,7 @@ Favoring larger on-chip memory comes at the expense of lower compute power in th
 \subsection{Comparison with Online Methods in Zero-Shot Setting}
 \label{sec:app_zero_shot}
 %
-We evaluated the Evolutionary (online) method under two protocols for the last two rows of Table~\ref{table:zero_shot}: first, we picked the best designs (top-performing 256 designs similar to the \primemethodname\ setting in Section~\ref{sec:method}) found by the evolutionary algorithm on the training set of applications and evaluated them on the target applications and second, we let the evolutionary algorithm continue simulator-driven optimization on the target applications.
+We evaluated the Evolutionary (online) method under two protocols for the last two rows of Table~\ref{table:zero_shot}: first, we picked the best designs (top-performing 256 designs similar to the \primemethodname\ setting in Section~\ref{sec:prime_method}) found by the evolutionary algorithm on the training set of applications and evaluated them on the target applications and second, we let the evolutionary algorithm continue simulator-driven optimization on the target applications.
 %
 The latter is unfair, in that the online approach is allowed access to querying more designs in the simulator. Nevertheless, we found that in either configuration, the evolutionary approach performed worse than \primemethodname\, which does not access training data from the target application domain.
 %
@@ -383,16 +383,16 @@ t-RNN Enc&137.45&130.67&135.71\\\bottomrule
 
 
 \section{Details of \primemethodname}
-\label{app:details}
+\label{app:prime_details}
 %
 In this section, we provide training details of our method \primemethodname\ including hyperparameters and compute requirements and details of different tasks. 
 %
 \subsection{Hyperparameter and Training Details}
-\label{sec:practical_implementation}
+\label{sec:prime_practical_implementation}
 %
 Algorithm~\ref{alg:prime} outlines our overall system for accelerator design.
 %
-\primemethodname\ parameterizes the function $f_\theta(\rvx)$ as a deep neural network as shown in Figure~\ref{fig:method}. 
+\primemethodname\ parameterizes the function $f_\theta(\rvx)$ as a deep neural network as shown in Figure~\ref{fig:prime_method}. 
 %
 The architecture of $f_\theta(\rvx)$ first embeds the discrete-valued accelerator configuration $\rvx$ into a continuous-valued 640-dimensional embedding via two layers of a self-attention transformer~\citep{vaswani2017attention}. 
 %
@@ -402,7 +402,7 @@ Finally, akin to attention~\citep{vaswani2017attention} and mixture of experts~\
 %
 Such an architecture allows the model to use different predictions $f^i_\theta(\rvx)$, depending upon the input, which allows for more stable training. To train $f_\theta(\rvx)$, we utilize the Adam~\citep{kingma2014adam} optimizer.
 %
-Equation~\ref{eqn:final_training} utilizes a procedure $\mathrm{Opt}$ that maximizes the learned function approximately. We utilize the same technique as Section~\ref{sec:method} (``optimizing the learned surrogate'') to obtain these negative samples.
+Equation~\ref{eqn:final_training} utilizes a procedure $\mathrm{Opt}$ that maximizes the learned function approximately. We utilize the same technique as Section~\ref{sec:prime_method} (``optimizing the learned surrogate'') to obtain these negative samples.
 %
 We periodically refresh $\mathrm{Opt}$, once in every 20K gradient steps on $f_\theta(\rvx)$ over training.
 \begin{algorithm}[ht] %b
@@ -423,7 +423,7 @@ We periodically refresh $\mathrm{Opt}$, once in every 20K gradient steps on $f_\
 
 The hyperparameters for training the conservative surrogate in Equations~\ref{eqn:final_training} and its contextual version are as follows:
 \begin{itemize}
-    \item \textbf{Architecture of ${f}_\theta(\rvx)$}. As indicated in Figure~\ref{fig:method}, our architecture takes in list of categorical (one-hot) values of different accelerator parameters (listed in Table~\ref{tab:arch_params}), converts each parameter into $64$-dimensional embedding, thus obtaining a $10 \times 64$ sized matrix for each accelerator, and then runs two layers of self-attention~\citep{vaswani2017attention} on it. The resulting $10 \times 64$ output is flattened to a vector in $\mathbb{R}^{640}$ and fed into $M = 7$ different prediction networks that give rise to $f^1_\theta(\rvx), \cdots, f^M_\theta(\rvx)$, and an additional attention 2-layer feed-forward network (layer sizes $=[256, 256]$) that determines weights $w_1, \cdots, w_M$, such that $w_i \geq 0$ and $\sum_{i=1}^M w_i = 1$. Finally the output is simply $f_\theta(\rvx) = \sum_i w_i f^i_\theta(\rvx)$. 
+    \item \textbf{Architecture of ${f}_\theta(\rvx)$}. As indicated in Figure~\ref{fig:prime_method}, our architecture takes in list of categorical (one-hot) values of different accelerator parameters (listed in Table~\ref{tab:arch_params}), converts each parameter into $64$-dimensional embedding, thus obtaining a $10 \times 64$ sized matrix for each accelerator, and then runs two layers of self-attention~\citep{vaswani2017attention} on it. The resulting $10 \times 64$ output is flattened to a vector in $\mathbb{R}^{640}$ and fed into $M = 7$ different prediction networks that give rise to $f^1_\theta(\rvx), \cdots, f^M_\theta(\rvx)$, and an additional attention 2-layer feed-forward network (layer sizes $=[256, 256]$) that determines weights $w_1, \cdots, w_M$, such that $w_i \geq 0$ and $\sum_{i=1}^M w_i = 1$. Finally the output is simply $f_\theta(\rvx) = \sum_i w_i f^i_\theta(\rvx)$. 
     \item \textbf{Optimizer/learning rate for training $f_\theta(\rvx)$}. Adam, $1e-4$, default $\beta_1 = 0.9$, $\beta_2 = 0.999$.
     \item \textbf{Validation set split.} Top 20\% high scoring points in the training dataset are used to provide a validation set for deciding coefficients $\alpha$, $\beta$ and the checkpoint to evaluate.
     \item \textbf{Ranges of $\alpha$, $\beta$.} We trained several $f_\theta(\rvx)$ models with $\alpha \in [0.0, 0.01, 0.1, 0.5, 1.0, 5.0]$ and $\beta \in [0.0, 0.01, 5.0, 0.1, 1.0]$. Then we selected the best values of $\alpha$ and $\beta$ based on the highest Kendall's ranking correlation on the validation set. Kendall's ranking correlation between two sets of objective values: $S = \{y_1, y_2, \cdots, y_N\}$ corresponding to ground truth latency values on the validation set and $S' = \{y'_1, y'_2, \cdots, y'_N \}$ corresponding to the predicted latency values on the validation set is given by $\tau$ equal to:
@@ -431,7 +431,7 @@ The hyperparameters for training the conservative surrogate in Equations~\ref{eq
         \tau = \frac{\sum_{i, j}^{N, N} \mathbb{I}[(y_i - y_j) (y'_i - y'_j) > 0] - \sum_{i, j}^{N, N} \mathbb{I}[(y_i - y_j) (y'_i - y'_j) \leq 0]}{N \cdot (N - 1)}.   
     \end{equation}
     \item \textbf{Clipping $f_\theta(\rvx)$ during training}. Equation~\ref{eqn:final_training} increases the value of the learned function $f_\theta(\rvx)$ at $\rvx = \rvx_0 \in \mathcal{D}_\text{infeasible}$ and $\rvx^- \sim \mathrm{Opt}(f_\theta)$. We found that with the small dataset, these linear objectives can run into numerical instability, and produce $+\infty$ predictions. To avoid this, we clip the predicted function value both above and below by $\pm 10000.0$, where the valid range of ground-truth values is $\mathcal{O}(1000)$.
-    \item \textbf{Negative sampling with $\mathrm{Opt}(\cdot)$}. As discussed in Section~\ref{sec:method}, we utilize the firefly optimizer for both the negative sampling step and the final optimization of the learned conservative surrogate. When used during negative sampling, we refresh (i.e., reinitialize) the firefly parameters after every $p = 20000$ gradient steps of training the conservative surrogate, and run $t = 5$ steps of firefly optimization per gradient step taken on the conservative surrogate. 
+    \item \textbf{Negative sampling with $\mathrm{Opt}(\cdot)$}. As discussed in Section~\ref{sec:prime_method}, we utilize the firefly optimizer for both the negative sampling step and the final optimization of the learned conservative surrogate. When used during negative sampling, we refresh (i.e., reinitialize) the firefly parameters after every $p = 20000$ gradient steps of training the conservative surrogate, and run $t = 5$ steps of firefly optimization per gradient step taken on the conservative surrogate. 
     \item \textbf{Details of firefly:} The initial population of fireflies depends on the number of accelerator configurations ($\mathcal{C}$) following the formula $10+\round{(\mathcal{C}^{1.2}+\mathcal{C})\times0.5}$. In our setting with ten accelerator parameters (See Table~\ref{tab:arch_params}), the initial population of fireflies is 23. We use the same hyperparameters: $\gamma = 1.0, \beta_0 = 1.0$, for the optimizer in all the experiments and never modify it. The update to a particular optimization particle (i.e., a firefly) $\rvx_i$, at the $t$-th step of optimization is given by: 
     \begin{equation}
     \label{eqn:firefly1}
@@ -526,7 +526,7 @@ After this initial phase, every $T = 50$ iterations, the parameters $\gamma$ and
 
 \subsubsection{{Exact Hyperparameters Found By Our Cross-Validation Strategy}}
 
-{In this section, we present the exact hyperparameters found by our cross-validation strategy discussed in Section~\ref{sec:method}. To recap, our offline cross-validation strategy finds the early stopping checkpoint and selects the values of $\alpha$ and $\beta$ in Equation~\ref{eqn:final_training} that attain the highest rank correlation on a held-out validation set consisting of top 20\% of the dataset feasible samples. The values of $\alpha$, $\beta$ and checkpoint selected for the experiments in Table 3, Table 4, Table 5 and 6 are shown in Table~\ref{table:hparams}.} 
+{In this section, we present the exact hyperparameters found by our cross-validation strategy discussed in Section~\ref{sec:prime_method}. To recap, our offline cross-validation strategy finds the early stopping checkpoint and selects the values of $\alpha$ and $\beta$ in Equation~\ref{eqn:final_training} that attain the highest rank correlation on a held-out validation set consisting of top 20\% of the dataset feasible samples. The values of $\alpha$, $\beta$ and checkpoint selected for the experiments in Table 3, Table 4, Table 5 and 6 are shown in Table~\ref{table:hparams}.} 
 
 
 \begin{table*}[t!]
@@ -534,7 +534,7 @@ After this initial phase, every $T = 50$ iterations, the parameters $\gamma$ and
 \centering
 \renewcommand{\arraystretch}{1.1}
 \vspace*{-0.05cm}
-\caption{\label{table:hparams} \footnotesize \review{Hyperparameters $\alpha$, $\beta$ and checkpoint index (measured in terms of gradient steps on the learned conservative model) for \primemethodname\ found by our \textbf{offline} cross-validation strategy discussed in Section~\ref{sec:method}, that is based on the Kendall's rank correlation on the validation set (note that no simulator queries were used to tune hyperparameters). In the case of the multi-task and zero-shot scenarios, when training on more than one application, the batch size used for training \primemethodname\ increases to $N$-fold, where $N$ is the number of applications in the training set, therefore we likely find that even a few gradient steps are good enough.}}
+\caption{\label{table:hparams} \footnotesize \review{Hyperparameters $\alpha$, $\beta$ and checkpoint index (measured in terms of gradient steps on the learned conservative model) for \primemethodname\ found by our \textbf{offline} cross-validation strategy discussed in Section~\ref{sec:prime_method}, that is based on the Kendall's rank correlation on the validation set (note that no simulator queries were used to tune hyperparameters). In the case of the multi-task and zero-shot scenarios, when training on more than one application, the batch size used for training \primemethodname\ increases to $N$-fold, where $N$ is the number of applications in the training set, therefore we likely find that even a few gradient steps are good enough.}}
 \vspace{-0.1cm}
 \resizebox{1.0\textwidth}{!}{\begin{tabular}{l|l|l|l|l}
 \toprule

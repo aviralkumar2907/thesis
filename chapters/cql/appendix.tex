@@ -284,7 +284,8 @@ Finally, we note that since this choice of $\alpha_k$ induces under-estimation i
 \end{proof}
 % done
 
-We can generalize Theorem~\ref{thm:policy_eval_func_approx} to non-linear function approximation, such as neural networks, {under the standard NTK framework~\citep{ntk}}, assuming that each iteration $k$ is performed by a single step of gradient descent on Equation~\ref{eqn:modified_policy_eval}, rather than a complete minimization of this objective. As we show in Theorem~\ref{corr:nonlinear_ntk}, CQL learns lower bounds in this case for an appropriate choice of $\alpha_k$. We will also empirically show in Appendix~\ref{app:cql_additional_results} that CQL can learn effective conservative Q-functions with multilayer neural networks.
+We can generalize Theorem~\ref{thm:policy_eval_func_approx} to non-linear function approximation, such as neural networks, {under the standard NTK framework~\citep{ntk}}, assuming that each iteration $k$ is performed by a single step of gradient descent on Equation~\ref{eqn:modified_policy_eval}, rather than a complete minimization of this objective. As we show in Theorem~\ref{corr:nonlinear_ntk}, CQL learns lower bounds in this case for an appropriate choice of $\alpha_k$. 
+% We will also empirically show in Appendix~\ref{app:cql_additional_results} that CQL can learn effective conservative Q-functions with multilayer neural networks.
 
 %%SL.5.30: I don't think this should be called a corollary. Corollaries are supposed to quick and easy to prove, if it takes the better part of a page to prove, it's not a corollary.
 \begin{theorem}[Extension to non-linear function approximation]

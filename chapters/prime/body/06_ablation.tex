@@ -1,10 +1,8 @@
+\vspace{-0.2cm}
 \section{Experimental Evaluation}
 \label{sec:eval}
+\vspace{-0.2cm}
 %
-Our evaluations aim to answer the following questions: \textbf{Q(1)} {Can \primemethodname\ design accelerators tailored for a given application that are better than the best observed configuration in the training dataset, and comparable to or better than state-of-the-art simulation-driven methods under a given simulator-query budget?} \textbf{Q(2)} {Does \primemethodname\ reduce the total simulation time compared to other methods?} \textbf{Q(3)} {Can \primemethodname\ produce hardware accelerators for a family of different applications?} \textbf{Q(4)} {Can \primemethodname\ trained for a family of applications extrapolate to designing a high-performing accelerator for a new, unseen application, thereby enabling data reuse?} Additionally, we ablate various properties of \primemethodname\ (Appendix~\ref{sec:appx_ablation}) and evaluate its efficacy in designing accelerators with distinct dataflow architectures, with a larger search space (up to 2.5$\times10^{114}$ possible candidates).
-
-~
-
 \begin{wrapfigure}{r}{0.35\textwidth}
     \centering
     \vspace{-0.45cm}
@@ -14,6 +12,8 @@ Our evaluations aim to answer the following questions: \textbf{Q(1)} {Can \prime
     \vspace{-0.35cm}
     \label{fig:convergence_time}
 \end{wrapfigure}
+Our evaluations aim to answer the following questions: \textbf{Q(1)} {Can \primemethodname\ design accelerators tailored for a given application that are better than the best observed configuration in the training dataset, and comparable to or better than state-of-the-art simulation-driven methods under a given simulator-query budget?} \textbf{Q(2)} {Does \primemethodname\ reduce the total simulation time compared to other methods?} \textbf{Q(3)} {Can \primemethodname\ produce hardware accelerators for a family of different applications?} \textbf{Q(4)} {Can \primemethodname\ trained for a family of applications extrapolate to designing a high-performing accelerator for a new, unseen application, thereby enabling data reuse?} Additionally, we ablate various properties of \primemethodname\ (Appendix~\ref{sec:appx_ablation}) and evaluate its efficacy in designing accelerators with distinct dataflow architectures and a larger search space (up to 2.5$\times10^{114}$ candidates).
+
 \niparagraph{Baselines and comparisons.}
 %
 We compare \primemethodname\ against three online optimization methods that actively query the simulator: \textbf{(1)} evolutionary search with the firefly optimizer~\citep{yazdanbakhsh2021apollo} (``Evolutionary''), which is the shown to outperform other online methods for accelerator design; \textbf{(2)} Bayesian Optimization (``Bayes Opt'')~\citep{vizier:sigkdd:2017},
@@ -24,15 +24,13 @@ In all the experiments, we grant all the methods the same number of feasible poi
 %
 ``$\mathcal{D}$(Best in Training)'' denotes the best latency value in the training dataset used in \primemethodname. We also present ablation results with different components of our method removed in Appendix~\ref{sec:appx_ablation}, where we observe that utilizing both infeasible points and negative sampling are generally important for attaining good results. 
 %
-Appendix~\ref{app:additional_experiments} presents additional comparisons to COMs~\citep{trabucco2021conservative}---which only obtains negative samples via gradient ascent on the learned conservative model and does not utilize infeasible points---and P3BO~\citep{p3bo:arxiv:2020}---an state-of-the-art online method in biology. 
-
-~
+Appendix~\ref{app:prime_additional_experiments} presents additional comparisons P3BO~\citep{p3bo:arxiv:2020}, a state-of-the-art method studied in the context of biological sequence design. 
 
 \niparagraph{Architecting application-specific accelerators.}
 %
 We first evaluate \primemethodname\ in designing specialized accelerators for each of the applications in Table~\ref{tab:models}.
 %
-We train a conservative model using the method in Section~\ref{sec:method} on the logged dataset for each application separately.
+We train a conservative model using the method in Section~\ref{sec:prime_method} on the logged dataset for each application separately.
 %
 The area constraint $\alpha$ (Equation~\ref{eqn:opt_prob}) is set to $\alpha = 29~\text{mm}^2$, a realistic budget for accelerators~\citep{yazdanbakhsh2021apollo}. Table~\ref{table:results_single_task} summarizes the results.
 %
@@ -54,11 +52,10 @@ Even the total simulation time to the first occurrence of the final design that 
 %
 This indicates that data-driven \primemethodname\ is much more preferred in terms of the performance-time trade-off. \review{The fact that our offline approach \primemethodname\ outperforms the online evolutionary method (and also other state-of-the-art online MBO methods; see Table~\ref{table:p3bo_vs_prime}) is surprising, and we suspect this is because online methods get stuck early-on during optimization, while utilizing offline data allows us \primemethodname\ to find better solutions via generalization (see Appendix~\ref{app:online_opt_details}).} 
 
-~
 
 \begin{wrapfigure}{r}{0.35\textwidth}
     \centering
-    \vspace{-0.5cm}
+    \vspace{-0.7cm}
     \includegraphics[width=0.98\linewidth]{chapters/prime/figs/motivation/convergence_time_seven_models.png}
     \vspace{-0.25cm}
     \caption{\footnotesize{Comparing the total simulation time needed by \primemethodname\ and online methods on seven models (Area $\leq$ 100mm$^2$)~. \primemethodname\ only requires about 1\%, 6\%, and 0.9\% of the total simulation time of Evolutionary, MBO, and Bayes Opt, respectively, although \primemethodname\ outperforms the best online method by 41\%.}}
@@ -94,9 +91,8 @@ Finally, as the number of model increases the total simulation time difference b
 %
 These results indicate that \primemethodname\ is effective in designing accelerators jointly optimized across multiple applications while reusing the same dataset as for the single-task, and scales more favorably than its simulation-driven counterparts.
 %
-Appendix~\ref{app:analysis} expounds the details of the designed accelerators for nine applications, comparing our method and the best online method.
+Appendix~\ref{app:prime_analysis} expounds the details of the designed accelerators for nine applications, comparing our method and the best online method.
 
-~
 
 \niparagraph{Accelerating previously unseen applications (``zero-shot'' optimization).}
 %
@@ -109,8 +105,6 @@ Table~\ref{table:zero_shot} shows, on average, \primemethodname\ outperforms the
 Note that the difference in performance increases as the number of training applications increases.
 %
 These results show the effectiveness of \primemethodname\ in the zero-shot setting (more results in Appendix~\ref{sec:app_zero_shot}).
-
-~
 
 \niparagraph{Applying \primemethodname\ on other accelerator architectures and dataflows.}
 %

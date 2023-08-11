@@ -1,7 +1,7 @@
 \vspace{-0.25cm}
 \section{Proofs for DR3}
 \vspace{-0.25cm}
-\label{app:proofs}
+\label{app:dr3_proofs}
 
 In this section, we will derive our implicit regularizer $R_\mathrm{TD}(\theta)$ that emerges when performing TD updates with a stochastic noise model with covariance matrix $M$. We first introduce our notation that we will use throughout the proof, then present our assumptions and finally derive the regularizer. Our proof utilizes the analysis techniques from \citet{blanc2020implicit} and \citet{damian2021label}, which analyze label-noise SGD for supervised learning, however key modifications need to be made to their arguments to account for non-symmetric matrices that emerge in TD learning. As a result, the form of the resulting regularizer is very different. To keep the proof concise, we will appeal to lemmas from these prior works which will allow us to bound certain concentration terms. 
 

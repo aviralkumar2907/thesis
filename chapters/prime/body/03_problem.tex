@@ -1,12 +1,12 @@
 \vspace{-0.2cm}
 \section{Problem Statement, Training Data and Evaluation Protocol}
 \label{sec:accel}
-\vspace{-0.1cm}
+\vspace{-0.2cm}
 %
 Our template-based parameterization maps the accelerator, denoted as $\rvx$, to a discrete design space, $\rvx = [\rvx_1, \rvx_2, \cdots, \rvx_K]$, and each $\rvx_i$ is a discrete-valued variable representing one component of the microarchitectural template, as shown in Table~\ref{tab:arch_params} (See Appendix~\ref{sec:dla_shi_fast} for the description of other accelerator search spaces studied in our work). In our context, the accelerator $\rvx$ plays the same role as an action $\mathbf{a}$.
 
 %
-An accelerator design maybe be infeasible due to various reasons, such as a compilation failure or the limitations of physical implementation, and we denote the set of all such feasibility criterion as $\mathrm{Feasible}(\rvx)$. The feasibility criterion depends on both the target software and the underlying hardware, and it is not easy to identify if a given $\rvx$ is infeasible without running explicit simulation. We will require our design procedure to not only learn the value of the objective function but also to learn to navigate through a sea of infeasible solutions to high-performing feasible solutions $\rvx^*$ satisfying $\mathrm{Feasible}(\rvx^*) = 1$. 
+An accelerator design maybe be infeasible due to various reasons, such as a compilation failure or the limitations of physical implementation, and we denote the set of all such feasibility criterion as $\mathrm{Feasible}(\rvx)$. The feasibility criterion depends on both the target software and the underlying hardware, and it is not easy to identify if a given $\rvx$ is infeasible without running explicit simulation. We will require our design procedure to not only learn the value of the objective function but also to learn to navigate through infeasible solutions to performant feasible solutions $\rvx^*$ satisfying $\mathrm{Feasible}(\rvx^*) = 1$. 
 
 Our training dataset $\mathcal{D}$ consists of a modest set of accelerators $\rvx_i$ that are randomly sampled from the design space and evaluated by the hardware simulator. We partition the dataset $\mathcal{D}$ into two subsets, $\mathcal{D}_\text{feasible}$ and $\mathcal{D}_\text{infeasible}$. Let $f(\rvx)$ denote the desired objective (e.g., latency, power, etc.) we intend to optimize over the space of accelerators $\rvx$. We do not possess functional access to $f(\rvx)$, and the optimizer can only access $f(\rvx)$ values for accelerators $\rvx$ in the feasible partition of the data, $\mathcal{D}_\text{feasible}$.
 %
@@ -25,8 +25,6 @@ Formally:
 \quad &~\text{on}~~ \mathcal{D} = \mathcal{D}_\text{feasible} \cup \mathcal{D}_\text{infeasible} = \{(\rvx_1, \rvy_1), \cdots, (\rvx_N, \rvy_N)\} \cup \{\rvx'_1, \cdots, \rvx'_{N'}\}
 \end{aligned}
 \end{equation}
-%
-
 
 While Equation~\ref{eqn:opt_prob} may appear similar to a typical black-box optimization problem, solving it over the space of accelerator designs is challenging due to the large number of infeasible points, the need to handle explicit design constraints, and the difficulty in navigating the non-smooth landscape (See Figure~\ref{fig:ds_dist_all} and Figure~\ref{fig:appx_ds} in the Appendix) of the objective function.
 %
@@ -75,18 +73,7 @@ These applications span the gamut from small models, such as \msix, with only 0.
 
 \niparagraph{Evaluation protocol.}
 %
-To compare simulator-driven methods and our data-driven method, we limit the number of feasible points (costly to evaluate) that can be used by any algorithm to equal amounts. 
-%
-We still provide infeasible points to any method and leave it up to the optimization method to use it or not.
-% 
+To compare simulator-driven methods and our data-driven method, we limit the number of feasible points (costly to evaluate) that can be used by any algorithm to equal amounts. We still provide infeasible points to any method and leave it up to the optimization method to use it or not.
 This ensures our comparisons are fair in terms of the amount of data available to each method.
-%
 However, it is worthwhile to note that in contrast to our method where \emph{worse-quality} data points from small offline dataset are used, the simulator-driven methods have an inherent advantage because they can steer the query process towards the points that are more likely to be better in terms of performance.
-%
-% it is crucially our method uses \emph{worse-quality} data from small offline dataset: we utilize the worst performing feasible points found via random sampling, while any simulator-driven method can freely steer querying any datapoint in the simulator.
-% have an inherent advantage over our method because they can steer towards points that are likely to be high quality.
-%
-Following prior work in data-driven design~\citep{brookes19a}, we evaluate each run of a method by first sampling the top $n=256$ design candidates according to the algorithm's predictions, evaluating all of these under the ground truth objective function and recording the performance of the best accelerator design.
-%
-The final reported results is the median of ground truth objective values across five independent runs.
-
+Following prior work in data-driven design~\citep{brookes19a}, we evaluate each run of a method by first sampling the top $n=256$ design candidates according to the algorithm's predictions, evaluating all of these under the ground truth objective function and recording the performance of the best accelerator design. The final reported results is the median of ground truth objective values across five independent runs.

@@ -19,7 +19,7 @@ where $\mathcal{D}_i$ consists of experience from task $i$. While algorithms can
 
 We assume that relabeling data $\mathcal{D}_j$ from task $j$ to task $i$ generates a dataset $\mathcal{D}_{j \rightarrow i}$, which is then additionally used to train on task $i$. Thus, the effective dataset for task $i$ after relabeling is given by $\mathcal{D}^\mathrm{eff}_i := \mathcal{D}_i \cup \left( \cup_{j \neq i} \mathcal{D}_{j \rightarrow i} \right)$. This notation simply formalizes data sharing and relabeling strategies explored in prior work~\citep{eysenbach2020rewriting,kalashnikov2021mt}. Our aim in this paper will be to improve on this na\"{i}ve strategy, which we will show leads to better results. 
 
-\textbf{Offline RL algorithms.} For our analysis in this chapter, we will abstract offline RL algorithms into a generic constrained policy optimization problem~\citep{kumar2020conservative}:
+\textbf{Offline RL algorithms.} For our analysis in this chapter, we will abstract conservative offline RL algorithms into a generic constrained policy optimization problem~\citep{kumar2020conservative}:
 \begin{equation}
 \label{eqn:generic_offline_rl}
     \pi^*(\mathbf{a}|\bs) := \arg \max_{\pi}~~ J_{\mathcal{D}}(\pi) - \alpha D(\pi, \pi_\beta).

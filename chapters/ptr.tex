@@ -49,7 +49,7 @@
 \vspace{-0.4cm}
 \begin{AIbox}{\large{\textbf{Abstract}}}
 \vspace{4mm}
-In this chapter, we will study the efficacy of offline RL in leveraging broad robotic datasets for attaining effective generalization in robotic learning.  Concretely, we ask: how can we leverage existing diverse offline datasets in combination with small amounts of task-specific data to solve new tasks, while still enjoying the generalization benefits of training on large amounts of data? In this paper, we demonstrate that utilizing the end-to-end offline RL techniques discussed in this dissertation can be an effective approach for doing this, without the need for any representation learning or vision-based pre-training. We present pre-training for robots (PTR), a framework based on offline RL that attempts to effectively learn new tasks by combining pre-training on existing robotic datasets with rapid fine-tuning on a new task, with as few as 10 demonstrations. PTR utilizes an existing offline RL method, conservative Q-learning (CQL), but extends it to include several crucial design decisions that enable PTR to actually work and outperform a variety of prior methods. To our knowledge, PTR is the first RL method that succeeds at learning new tasks in a new domain on a real WidowX robot with as few as 10 task demonstrations, by effectively leveraging an existing dataset of diverse multi-task robot data collected in a variety of toy kitchens. We also demonstrate that PTR can enable effective autonomous online fine-tuning and improvement in a handful of trials.
+In this chapter, we present an application of offline RL that leverages diverse robotic datasets to achieve effective generalization in robotic learning. Specifically, we aim to answer the question: How can we use existing diverse offline datasets along with small amounts of task-specific data to solve new tasks? We demonstrate that employing the end-to-end offline RL techniques discussed in earlier sections of this dissertation can be an effective approach to address this, without the need for any self-supervised representation learning or vision-based pre-training. Our offline RL approach, ``pre-training for robots'' (PTR), aims to efficiently learn new tasks by combining pre-training on existing robotic datasets with rapid fine-tuning on a new task, with as few as 10 demonstrations. PTR directly utilizes conservative Q-learning (CQL) from Chapter~\ref{chapter:cql}, but extends it with several crucial design decisions that enable PTR to outperform various prior methods. To the best of our knowledge, PTR represents the first RL method that successfully learns new tasks in a new domain on a real WidowX robot, with limited data, effectively leveraging an existing dataset of diverse multi-task robot data collected from various toy kitchens. Furthermore, we demonstrate that PTR enables effective autonomous online improvement in just a handful of trials.
 \vspace{2mm}
 \end{AIbox}
 
@@ -63,7 +63,7 @@ In this chapter, we will study the efficacy of offline RL in leveraging broad ro
 	
 %===============================================================================
 
-% \input{chapters/ptr/prelims}
+\input{chapters/ptr/prelims}
 
 \input{chapters/ptr/method}
 
@@ -71,10 +71,11 @@ In this chapter, we will study the efficacy of offline RL in leveraging broad ro
 
 \input{chapters/ptr/related}
 
-
+\vspace{-0.2cm}
 \section{Discussion and Limitations}
 \label{sec:conclusion}
+\vspace{-0.2cm}
 We presented a system that uses diverse prior data for general-purpose offline RL pre-training, followed by fine-tuning to downstream tasks. The prior data, sourced from a publicly available dataset, consists of over a hundred tasks across ten scenes and our policies can be fine-tuned with as few as 10 demonstrations. We show that this approach outperforms prior pre-training and fine-tuning methods based on imitation learning. One of the most exciting directions for future work is to further scale up this pre-training to provide a single policy initialization, that can be utilized as a starting point, similar to GPT3~\citep{brown2020language}. 
-An exciting future direction is to scale PTR up to more complex settings, including to novel robots. {Since joint training with offline RL was worse than pre-training and then fine-tuning with PTR, another exciting direction for future work is to understand the pros and cons of joint training and fine-tuning in the context of robot learning.}
+An exciting future direction is to scale PTR up to more complex settings, including to novel robots and incorporate training from diverse sources of robot video data. {Since joint training with offline RL was worse than pre-training and then fine-tuning with PTR, another exciting direction for future work is to understand the pros and cons of joint training and fine-tuning in the context of robot learning.}
 
 \end{document}

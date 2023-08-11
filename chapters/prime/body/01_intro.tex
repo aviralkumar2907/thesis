@@ -1,7 +1,9 @@
+\vspace{-0.2cm}
 \section{Introduction}
-\label{sec:intro}
+\label{sec:prime_intro}
+\vspace{-0.2cm}
 %% motivation, brief description of the problem statement
-The death of Moore's Law~\citep{esmaeilzadeh2011dark} and its spiraling effect on the semiconductor industry have driven the growth of specialized hardware accelerators. These specialized accelerators are tailored to specific applications~\citep{yazdanbakhsh2021apollo,reagen2017case,prac_dse:mascots:2019,shi2020learned}. To design specialized accelerators, akin to standard online RL, designers first spend considerable amounts of time developing simulators that closely model the real accelerator performance, and then optimize the accelerator using the simulator. While such simulators can automate accelerator design, this requires a large number of simulator queries for each new design, both in terms of simulation time and compute requirements, and this cost increases with the size of the design space~\citep{yazdanbakhsh2021evaluation,shi2020learned,hegdemind}.
+The death of Moore's Law~\citep{esmaeilzadeh2011dark} has driven the growth of specialized hardware accelerators. These specialized accelerators are tailored to specific applications~\citep{yazdanbakhsh2021apollo,reagen2017case,prac_dse:mascots:2019,shi2020learned}. To design specialized accelerators, akin to standard online RL, designers first spend considerable amounts of time developing simulators that closely model the real accelerator performance, and then optimize the accelerator using the simulator. While such simulators can automate accelerator design, this requires a large number of simulator queries for each new design, both in terms of simulation time and compute requirements, and this cost increases with the size of the design space~\citep{yazdanbakhsh2021evaluation,shi2020learned,hegdemind}.
 Moreover, most of the accelerators in the design space are typically infeasible~\citep{hegdemind,yazdanbakhsh2021apollo} because of build errors in silicon or compilation/mapping failures. 
 When the target applications change or a new application is added, the complete simulation-driven procedure is generally repeated.
 To make such approaches efficient and practically viable, designers typically ``bake-in'' constraints or otherwise narrow the search space, but such constraints can leave out high-performing solutions~\citep{dmazerunner,timeloop,marvel}.
@@ -13,7 +15,7 @@ using offline optimization methods to design accelerators has been challenging p
 
 %% The key idea of our method
 The key contribution of this chapter is \primemethodname\,, a conservative value-based approach to automatically architect high-performing application-specific accelerators by using only previously collected static data. Since the problem of accelerator design requires us to only select one action, and not a sequence of actions, we do not need to learn a complete value function. Instead, it suffices for \primemethodname\ to learn a conservative model of the one-step reward or objective function from the offline dataset (e.g., latency or power consumption of an accelerator).
-Then, \primemethodname\ finds high-performing application-specific accelerators by optimizing the architectural parameters against this learned conservative model, as shown in Figure~\ref{fig:overview}. Akin to the full sequential setting, while optimizing na\"ively trained
+Then, \primemethodname\ finds high-performing application-specific accelerators by optimizing the architectural parameters against this learned conservative model, as shown in Figure~\ref{fig:prime_overview}. Akin to the full sequential setting, while optimizing na\"ively trained
 \begin{figure}[t!]
     \centering
     \vspace{-0.1cm}
@@ -21,7 +23,7 @@ Then, \primemethodname\ finds high-performing application-specific accelerators 
     \vspace{-0.2cm}
     \caption{\footnotesize{\textbf{Overview of \primemethodname.} We use a one-time collected dataset of prior accelerator designs, including TPU-style~\citep{yazdanbakhsh2021evaluation}, NVDLA-style~\citep{nvdla}, and ShiDianNao-style~\citep{shidiannao} accelerators to train a conservative surrogate model, which is used to design accelerators to meet desired goals and constraints.}}
     \vspace{-0.4cm}
-    \label{fig:overview}
+    \label{fig:prime_overview}
 \end{figure}
 models of the objective function usually produces poor-performing, out-of-distribution designs that erroneously appear optimistic~\citep{kumar2019model,brookes19a,trabucco2021conservative},
 the conservative model in \primemethodname\ gives rise to good designs. Furthermore, in contrast to prior works that discard infeasible points~\citep{hegdemind,trabucco2021conservative}, our proposed method instead incorporates infeasible points when learning the conservative surrogate model by treating them as additional negative samples. During evaluation, \primemethodname\ optimizes the learned conservative model.

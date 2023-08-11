@@ -20,7 +20,7 @@
 
 In this section, we first analyze the efficacy of uncertainty estimation in existing model-based offline RL approaches. Specifically, we perform empirical evaluations to study whether uncertainty quantification with deep neural networks, especially in the setting of dynamics model learning, is challenging and could cause problems with uncertainty-based model-based offline RL methods such as MOReL~\citep{kidambi2020morel} and MOPO~\citep{yu2020mopo}. We pick tasks where the underlying model-based offline RL method is required to produce policies that need to go further away from the data distribution to obtain good performance. In our evaluations, we consider maximum learned variance over the ensemble (denoted as \textbf{Max Var}) $\max_{i=1,\dots,N}\|\Sigma^i_\theta(\bs, \mathbf{a})\|_\text{F}$ (used in MOPO).
 
-We consider two tasks \texttt{halfcheetah-jump} and \texttt{ant-angle} (more details about the task in Appendix ??). We normalize both the model prediction error and the uncertainty estimates to be within scale $[0, 1]$ and performs linear regression that learns the mapping between the uncertainty estimates and the true model error. As shown in Figure~\ref{fig:uq}, on both tasks, \textbf{Max Var} is unable to accurately predict the true model error, suggesting that uncertainty estimation used by offline model-based methods is not accurate and might be the major factor that results in its poor performance. On the other hand, our approach, COMBO, alleviates the need for accurate uncertainty quantification by viewing model-based offline RL from the lens of conservative value function learning.
+We consider two tasks \texttt{halfcheetah-jump} and \texttt{ant-angle} (more details about the task in Appendix~\ref{app:ood_details}). We normalize both the model prediction error and the uncertainty estimates to be within scale $[0, 1]$ and performs linear regression that learns the mapping between the uncertainty estimates and the true model error. As shown in Figure~\ref{fig:uq}, on both tasks, \textbf{Max Var} is unable to accurately predict the true model error, suggesting that uncertainty estimation used by offline model-based methods is not accurate and might be the major factor that results in its poor performance. On the other hand, our approach, COMBO, alleviates the need for accurate uncertainty quantification by viewing model-based offline RL from the lens of conservative value function learning.
 
 \vspace{-0.2cm}
 \subsection{Conservative Offline Model-Based Policy Optimization}
@@ -47,12 +47,12 @@ Similarly, $d_f$ is an $f-$interpolation between the offline dataset and rollout
 \[
 d_f^\mu (\bs, \mathbf{a}) := f \ d(\bs, \mathbf{a}) + (1-f) \ d^\mu_{\mdphat} (\bs, \mathbf{a}),
 \]
-where $f \in [0,1]$ is the ratio of the datapoints drawn from the offline dataset as defined in Section~\ref{sec:prelim_offline_mbrl} and $\mu(\cdot | \bs)$ is the rollout distribution used with the model, which can be modeled as $\policy$ or a uniform distribution. To avoid notation clutter, we also denote $d_f := d_f^\mu$.
+where $f \in [0,1]$ is the ratio of the datapoints drawn from the offline dataset as defined in Section~\ref{sec:combo_prelim} and $\mu(\cdot | \bs)$ is the rollout distribution used with the model, which can be modeled as $\policy$ or a uniform distribution. For brevity, we also denote $d_f := d_f^\mu$.
 
 Under such choices of $\rho$ and $d_f$, we push down Q-values on state-action tuples from model rollouts and push up Q-values on the real state-action pairs from the offline dataset. When updating Q-values with the Bellman backup, we use a mixture of both the model-generated data and the real data, similar to Dyna~\cite{sutton1991dyna}. 
 Note that in comparison to CQL and other model-free algorithms, COMBO learns the Q-function over a richer set of states beyond the states in the offline dataset. 
 This is made possible by performing rollouts under the learned dynamics model, denoted by $d^\mu_{\mdphat} (\bs, \mathbf{a})$.
-We will show in Section~\ref{sec:theory} that the Q function learned by repeating the recursion in Equation~\ref{eq:implicit_update} provides a lower bound on the true Q function, without the need for explicit uncertainty estimation. Furthermore, we will theoretically study the advantages of using synthetic data from the learned model, and characterize the impacts of model bias.
+We will show in Section~\ref{sec:combo_theory} that the Q function learned by repeating the recursion in Equation~\ref{eq:implicit_update} provides a lower bound on the true Q function, without the need for explicit uncertainty estimation. Furthermore, we will theoretically study the advantages of using synthetic data from the learned model, and characterize the impacts of model bias.
 
 \begin{algorithm}[t!]
 \begin{small}
@@ -83,18 +83,16 @@ where $\rho(\bs)$ is the state marginal of $\rho(\bs,\mathbf{a})$. When policies
 \subsection{Theoretical Analysis of COMBO}
 \label{sec:combo_theory}
 \vspace{-0.2cm}
-In this section, we theoretically analyze COMBO and show that, like CQL, it continues to optimize a lower-bound on the expected return of the learned policy. This lower bound is close to the actual policy performance (modulo sampling error) when the policy's state-action marginal distribution is in support of the state-action marginal of the behavior policy and conservatively estimates the performance of a policy otherwise. By optimizing the policy against this lower bound, COMBO guarantees policy improvement beyond the behavior policy. {Furthermore, we use these insights to discuss cases when COMBO is less conservative compared to model-free CQL}.
+In this section, we theoretically analyze a simplified variant of COMBO and show that, like CQL, it continues to optimize a lower-bound on the expected return of the learned policy. The specific simplification we consider is a Bellman backup operator that considers a mixture of the model-free and model-based Bellman backup operator, with a weight $f$. The lower bound for COMBO that we show is close to the actual policy performance (modulo sampling error) when the policy's state-action marginal distribution is in support of the state-action marginal of the behavior policy and conservatively estimates the performance of a policy otherwise. By optimizing the policy against this lower bound, COMBO guarantees policy improvement beyond the behavior policy. {Furthermore, we use these insights to discuss cases when COMBO is less conservative compared to CQL}.
 
 \vspace{-0.2cm}
 \subsubsection{COMBO Optimizes a Lower Bound}
 \label{sec:combo_lower_bound}
 \vspace{-0.2cm}
-We first show that training the Q-function using Equation~\ref{eq:implicit_update} produces a Q-function such that the expected off-policy policy improvement objective~\citep{degris2012off} 
-%%AK.1.30: define this in the section on prelims, rather than the expected return, the expected policy improvement objective is E_{s, a \sim d_f}[Q(s, a)], which we optimize in practice and cite a number of papers (silver2014dpg, lillicrap2015ddpg, degris2021offpac).
-computed using this learned Q-function lower-bounds its actual value. We will reuse notation for $d_f$ and $d$ from Section~\ref{sec:combo}. 
+We first show that training the Q-function using Equation~\ref{eq:implicit_update} produces a Q-function such that the expected off-policy policy improvement objective~\citep{degris2012off} computed using this learned Q-function lower-bounds its actual value. We will reuse notation for $d_f$ and $d$ from Section~\ref{sec:combo}. 
 % With a slight abuse of notation, we will assume that $d_f$ and $\data$ denote (empirical) distributions over the state-action space.
 %%TY.1.31: it's a bit unclear what D_f is. In Section 4, it is currently defined as the interpolation, but here it seems to refer to an arbitrary state-action distribution.
-Assuming that the Q-function is tabular, the Q-function found by approximate dynamic programming in iteration $k$, can be obtained by differentiating Equation~\ref{eq:implicit_update} with respect to $Q^k$ (see App.~\ref{app:proofs} for details):
+Assuming that the Q-function is tabular, the Q-function found by approximate dynamic programming in iteration $k$, can be obtained by differentiating Equation~\ref{eq:implicit_update} with respect to $Q^k$ (see App.~\ref{app:combo_proofs} for details):
 \begin{equation}
     \hat{Q}^{k+1}(\bs, \mathbf{a}) = (\widehat{\mathcal{B}}^\pi Q^k)(\bs, \mathbf{a}) - \beta \frac{\rho(\bs, \mathbf{a}) - d(\bs, \mathbf{a})}{d_f(\bs, \mathbf{a})}.
 \label{eqn:combo_iterate}
@@ -156,7 +154,7 @@ Furthermore, when $\epsilon_{\text{s}}$ is small, such as in the large sample re
 \end{theorem}
 %%SL.5.24: Could we explain a bit more intuitively what the significance of a small beta being sufficient is?
 
-The proof for Proposition~\ref{thm:lower_bound} can be found in Appendix~\ref{app:proof_lower_bound}.
+The proof for Theorem~\ref{thm:lower_bound} can be found in Appendix~\ref{app:proof_lower_bound}.
 % Corollary~\ref{thm:lower_bound} directly appeals to Proposition~\ref{thm:Q_bound} and Lemma~\ref{thm:line_thm}.
 % Proposition~\ref{thm:Q_bound} further implies that for large $\beta$,
 %%CF: I think you mean "for large beta" or "for non-zero beta" here?
@@ -189,7 +187,7 @@ COMBO's objective (Equation~\ref{eq:implicit_update}) only penalizes Q-values un
 \label{sec:policy_improvement_theory}
 \vspace{-0.2cm}
 
-Now that we have shown various aspects of the lower-bound on the Q-function induced by COMBO, we provide policy improvement guarantees for the COMBO algorithm. Formally, Proposition~\ref{thm:policy_improvement} discuss safe improvement guarantees over the behavior policy. building on prior work~\citep{petrik2016safe,laroche2019safe,kumar2020conservative}. 
+Now that we have shown various aspects of the lower-bound on the Q-function induced by COMBO, we provide policy improvement guarantees for the COMBO algorithm. As mentioned earlier, we consider a simplified variant for COMBO for this result, which utilizes a Bellman backup operator that interpolates between the model-based backup operator and model-free backup operator, with a weight equal to the fraction $f$. Formally, Proposition~\ref{thm:policy_improvement} discuss safe improvement guarantees over the behavior policy, building on prior work~\citep{laroche2017safe,kumar2020conservative}. 
 
 \begin{tcolorbox}[colback=blue!6!white,colframe=black,boxsep=0pt,top=3pt,bottom=5pt]
 \begin{theorem}[$\zeta$-safe policy improvement]

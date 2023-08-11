@@ -88,7 +88,7 @@ We found that in these initial experiments, $\tau=0.05$ performed significantly 
 \subsection{{{Results for Scaled QL Without Pessimism}}}
 \label{app:no_pessimism}
 \vspace{-0.2cm}
-{In Table~\ref{tab:ablation_no_pessimism}, we present the results of running scaled Q-learning with no conservatism, i.e., by setting the value of $\alpha$ in Equation~\ref{eqn:cql_training} to 0.0 in the six game setting. We utilize the entire DQN-replay dataset~\citep{agarwal2019optimistic} for each of these six games that would be present in the full 40-game dataset, to preserve the per-game dataset diversity.}
+{In Table~\ref{tab:ablation_no_pessimism}, we present the results of running scaled Q-learning with no conservatism, i.e., by setting the value of $\alpha$ in CQL training to 0.0 in the six game setting. We utilize the entire DQN-replay dataset~\citep{agarwal2019optimistic} for each of these six games that would be present in the full 40-game dataset, to preserve the per-game dataset diversity.}
 
 {Observe that while utilizing no conservatism does still learn, the performance of scaled QL without conservatism is notably worse than standard scaled QL. Interestingly, on \textsc{Asterix}, the performance without pessimism is better than performance with pessimism, whereas, the use of pessimism in \textsc{SpaceInvaders} and \textsc{Seaquest} leads to at least 2x improvement in performance.}
 
@@ -140,17 +140,16 @@ We found that in these initial experiments, $\tau=0.05$ performed significantly 
 \end{tabular}}
 \end{table}
 
-
-\section{Implementation Details and Hyper-parameters}
+\vspace{-0.2cm}
+\section{Implementation Details and Hyper-Parameters}
+\vspace{-0.2cm}
 
 In this section, we will describe some of the implementation details behind our method and will provide implementation details for our approach, including the details of the network architectures, the details of feature normalization and the details of our training and evaluation protocol.
 
 \subsection{Network Architecture}
 \label{sec:arch}
 
-In our primary experiments, we consider variants of ResNet architectures for scaled Q-Learning. The vision backbone in these architectures mimic the corresponding ResNet architectures from \citet{resnet}, however, we utilize group normalization~\citep{wu2018group} (with a group size of 4) instead of batch normalization, and instead of applying global mean pooling to aggregate the outputs of the ResNet, we utilize learned spatial embeddings~\citep{anonymous2021ptr}, that learn a matrix that point-wise multiplies the output feature map of the ResNet. The output volume is then flattened to be passed as input to the feed-forward part of the network.
-
-The feed-forward layer part of the network begins with a layer of size 2048, and then applies layer norm on the network. After this we apply 3 feed-forward layers with hidden dimension 1024 with ReLU activations, to obtain the representation of the image observation. 
+In our primary experiments, we consider variants of ResNet architectures for scaled Q-Learning. The vision backbone in these architectures mimic the corresponding ResNet architectures from \citet{resnet}, however, we utilize group normalization~\citep{wu2018group} (with a group size of 4) instead of batch normalization, and instead of applying global mean pooling to aggregate the outputs of the ResNet, we utilize learned spatial embeddings~\citep{kumar2022pre}, that learn a matrix that point-wise multiplies the output feature map of the ResNet. The output volume is then flattened to be passed as input to the feed-forward part of the network. The feed-forward layer part of the network begins with a layer of size 2048, and then applies layer norm on the network. After this we apply 3 feed-forward layers with hidden dimension 1024 and ReLU activations, to obtain the image representation 
 
 Then, we apply feature normalization to the representation, by applying a normalization layer which divides the representation of a given observation by its $\ell_2$ norm. Note that we do pass gradients through this normalization term. Now, this representation is passed into different heads that are supposed to predict the Q-values. 
 The total number of heads is equal to the number of games we train on. Each head consists of a linear layer that maps the 1024-dimensional normalized representation to a vector of $K$ elements, where $K = |\mathcal{A}|$ (i.e., the size of the action space) for the standard real-valued parameterization of Q-values, and $K = |\mathcal{A}| \times 51$ for C51. The network does not apply any output activation in either case, and the Q-values are treated as logits for C51.  
@@ -171,7 +170,7 @@ Since we utilize a larger batch size, that is 16 times larger than the standard 
 
 \begin{table*}[t]
 \small
-\caption{\textbf{Hyperparameters used by multi-game training.} Here we report the key hyperparameters used by the multi-game training. The differences from the standard single-game training setup are highlighted in red.} 
+\caption{\textbf{Hyperparameters used by multi-game training.} Here we report the key hyperparameters used by the multi-game training. The differences from standard single-game training are highlighted in red.} 
 \vspace{0.05cm}
 \centering
 \resizebox{0.8\textwidth}{!}{\begin{tabular}{lrr}
@@ -217,13 +216,13 @@ CQL regularizer weight $\alpha$ && 0.1 for MSE, 0.05 for C51\\
 
 
 \section{Raw Training Scores For Different Methods}
+\vspace{-0.2cm}
 
-
-\begin{table*}[h]
+\begin{table}[H]
 \caption{Raw scores on 40 training Atari games in the sub-optimal multi-task Atari dataset (51\% human-normalized IQM). Scaled QL uses the ResNet-101 architecture.}\label{tab:sub_opt}
-\vspace{0.2cm}
+\vspace{-0.2cm}
 \centering
-\resizebox{0.99\textwidth}{!}{\begin{tabular}{lrrrrrr}
+\resizebox{0.95\textwidth}{!}{\begin{tabular}{lrrrrrr}
 \toprule
 Game &  DT (200M) &  DT (40M) &  Scaled QL (80M) &  BC (80M) &  MT Impala-DQN* &    Human \\
 \midrule
@@ -269,14 +268,14 @@ YarsRevenge    &    11867.4 &   10436.8 &                11482.4 &   17755.5 &  
 Zaxxon         &      287.5 &     337.5 &                    1.4 &       0.0 &            -0.1 &   9173.3 \\
 \bottomrule
 \end{tabular}}
-\end{table*}
+\end{table}
 
 
-\begin{table*}[t]
+\begin{table}[t]
 \caption{Raw scores on 40 training Atari games in the near-optimal multi-task Atari dataset. Scaled QL uses the ResNet 101 architecture.}
-\vspace{0.2cm}
+\vspace{-0.2cm}
 \centering
-\resizebox{0.99\textwidth}{!}{\begin{tabular}{l@{}rrrrrr}
+\resizebox{0.95\textwidth}{!}{\begin{tabular}{l@{}rrrrrr}
 \toprule
 Game &  DT (200 M) &  DT (40M) &  BC (200M) &  MT Impala-DQN* &  Scaled QL (80M) &    Human \\
 \midrule
@@ -322,4 +321,4 @@ YarsRevenge    &     28897.9 &   25306.3 &    20738.9 &         18889.5 &       
 Zaxxon         &       275.0 &    4637.5 &       50.0 &            -0.1 &                2.1 &   9173.3 \\
 \bottomrule
 \end{tabular}}
-\end{table*}
+\end{table}

@@ -3,7 +3,7 @@
 \ssp
 \usepackage{subfiles}
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
-\usepackage[left=1in,right=1in,bottom=1.2in]{geometry}
+\usepackage[left=1in,right=1in,bottom=1.2in,footskip=.35in]{geometry}
 \usepackage[pagebackref=true,breaklinks=true,letterpaper=true,bookmarks=false]{hyperref}
 \usepackage[square,numbers]{natbib}   
 \usepackage{url}            % simple URL typesetting
@@ -45,6 +45,8 @@
 \endgroup
 }
 
+
+
 \algnewcommand{\Initialize}[1]{%
   \State \textbf{Initialize:}
   \Statex \parbox[t]{\linewidth}{\raggedright #1}
@@ -71,12 +73,18 @@
 \newcommand{\tab}{\hspace{5mm}}
 \newcommand{\blankpage}{\clearpage ~ \newpage}
 
+\newcommand{\changelocaltocdepth}[1]{%
+  \addtocontents{toc}{\protect\setcounter{tocdepth}{#1}}%
+  \setcounter{tocdepth}{#1}%
+}
+
+
 \include{defs}
 \include{chapters/uds/math_commands}
 
 
 % \usepackage{fancyhdr}
-\pagestyle{headings}
+% \pagestyle{fancy}
 % \lhead{}
 % \chead{}
 % % \rhead{}
@@ -88,7 +96,25 @@
 % \usepackage{fancyhdr}
 % \fancyhf{}
 % \fancyfoot[C]{\thepage}
-% \renewcommand{\headrulewidth}{0pt}  
+% \renewcommand{\headrulewidth}{0pt} 
+
+% \fancypagestyle{plain}{%
+% \fancyhead{}
+% \fancyfoot{}
+% \fancyfoot[R]{\thepage}}
+
+
+% \fancypagestyle{partpagestyle}{%
+%     \fancyhf{} % Clear header and footer
+%     \renewcommand{\headrulewidth}{0pt} % Remove header rule
+%     \fancyfoot[C]{\thepage} % Centered page number at footer
+% }
+
+
+\pagestyle{plain}
+% \fancyhf{}
+% \fancyhead[R]{\thepage}
+% \setcounter{page}{1} 
 
 % ========================================= DOCUMENT
 \begin{document}
@@ -122,8 +148,8 @@
 % You can have up to 5 members listed separately. 
 %After that, you throw them all into the "other members" category.
 \numberofmembers{4} 
-	\chair{Associate Professor Sergey Levine} 
-	\othermemberA{Assistant Professor Jiantao Jiao}
+	\chair{Professor Sergey Levine} 
+	\othermemberA{Professor Jiantao Jiao}
 	\othermemberB{Professor Emma Brunskill} 
 	\othermemberC{Professor Jennifer Listgarten} 
 	
@@ -144,7 +170,7 @@
 \copyrightpage
 \abstract
 	\input{chapters/abstract}
-	\abstractsignature
+	% \abstractsignature
 \endabstract
 
 \end{frontmatter}
@@ -183,7 +209,11 @@
 \chapter{Introduction}
 	\subfile{chapters/introduction}
 
+\thispagestyle{plain}
 \part{Problem Statement and Challenges}
+\thispagestyle{plain}
+
+
 % \newpage
 % \vspace*{\fill}
 % \Large{Part I: Problem Statement}
@@ -215,11 +245,11 @@
 \chapter{Offline RL With Large Models}~\label{chapter:scaling}
 	\subfile{chapters/scaling}
 
+\chapter{Offline RL with Multi-Task and Unlabeled Data}~\label{chapter:cds_uds}
+	\subfile{chapters/cds_uds} 
+
 \chapter{Online RL Fine-Tuning of Offline RL}~\label{chapter:calql}
 	\subfile{chapters/cal_ql}
-
-\chapter{Offline RL with Multi-Task and Unlabeled Data}~\label{chapter:cds_uds}
-	\subfile{chapters/cds_uds}
 
 \part{Applications of Offline RL}
 
@@ -241,9 +271,15 @@
 \chapter{Conclusion}
 	\subfile{chapters/conclusion}
 
+\ssp
+\bibliographystyle{plainnat}
+% \bibliographystyle{unsrt}
+\bibliography{references}
+	
 
 % % ------------------- OPTIONAL APPENDICES
 \part{Appendices}
+\changelocaltocdepth{0}
 
 \appendix
 
@@ -259,22 +295,17 @@
 \chapter{Appendix: Offline RL With Large Models}~\label{sec:appendix-large}
 \subfile{chapters/appendix_large}
 
-\chapter{Appendix: Online RL Fine-Tuning of Offline RL}~\label{sec:appendix-calql}
-\subfile{chapters/appendix_calql}
-
 \chapter{Appendix: Offline RL With Multi-Task and Unlabeled Data}~\label{sec:appendix-cds-uds}
 \subfile{chapters/appendix_cds_uds}
+
+\chapter{Appendix: Online RL Fine-Tuning of Offline RL}~\label{sec:appendix-calql}
+\subfile{chapters/appendix_calql}
 
 \chapter{Appendix: Real-Robot Pre-Training}~\label{sec:appendix-ptr}
 \subfile{chapters/appendix_ptr}
 
 \chapter{Appendix: Hardware Accelerator Design}~\label{sec:appendix-prime}
 \subfile{chapters/appendix_prime}
-
-\ssp
-\bibliographystyle{plainnat}
-% \bibliographystyle{unsrt}
-\bibliography{references}
 
 
 \end{dissertationText}

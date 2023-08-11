@@ -242,7 +242,7 @@
 %\hfill
 
 \vspace{40pt}
-{\bfseries {\@title} \par}
+{ {\@title} \par}
 
 \vspace{12pt}
 
@@ -375,7 +375,7 @@ University of California, {\@campus}
 \begin{center}
 \vspace*{\fill} 
 {\fmfont
-\textbf{\@title}\par
+\@title\par
 \vspace{1in}
 Copyright \copyright ~\@degreeyear\par
 \vspace{.1in}
@@ -791,7 +791,8 @@ Dissertation Committee Chair
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \def\part{\cleardoublepage   % Starts new page.
-   \thispagestyle{plain}%    % Page style of part page is 'plain'
+  %  \thispagestyle{plain}%    % Page style of part page is 'plain'
+   \thispagestyle{plain}
   \if@twocolumn              % IF two-column style
      \onecolumn              %  THEN \onecolumn
      \@tempswatrue           %       @tempswa := true
@@ -823,9 +824,10 @@ Dissertation Committee Chair
 % \@endpart finishes the part page
 %
 \def\@endpart{\vfil\newpage   % End page with 1fil glue.
+  \thispagestyle{plain}
    \if@twoside                % IF twoside printing
        \hbox{}%               %   THEN Produce totally blank page
-       \thispagestyle{empty}%
+       \thispagestyle{plain}%
        \newpage
    \fi                        % FI
    \if@tempswa                % IF @tempswa = true

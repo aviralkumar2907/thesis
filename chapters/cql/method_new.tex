@@ -1,5 +1,5 @@
 \vspace{-0.2cm}
-\subsection{The Conservative Value-Estimation Paradigm}
+\subsection{The Conservative Value Estimation Paradigm}
 \vspace{-0.2cm}
 
 In this section, we develop a conservative value-estimation paradigm, such that the expected value of a policy under the learned Q-function lower-bounds its true value. Lower-bounded Q-values prevent the over-estimation that is common in offline RL settings due to OOD actions and approximation error~\citep{kumar2019stabilizing}. We start with developing this paradigm in the context of model-free policy evaluation, which can be used by itself as an off-policy evaluation procedure, or integrated into a complete model-free offline RL algorithm, that we call conservative Q-learning (CQL), as we will discuss in Section~\ref{sec:framework}. Finally, we will extend this algorithm to the model-based setting in Section~\ref{sec:combo_section}.
@@ -13,7 +13,7 @@ We aim to estimate the value $V^\policy(\bs)$ of a target policy $\policy$ given
 
 \begin{equation}
     \small{\hat{Q}^{k+1} \leftarrow \arg\min_{Q}~ \alpha~ \E_{\bs \sim \mathcal{D}, \mathbf{a} \sim \mu(\mathbf{a}|\bs)}\left[Q(\bs, \mathbf{a})\right] + \frac{1}{2}~ \E_{\bs, \mathbf{a} \sim \mathcal{D}}\left[\left(Q(\bs, \mathbf{a}) - \hat{\bellman}^\policy \hat{Q}^{k} (\bs, \mathbf{a}) \right)^2 \right],} 
-    \label{eqn:objective_1}
+    \label{eqn:objective_1} 
 \end{equation}
 In Theorem~\ref{thm:min_q_underestimates}, we show that the resulting Q-function, $\hat{Q}^\policy \coloneqq \lim_{k \rightarrow \infty} \hat{Q}^k$, lower-bounds $Q^\policy$ at all $\bs \in \mathcal{D}, \mathbf{a} \in \mathcal{A}$. 
 However, we can substantially tighten this bound if we are \textit{only} interested in estimating  $V^\policy(\bs)$. If we only require that the expected value of the $\hat{Q}^\pi$ under $\policy(\mathbf{a}|\bs)$ lower-bound $V^\pi$, we can improve this by introducing an additional Q-value \textit{maximization} term on the data, $\behavior(\mathbf{a}|\bs)$, resulting in (changes from Eq.~\ref{eqn:objective_1} in red):

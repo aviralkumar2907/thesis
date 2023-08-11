@@ -2,7 +2,7 @@
 
 \vspace{-0.2cm}
 \subsection{Experimental Evaluation of \drmethodname}
-\label{sec:experiments}
+\label{sec:dr3_experiments}
 \vspace{-0.2cm}
 % The goal of our experiments is to verify the claim that value-based deep RL methods require explicit regularization, as well as to evaluate the efficacy of our practical approach, \drmethodname, in addressing regularization challenges.
 %%SL.10.2: I wonder if some readers might question whether our experiments really verify that it *requires* explicit regularization. We could say rather it aims to understand whether feature co-adaptation is a major issue empirically or something. But it actually doesn't look like the experiments do that at all, and only focus on DR3? In that case, we could simply say: Our experiments aim to evaluate the extent to which \drmethodname improves performance in offline RL in practice, as well as to study its effect on rank collapse and how it compares to the more costly but more accurate regularizer suggested by our theoretical analysis, which requires estimating $\Sigma_M^\star$. (or something along these lines)
@@ -429,7 +429,7 @@ As shown in Figure~\ref{fig:cog_figure}, combining \drmethodname\ with COG impro
 \fontsize{8}{8}\selectfont
     \centering
     \vspace{-0.2cm}
-    \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in Tables~\ref{tab:cql_dqn_1}-\ref{tab:rem_dqn_10}. \drmethodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
+    \caption{\footnotesize{IQM normalized average performance (training stability) across 17 games, with 95\% CIs in parenthesis, after 6.5M gradient steps for the 1\% setting and 12.5M gradient steps for the 5\%, 10\% settings. Individual performances reported in \citet{kumar2021dr3}. \drmethodname\ improves the stability over both CQL and REM.  }}%As recommended by \citet{agarwal2021precipice}, we report IQM with 95\% CIs.}
     \label{tab:cql_res}
     \vspace{-0.1cm}
 \begin{tabular}{lcccc}
