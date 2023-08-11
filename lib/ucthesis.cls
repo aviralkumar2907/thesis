@@ -792,7 +792,7 @@ Dissertation Committee Chair
 
 \def\part{\cleardoublepage   % Starts new page.
   %  \thispagestyle{plain}%    % Page style of part page is 'plain'
-   \thispagestyle{plain}
+   \thispagestyle{empty}
   \if@twocolumn              % IF two-column style
      \onecolumn              %  THEN \onecolumn
      \@tempswatrue           %       @tempswa := true
@@ -824,10 +824,10 @@ Dissertation Committee Chair
 % \@endpart finishes the part page
 %
 \def\@endpart{\vfil\newpage   % End page with 1fil glue.
-  \thispagestyle{plain}
+  \thispagestyle{empty}
    \if@twoside                % IF twoside printing
        \hbox{}%               %   THEN Produce totally blank page
-       \thispagestyle{plain}%
+      %  \thispagestyle{plain}%
        \newpage
    \fi                        % FI
    \if@tempswa                % IF @tempswa = true
@@ -1351,11 +1351,15 @@ Dissertation Committee Chair
 
 % Definition of 'plain' page style.
 %
+% \def\ps@plain{\let\@mkboth\markboth
+% \def\@oddfoot{}\def\@evenfoot{}       % no feet
+% \def\@oddhead{\hbox{}\hfil\rmfamily\thepage}    % heading (right)
+% \def\@evenhead{\rmfamily\thepage\hfil\hbox{}}}    % heading (left)
+
 \def\ps@plain{\let\@mkboth\markboth
 \def\@oddfoot{}\def\@evenfoot{}       % no feet
-\def\@oddhead{\hbox{}\hfil\rmfamily\thepage}    % heading (right)
-\def\@evenhead{\rmfamily\thepage\hfil\hbox{}}}    % heading (left)
-
+\def\@oddhead{\hbox{}\hfil\rm\thepage}    % heading (right)
+\def\@evenhead{\rm\thepage\hfil\hbox{}}}    % heading (left)
 
 
 %    ****************************************

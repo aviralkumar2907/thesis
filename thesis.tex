@@ -3,7 +3,7 @@
 \ssp
 \usepackage{subfiles}
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
-\usepackage[left=1in,right=1in,bottom=1.2in,footskip=.35in]{geometry}
+\usepackage[top=1.23in,left=1in,right=1in,bottom=1.3in,footskip=0.35in]{geometry}
 \usepackage[pagebackref=true,breaklinks=true,letterpaper=true,bookmarks=false]{hyperref}
 \usepackage[square,numbers]{natbib}   
 \usepackage{url}            % simple URL typesetting
@@ -35,6 +35,13 @@
 
 \usepackage[parfill]{parskip}
 \renewcommand{\epigraphsize}{\small}
+
+\makeatletter
+\titleformat{\part}[display]
+    {\normalfont\ct@altfont\centering\large}%
+    {\thispagestyle{plain}\partname~\MakeTextUppercase{\thepart}}{1em}%
+    {\color{CTtitle}\spacedallcaps}[\bigskip\normalfont\normalsize\color{Black}\begin{quote}\ctparttext@print\end{quote}]
+	\makeatother
 
 
 \let\svthefootnote\thefootnote
@@ -112,6 +119,7 @@
 
 
 \pagestyle{plain}
+
 % \fancyhf{}
 % \fancyhead[R]{\thepage}
 % \setcounter{page}{1} 
@@ -209,9 +217,9 @@
 \chapter{Introduction}
 	\subfile{chapters/introduction}
 
-\thispagestyle{plain}
+% \thispagestyle{plain}
 \part{Problem Statement and Challenges}
-\thispagestyle{plain}
+% \thispagestyle{plain}
 
 
 % \newpage

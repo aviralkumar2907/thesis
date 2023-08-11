@@ -28,13 +28,13 @@ We also study the efficacy of the multi-task initialization produced by scaled Q
 
 
 \begin{wrapfigure}{r}{0.5\linewidth}
-    \vspace{-0.5cm}
+    \vspace{-0.6cm}
     \centering
-    \includegraphics[width=0.95\linewidth]{chapters/scaled_ql/combnined_data_results_iqm.pdf}
+    \includegraphics[width=0.9\linewidth]{chapters/scaled_ql/combnined_data_results_iqm.pdf}
     \vspace{-0.25cm}
     \caption{\footnotesize{\textbf{Offline scaled conservative Q-learning vs other prior methods} with near-optimal data and sub-optimal data. Scaled QL outperforms the best DT model, attaining an IQM human-normalized score of \textbf{114.1\%} on the near-optimal data and \textbf{77.8\%} on the sub-optimal data, compared to 111.8\% and 30.6\% for DT, respectively.}}
     \label{fig:main_results}
-    \vspace{-0.5cm}
+    \vspace{-0.8cm}
 \end{wrapfigure}
 
 In the more challenging sub-optimal data setting, scaled QL attains a performance of \textbf{77.8\%} IQM human-normalized score, although trajectories in the sub-optimal training dataset only attain 51\% IQM human-normalized score. Scaled QL also outperforms the prior DT approach by \textbf{2.5 times} on this dataset, even though the DT model has more than twice as many parameters and uses data augmentation, compared to scaled QL. 
